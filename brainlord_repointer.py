@@ -206,7 +206,7 @@ def is_in_text_block(address):
 # TODO checking di validita dei file via checksum
 
 # apertura della rom ORIGINALE in LETTURA e senza limiti di buffer
-filepath = sys.argv[0]
+filepath = sys.argv[1]
 file = open(filepath, "rb+")
 size = os.path.getsize(filepath)
 # mappatura del file ORIGINALE in memoria
@@ -214,7 +214,7 @@ f = mmap.mmap(file.fileno(), size)
 file.close()
 
 # apertura della rom MODIFICATA in SCRITTURA e senza limiti di buffer
-filepath2 = sys.argv[1]
+filepath2 = sys.argv[2]
 file2 = open(filepath2, "ab+")
 size2 = os.path.getsize(filepath2)
 # mappatura del file MODIFICATO in memoria
