@@ -1,9 +1,8 @@
-"""
-brainlord_repointer
-last version: 2009-03-05 (0.45)
-changes: see _readme.txt
-author: roberto fontanarosa (robertofontanarosa@hotmail.com)
-"""
+__author__ = "Roberto Fontanarosa"
+__license__ = "GPL"
+__version__ = ""
+__maintainer__ = "Roberto Fontanarosa"
+__email__ = "robertofontanarosa@gmail.com"
 
 import sys
 
@@ -11,13 +10,13 @@ try:
 	from HexByteConversion import ByteToHex
 	from HexByteConversion import HexToByte
 except ImportError:
-	sys.exit('err')
+	sys.exit("missing HexByteConversion module!")
 	
 import os
 from os import SEEK_SET, SEEK_CUR, SEEK_END
 import mmap
 
-import pdb
+#import pdb
 
 # TODO check dell'header
 # TODO l'header e sempre di 100 bytes?
@@ -35,7 +34,7 @@ TEXT_BLOCK_START = 0x170000
 TEXT_BLOCK_END = 0x17fac9
 TEXT_BLOCK_LIMIT = 0x17ffff
 
-TEXT_BLOCK_SIZE = TEXT_BLOCK_END - TEXT_BLOCK_START
+TEXT_BLOCK_SIZE = (TEXT_BLOCK_END - TEXT_BLOCK_START) + 1
 TEXT_BLOCK_MAX_SIZE = TEXT_BLOCK_LIMIT - TEXT_BLOCK_START
 
 TEXT_POINTER1_BLOCK_START = 0xf9e

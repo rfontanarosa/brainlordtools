@@ -1,24 +1,29 @@
-"""
-brainlord_dumper
-last version:
-changes:
-author: roberto fontanarosa (robertofontanarosa@hotmail.com)
-"""
+__author__ = "Roberto Fontanarosa"
+__license__ = "GPL"
+__version__ = ""
+__maintainer__ = "Roberto Fontanarosa"
+__email__ = "robertofontanarosa@gmail.com"
 
-import mmap
+import sys
+
+try:
+	from HexByteConversion import ByteToHex
+	from HexByteConversion import HexToByte
+except ImportError:
+	sys.exit("missing HexByteConversion module!")
+
 import os
 from os import SEEK_SET, SEEK_CUR, SEEK_END
-import pdb
+import mmap
 
-
-from HexByteConversion import ByteToHex
-from HexByteConversion import HexToByte
-
-from brainlord_table import table, table_dte, table_newline, table_breakline, getKey
+from Table import Table
 
 def dec2hex(n):
 	"""return the hexadecimal string representation of integer n"""
-	return "%x" % n
+	if not n:
+		return None
+	else:
+		return "%x" % n
 	
 def hex2dec(s):
 	"""return the integer value of a hexadecimal string s"""
@@ -28,18 +33,16 @@ def byte2int(b):
 	"""  """
 	return ord(b)
 		
-	
 TEXT_BLOCK_START = 0x170000
 TEXT_BLOCK_END = 0x17fac9
 TEXT_BLOCK_LIMIT = 0x17ffff
-
-TEXT_BLOCK_SIZE = TEXT_BLOCK_END - TEXT_BLOCK_START
+TEXT_BLOCK_SIZE = (TEXT_BLOCK_END - TEXT_BLOCK_START) + 1
 TEXT_BLOCK_MAX_SIZE = TEXT_BLOCK_LIMIT - TEXT_BLOCK_START
 
-def extract(f, start, end):
-	""" extract the entire text block using the default settings for brainlord """
+def extract(f, start=TEXT_BLOCK_START, end=TEXT_BLOCK_END):
+	""" extract a block from a file creating a block """
 	f.seek(start)
-	return f.read(end - start)
+	return f.read(TEXT_BLOCK_SIZE)
 
 
 def dump2txt(text_extracted, table=None, filename='dump.txt', separated_byte_format=True):
@@ -48,7 +51,7 @@ def dump2txt(text_extracted, table=None, filename='dump.txt', separated_byte_for
 	if table:
 		for byte in text_extracted:
 			if table.get(byte2int(byte)):
-				if separated_byte_format and byte2int(byte) in table_dte:
+				if separated_byte_format and table.isDTE(byte2int(byte)):
 					out.write('{%s}' % table.get(byte2int(byte)))
 				else:
 					out.write(table.get(byte2int(byte)))
@@ -57,47 +60,59 @@ def dump2txt(text_extracted, table=None, filename='dump.txt', separated_byte_for
 	else:
 		out.write(text_extracted)
 	out.close()
-	return True
-	
+
+
 def txt2dump(table=None, filename='dump.txt', separated_byte_format=True):
 	"""  """
 	
+	dump = ""
+	
 	file = open(filename, 'rb+')
 	f = mmap.mmap(file.fileno(), os.path.getsize(filename))
-
 	if separated_byte_format:
 		while True:
 			byte = f.read(1)
+			
 			if not byte:
 				break
-			if byte == '{':
-				byte = ''
-				while True:
-					byte += f.read(1)
-					if '}' in byte:
-						break
-				print getKey(table, byte[0:len(byte)-1])
 				
-	file.close()
+			if byte == "{":
+				while "}" not in byte:
+					byte += f.read(1)
+					
+				if byte == "{END}":
+					f.read(2)
+					print table.table_newline
+					
+				else:
+					print dec2hex(table.find(byte[1:len(byte)-1]))
+					pass
+
+			elif byte == "<":
+				while ">" not in byte:
+					byte += f.read(1)
+				print dec2hex(table.find(byte))
+
+			else:
+				if byte == "\n":
+					print table.table_breakline
+				else:
+					print dec2hex(table.find(byte))
+
 	f.close()
+	file.close()
 
-	
-def value2key(dict, value):
-	"""  """
-	key = None
-	for item in dict.iteritems():
-		if value == item[1]:
-			key = item[0]
-	return key
-			
 
-file = open("Brain Lord (U) [!].smc", "rb+")
-size = os.path.getsize("Brain Lord (U) [!].smc")
+tablepath = sys.argv[2]
+table = Table(tablepath)
+
+filepath = sys.argv[1]
+file = open(filepath, "rb+")
+size = os.path.getsize(filepath)
 f = mmap.mmap(file.fileno(), size)
-file.close()
 text_extracted = extract(f, TEXT_BLOCK_START, TEXT_BLOCK_END)
 f.close()
-
+file.close()
 
 dump2txt(text_extracted, table=table, filename='dump.txt', separated_byte_format=True)
-txt2dump(table=table, filename='dump.txt', separated_byte_format=True)
+#txt2dump(table=table, filename='dump.txt', separated_byte_format=True)
