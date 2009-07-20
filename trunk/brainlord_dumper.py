@@ -25,8 +25,12 @@ def dec2hex(n):
 		hex = "%x" % n
 	return hex
 		
+def int2byte(n):
+	""" return a string value of a int value """
+	return chr(n)
+	
 def hex2dec(s):
-	"""return the integer value of a hexadecimal string s"""
+	""" return the integer value of a hexadecimal string s """
 	return int(s, 16)
 
 def byte2int(b):
@@ -45,7 +49,7 @@ def extract(f, start=TEXT_BLOCK_START, end=TEXT_BLOCK_END):
 	return f.read(TEXT_BLOCK_SIZE)
 
 
-def dump2txt(text_extracted, table=None, filename='dump.txt', separated_byte_format=True):
+def dump2txt(text_extracted, table=None, filename="dump.txt", separated_byte_format=True):
 	"""  """
 	out = open(filename, "w")
 	if table:
@@ -62,7 +66,7 @@ def dump2txt(text_extracted, table=None, filename='dump.txt', separated_byte_for
 	out.close()
 
 
-def txt2dump(table=None, filename='dump.txt', separated_byte_format=True):
+def txt2dump(table=None, filename="dump.txt", separated_byte_format=True):
 	"""  """
 	
 	dump = ""
@@ -82,20 +86,15 @@ def txt2dump(table=None, filename='dump.txt', separated_byte_format=True):
 					byte += f.read(1)
 				if byte == "{END}":
 					byte += f.read(2)
-					dump += dec2hex(table.find(byte))
+					dump += int2byte(table.find(byte))
 				else:
 					if dec2hex(table.find(byte[1:len(byte)-1])):
-						dump += str(table.find(byte[1:len(byte)-1]))
+						dump += int2byte(table.find(byte[1:len(byte)-1]))
 					else:
-						dump += byte[1:len(byte)-1]
-
-			elif byte == "<":
-				while ">" not in byte:
-					byte += f.read(1)
-				dump += dec2hex(table.find(byte))
+						dump += HexToByte(byte[1:len(byte)-1])
 
 			else:
-				dump += dec2hex(table.find(byte))
+				dump += int2byte(table.find(byte))
 
 	else:
 		pass
@@ -103,6 +102,7 @@ def txt2dump(table=None, filename='dump.txt', separated_byte_format=True):
 	f.close()
 
 	return dump
+
 
 tablepath = sys.argv[2]
 table = Table(tablepath)
@@ -115,11 +115,5 @@ text_extracted = extract(f, TEXT_BLOCK_START, TEXT_BLOCK_END)
 f.close()
 file.close()
 
-#dump2txt(text_extracted, table=table, filename='dump.txt', separated_byte_format=True)
+dump2txt(text_extracted, table=table, filename="dump.txt", separated_byte_format=True)
 dump = txt2dump(table=table, filename="dump.txt", separated_byte_format=True)
-
-"""
-file = open("a.txt", "w")
-file.write(dump)
-file.close()
-"""

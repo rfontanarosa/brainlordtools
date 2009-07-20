@@ -14,8 +14,8 @@ class Table():
 		
 		__name__ = "Table"
 		self._table = {}
-		self.table_newline = None
-		self.table_breakline = None
+		self._newline = None
+		self._breakline = None
 		
 		## tbl parser
 		f = open(filename, "r")
@@ -23,25 +23,22 @@ class Table():
 			if not line.startswith(Table.COMMENT_CHAR):
 			
 				if line.startswith(Table.NEWLINE_CHAR):
-					"""
-					if self._table_newline:
-						sys.exit('two new line found!')
-					"""
-					self.table_newline = line[1:len(line)]
+					if self._newline:
+						sys.exit('two newline found!')
+					self._newline = int(line[1:len(line)], 16)
 					self._table[int(line[1:len(line)], 16)] = "{END}\n\n"
 				if line.startswith(Table.BREAKLINE_CHAR):
-					"""
-					if self._table_breakline:
-						sys.exit('two break line found!')
-					"""
-					self.table_breakline = line[1:len(line)]
+					if self._breakline:
+						sys.exit('two breakline found!')
+					self._breakline = int(line[1:len(line)], 16)
 					self._table[int(line[1:len(line)], 16)] = "\n"
 		
 				pair = line.strip("\n").split("=")
+				
 				if len(pair[0]) == 2:
 					self._table[int(pair[0], 16)] = pair[1]
 				if len(pair[0]) > 2:
-					pass #mte
+					pass #mte?
 		f.close()
 
 	def __iter__(self):
@@ -71,17 +68,23 @@ class Table():
 	
 	def has_key(self, key):
 		return self.__contains__(key)
-			
+
 	def isDTE(self, key):
-		""" check if the element is a DTE """
+		""" check if the element is a DTE """	
 		if self.has_key(key):
-			if len(self.get(key)) == 2 and not '\n' in self.get(key):
+			if len(self.get(key)) >= 2 and not self.isNewline(key) and not self.isBreakline(key):
 				return True
 			else:
 				return False
 		else:
 			return None
 
+	def isNewline(self, key):
+		return self._newline == key
+
+	def isBreakline(self, key):
+		return self._breakline == key
+			
 	def find(self, value):
 		k = None
 		for key in self._table.keys():
