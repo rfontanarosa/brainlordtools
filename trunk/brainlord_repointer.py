@@ -49,9 +49,12 @@ FAERIES_POINTER_BLOCK_START = 0x18ea0
 FAERIES_POINTER_BLOCK_END = 0x18f9b
 
 def dec2hex(n):
-	"""return the hexadecimal string representation of integer n"""
-	return "%x" % n
-	
+	""" return the hexadecimal string representation of an integer """
+	hex = None
+	if type(n) == type(1):
+		hex = "%x" % n
+	return hex
+
 def hex2dec(s):
 	"""return the integer value of a hexadecimal string s"""
 	return int(s, 16) 
