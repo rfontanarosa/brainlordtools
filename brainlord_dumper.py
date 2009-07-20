@@ -19,15 +19,15 @@ import mmap
 from Table import Table
 
 def dec2hex(n):
-	"""return the hexadecimal string representation of integer n"""
-	if not n:
-		return None
-	else:
-		return "%x" % n
-	
+	""" return the hexadecimal string representation of an integer """
+	hex = None
+	if type(n) == type(1):
+		hex = "%x" % n
+	return hex
+		
 def hex2dec(s):
 	"""return the integer value of a hexadecimal string s"""
-	return int(s, 16) 
+	return int(s, 16)
 
 def byte2int(b):
 	"""  """
@@ -47,16 +47,16 @@ def extract(f, start=TEXT_BLOCK_START, end=TEXT_BLOCK_END):
 
 def dump2txt(text_extracted, table=None, filename='dump.txt', separated_byte_format=True):
 	"""  """
-	out = open(filename, 'w')
+	out = open(filename, "w")
 	if table:
 		for byte in text_extracted:
 			if table.get(byte2int(byte)):
 				if separated_byte_format and table.isDTE(byte2int(byte)):
-					out.write('{%s}' % table.get(byte2int(byte)))
+					out.write("{%s}" % table.get(byte2int(byte)))
 				else:
 					out.write(table.get(byte2int(byte)))
 			else:
-				out.write('{%s}' % ByteToHex(byte))
+				out.write("{%s}" % ByteToHex(byte))
 	else:
 		out.write(text_extracted)
 	out.close()
@@ -67,41 +67,42 @@ def txt2dump(table=None, filename='dump.txt', separated_byte_format=True):
 	
 	dump = ""
 	
-	file = open(filename, 'rb+')
-	f = mmap.mmap(file.fileno(), os.path.getsize(filename))
+	f = open(filename, "r")
+	
 	if separated_byte_format:
 		while True:
+		
 			byte = f.read(1)
 			
 			if not byte:
 				break
-				
+			
 			if byte == "{":
 				while "}" not in byte:
 					byte += f.read(1)
-					
 				if byte == "{END}":
-					f.read(2)
-					print table.table_newline
-					
+					byte += f.read(2)
+					dump += dec2hex(table.find(byte))
 				else:
-					print dec2hex(table.find(byte[1:len(byte)-1]))
-					pass
+					if dec2hex(table.find(byte[1:len(byte)-1])):
+						dump += str(table.find(byte[1:len(byte)-1]))
+					else:
+						dump += byte[1:len(byte)-1]
 
 			elif byte == "<":
 				while ">" not in byte:
 					byte += f.read(1)
-				print dec2hex(table.find(byte))
+				dump += dec2hex(table.find(byte))
 
 			else:
-				if byte == "\n":
-					print table.table_breakline
-				else:
-					print dec2hex(table.find(byte))
+				dump += dec2hex(table.find(byte))
 
+	else:
+		pass
+			
 	f.close()
-	file.close()
 
+	return dump
 
 tablepath = sys.argv[2]
 table = Table(tablepath)
@@ -114,5 +115,11 @@ text_extracted = extract(f, TEXT_BLOCK_START, TEXT_BLOCK_END)
 f.close()
 file.close()
 
-dump2txt(text_extracted, table=table, filename='dump.txt', separated_byte_format=True)
-#txt2dump(table=table, filename='dump.txt', separated_byte_format=True)
+#dump2txt(text_extracted, table=table, filename='dump.txt', separated_byte_format=True)
+dump = txt2dump(table=table, filename="dump.txt", separated_byte_format=True)
+
+"""
+file = open("a.txt", "w")
+file.write(dump)
+file.close()
+"""
