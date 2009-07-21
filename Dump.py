@@ -4,6 +4,8 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
+from os import SEEK_SET, SEEK_CUR, SEEK_END
+
 try:
 	from HexByteConversion import ByteToHex
 	from HexByteConversion import HexToByte
@@ -15,10 +17,27 @@ from utils import dec2hex, hex2dec, int2byte, byte2int
 class Dump():
 	
 	@staticmethod
-	def extract(f, start, end):
-		""" extract a block from a file creating a block """
+	#todo anche end deve essere None
+	def extract(f, end, start=SEEK_SET, previous_seek=None):
+		""" extract a block extracted from a file """
+		if start > end:
+			raise Exception, "start address must be > to end address"
 		f.seek(start)
+		
+		if previous_seek:
+			f.seek(previous_seek)
+		
 		return f.read((end - start)+1)
+		
+			
+	@staticmethod
+	def insert(f, dump, end, start=SEEK_SET):
+		""" insert a block inside a file """
+		if len(dump) > (end - start):
+			raise Exception, "the block is too large and it can't be inserted!"
+		else:
+			f.seek(start)
+			f.write(dump)
 		
 	def __init__(self, dump=""):
 		self._dump = dump
