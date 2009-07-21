@@ -5,16 +5,17 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import sys
+import os
+from os import SEEK_SET, SEEK_CUR, SEEK_END
+import mmap
 
 try:
 	from HexByteConversion import ByteToHex
 	from HexByteConversion import HexToByte
 except ImportError:
 	sys.exit("missing HexByteConversion module!")
-	
-import os
-from os import SEEK_SET, SEEK_CUR, SEEK_END
-import mmap
+
+from utils import dec2hex, hex2dec, int2byte, readed_to_int, to_little_endian, to_big_endian
 
 #import pdb
 
@@ -48,37 +49,6 @@ TEXT_POINTER2_BLOCK_END = 0x55567
 FAERIES_POINTER_BLOCK_START = 0x18ea0
 FAERIES_POINTER_BLOCK_END = 0x18f9b
 
-def dec2hex(n):
-	""" return the hexadecimal string representation of an integer """
-	hex = None
-	if type(n) == type(1):
-		hex = "%x" % n
-	return hex
-
-def hex2dec(s):
-	"""return the integer value of a hexadecimal string s"""
-	return int(s, 16) 
-
-def int2byte(n):
-	"""return a string value of a int value"""
-	return chr(n)
-	
-def readed_to_int(readed):
-	"""  """
-	integer = 0
-	for x in readed:
-		integer = (integer << 8) | ord(x)
-	return integer
-
-def to_little_endian(p):
-	"""  """
-	pointer = p[4:6] + p[2:4] + 'd7'
-	return pointer
-	
-def to_big_endian(p):
-	"""  """
-	pointer = 'd7' + p[2:4] + p[0:2]
-	return pointer
 
 def pointer_finder(f, pointer_to_find, start=SEEK_SET, previous_seek=None, in_range=True):
 	"""  """
