@@ -4,7 +4,9 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
+import os
 from os import SEEK_SET, SEEK_CUR, SEEK_END
+import mmap
 
 from Pointer import Pointer
 from utils import byte2int, to_little_endian, dec2hex
@@ -27,8 +29,10 @@ class PointersTable():
 					f.seek(f.tell())
 				else:
 					f.seek(f.tell()-1)
+					
 				offset = dec2hex(f.tell())
 				pointer = Pointer(to_little_endian(offset))
+				
 				self._pointers_table.append(pointer)
 		if previous_seek:
 			f.seek(previous_seek)
@@ -41,19 +45,18 @@ class PointersTable():
 		for pointer in self._pointers_table:
 			string += str(pointer) + "\n"
 		return string
-		
-	def toTxt(self):
-		f = open("pointers_table.txt", "w")
+
+	def resolvePointers(self, f, start=SEEK_SET, previous_seek=None, in_range=True):
+		"""  """
 		for pointer in self._pointers_table:
-			f.write(str(pointer) + "\n")
+			pointer.find(f, start, previous_seek, in_range)
+				
+	def toTxt(self, filename="pointers_table.txt"):
+		f = open(filename, "w")
+		for pointer in self._pointers_table:
+			f.write(str(pointer))
+			found = pointer.getFound()
+			for address in found:
+				f.write("\t" + str(address))
+			f.write("\n")
 		f.close()
-
-
-
-
-f = open("Brain Lord (U) [!].smc", "rb+")
-pointers_table = PointersTable(f, TEXT_BLOCK_START)
-f.close()
-print "puntatori trovati: ", len(pointers_table)
-pointers_table.toTxt()
-print pointers_table
