@@ -46,6 +46,8 @@ class Dump():
 		return len(self._dump)
 		
 	def __cmp__ (self, dump):
+		if not isinstance(dump, Dump):
+           raise TypeError, 'Illegal argument type for built-in operation'
 		return self._dump == dump.getDump()
 		
 	def getDump(self):

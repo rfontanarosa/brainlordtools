@@ -22,3 +22,18 @@ TEXT_POINTER2_BLOCK_END = 0x55567
 #FAERIES_POINTER_START_BYTE = 0x01
 FAERIES_POINTER_BLOCK_START = 0x18ea0
 FAERIES_POINTER_BLOCK_END = 0x18f9b
+
+def is_valid_address(address):
+	"""  """
+	return (TEXT_POINTER1_BLOCK_END >= address >= TEXT_POINTER1_BLOCK_START) \
+			or (TEXT_POINTER2_BLOCK_END >= address >= TEXT_POINTER2_BLOCK_START) \
+			or (FAERIES_POINTER_BLOCK_END >= address >= FAERIES_POINTER_BLOCK_START) \
+			or (TEXT_BLOCK_END >= address >= TEXT_BLOCK_START)
+			
+def is_shop_pointer(address):
+	"""  """
+	return (0x25000 >= address >= 0x23000)
+			
+def is_in_text_block(address):
+	"""  """
+	return (TEXT_BLOCK_END >= address >= TEXT_BLOCK_START)
