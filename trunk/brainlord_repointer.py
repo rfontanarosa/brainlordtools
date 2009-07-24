@@ -15,7 +15,7 @@ try:
 except ImportError:
 	sys.exit("missing HexByteConversion module!")
 
-from utils import dec2hex, hex2dec, int2byte, readed_to_int, to_little_endian, to_big_endian
+from utils import dec2hex, hex2dec, byte2int, int2byte, to_little_endian, to_big_endian
 
 #import pdb
 
@@ -89,9 +89,9 @@ def get_pointers(f, start=SEEK_SET, previous_seek=None):
 		byte = f.read(1)
 		if not byte:
 			break
-		if int(0xf7) == readed_to_int(byte):
+		if 0xf7 == byte2int(byte):
 			byte = f.read(1)
-			if int(0xf7) == readed_to_int(byte): # is correct?
+			if 0xf7 == byte2int(byte):
 				f.seek(f.tell())
 				pointer = dec2hex(f.tell())
 				pointers.append(to_little_endian(pointer))
@@ -237,11 +237,11 @@ if len(o_pointers)==len(m_pointers):
 			## start - shop repointer 1
 			if pointers_table[o_pointer]==[]:	# if any address was found for a pointer...
 				pointers_not_found_counter += 1
-				adresses = pointer_finder(f, 'a9' + o_pointer[0:4], in_range=False)
+				adresses = pointer_finder(f, "a9" + o_pointer[0:4], in_range=False)
 				if adresses:
 					pointers_not_found_counter -= 1
 				#print 'a9' + o_pointer[0:4] + ' - ' + str(h2)
-				shop_pointers['a9' + m_pointer[0:4]] = adresses
+				shop_pointers["a9" + m_pointer[0:4]] = adresses
 			## end shop repointer 1
 		
 			## start - text repointer process
