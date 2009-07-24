@@ -4,6 +4,7 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
+import sys
 import os
 import mmap
 
@@ -81,12 +82,11 @@ def brainlord_repointer(f, filename2):
 			
 			#
 			if pointer.getFound():
-			
 				## text_repointer
 				for address in pointer.getFound():
 					if is_valid_address(address):
 						if is_in_text_block(address):
-							new_pointer = Pointer(str(pointer))
+							new_pointer = Pointer(str(pointer))			
 							new_pointer.find(f2, start=TEXT_BLOCK_START)
 							if new_pointer.getFound():
 								for new_address in new_pointer.getFound():
@@ -112,3 +112,6 @@ def brainlord_repointer(f, filename2):
 				
 		file2.close()
 		f2.close()
+	
+	else:
+		sys.exit('DRAMATIC ERROR! array of original pointers is not alligned with the array of modified pointers')		
