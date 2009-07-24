@@ -38,6 +38,8 @@ class Dump():
 		else:
 			f.seek(start)
 			f.write(dump)
+		while(f.tell() < end):
+			f.write("0")
 		
 	def __init__(self, dump=""):
 		self._dump = dump
@@ -47,7 +49,7 @@ class Dump():
 		
 	def __cmp__ (self, dump):
 		if not isinstance(dump, Dump):
-           raise TypeError, 'Illegal argument type for built-in operation'
+			raise TypeError, "Illegal argument type for built-in operation"
 		return self._dump == dump.getDump()
 		
 	def getDump(self):
@@ -71,7 +73,7 @@ class Dump():
 						byte += f.read(2)
 						self._dump += int2byte(table.find(byte))
 					else:
-						if dec2hex(table.find(byte[1:len(byte)-1])):
+						if table.find(byte[1:len(byte)-1]):
 							self._dump += int2byte(table.find(byte[1:len(byte)-1]))
 						else:
 							self._dump += HexToByte(byte[1:len(byte)-1])
