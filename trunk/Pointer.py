@@ -54,10 +54,10 @@ class Pointer():
 			return [x**2 for x in range(index.start, index.stop, index.step)]
 		else:
 			return index**2
-
+		
     def setFound(self, addresses):
-        if isinstance(index, list):
-			self._adresses = adresses
+        if isinstance(addresses, list):
+			self._addresses = addresses
 			return True
         else:
             return False

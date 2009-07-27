@@ -78,7 +78,9 @@ def brainlord_repointer(f, filename2):
 				## shop_repointer - create, found and add a shop pointer in shop_pointer table
 				shop_pointer = Pointer("a9" + str(pointer)[0:4:1])
 				shop_pointer.find(f, in_range=False)
-				shop_pointers_table.add(shop_pointer)
+				new_shop_pointer = Pointer("a9" + str(pointer2)[0:4:1])
+				new_shop_pointer.setFound(shop_pointer.getFound())
+				shop_pointers_table.add(new_shop_pointer)
 			
 			#
 			if pointer.getFound():
@@ -109,6 +111,8 @@ def brainlord_repointer(f, filename2):
 						pass
 			else:
 				pass
+	
+		#shop_pointers_table.toTxt(filename="shop_pointers.txt")
 				
 		file2.close()
 		f2.close()
