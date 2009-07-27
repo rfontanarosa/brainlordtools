@@ -1,11 +1,14 @@
-;clomax 2008-09-01
-
 /F7
 *F9
 
-;f60d=[shop1]
+;f6=[SHOP]
+;f61f=[arcs tool shop1]
+;f620=[toronto tool shop]
+
+;fc5d00=?
+
 ;f615=[weapon1]
-;f620=[shop2]
+
 ;f629=[agent1]
 
 00=0
