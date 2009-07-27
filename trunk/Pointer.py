@@ -34,9 +34,6 @@ try:
 except ImportError:
 	sys.exit("missing HexByteConversion module!")
 
-import os
-from os import SEEK_SET, SEEK_CUR, SEEK_END
-
 class Pointer():
 
     def __init__(self, pointer):
@@ -65,7 +62,7 @@ class Pointer():
     def getFound(self):
         return self._addresses
 
-    def find(self, f, start=SEEK_SET, in_range=True, previous_seek=None):
+    def find(self, f, start=0, in_range=True, previous_seek=None):
     	# move file handler to star position
         f.seek(start)
     	while True:
