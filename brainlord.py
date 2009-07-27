@@ -25,6 +25,9 @@ TEXT_BLOCK_LIMIT = 0x17ffff
 TEXT_BLOCK_SIZE = (TEXT_BLOCK_END - TEXT_BLOCK_START) + 1
 TEXT_BLOCK_MAX_SIZE = TEXT_BLOCK_LIMIT - TEXT_BLOCK_START
 
+TEXT_BLOCK2_START = 0x66618
+TEXT_BLOCK2_END = 0x67100
+
 TEXT_POINTER1_BLOCK_START = 0xf9e
 TEXT_POINTER1_BLOCK_END = 0xfef
 
@@ -36,6 +39,8 @@ TEXT_POINTER2_BLOCK_END = 0x55567
 FAERIES_POINTER_BLOCK_START = 0x18ea0
 FAERIES_POINTER_BLOCK_END = 0x18f9b
 
+SHOP_POINTER_BLOCK_START = 0x23000
+SHOP_POINTER_BLOCK_END = 0x25000
 
 def is_valid_address(address):
 	"""  """
@@ -44,24 +49,17 @@ def is_valid_address(address):
 			or (FAERIES_POINTER_BLOCK_END >= address >= FAERIES_POINTER_BLOCK_START) \
 			or (TEXT_BLOCK_END >= address >= TEXT_BLOCK_START)
 
-
 def is_shop_pointer(address):
 	"""  """
-	return (0x25000 >= address >= 0x23000)
-
+	return address in range(SHOP_POINTER_BLOCK_START, SHOP_POINTER_BLOCK_END)
 
 def is_in_text_block(address):
 	"""  """
-	return (TEXT_BLOCK_END >= address >= TEXT_BLOCK_START)
+	return address in range(TEXT_BLOCK_START, TEXT_BLOCK_END)
 
-
-def brainlord_repointer(f, filename2):
+def brainlord_repointer(f, f2):
 	"""  """
 
-	file2 = open(filename2, "ab+")
-	size2 = os.path.getsize(filename2)
-	f2 = mmap.mmap(file2.fileno(), size2)
-	
 	pointers_table = PointersTable(file=f, start=TEXT_BLOCK_START)
 	pointers_table.resolvePointers(f)
 	pointers_table.toTxt(filename="pointers_table.txt")
@@ -111,11 +109,8 @@ def brainlord_repointer(f, filename2):
 						pass
 			else:
 				pass
-	
-		#shop_pointers_table.toTxt(filename="shop_pointers.txt")
-				
-		file2.close()
-		f2.close()
-	
+
+		shop_pointers_table.toTxt(filename="shop_pointers.txt")
+
 	else:
 		sys.exit('DRAMATIC ERROR! array of original pointers is not alligned with the array of modified pointers')		
