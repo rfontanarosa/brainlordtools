@@ -70,7 +70,7 @@ class Table():
 	def isDTE(self, key):
 		""" check if the element is a DTE """	
 		if self.has_key(key):
-			return len(self.get(key)) >= 2 and not self.isNewline(key) and not self.isBreakline(key):
+			return len(self.get(key)) >= 2 and not self.isNewline(key) and not self.isBreakline(key)
 		else:
 			return None
 
