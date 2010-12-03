@@ -19,20 +19,19 @@ class Dump():
 	def extract(f, end, start=0, previous_seek=None):
 		""" extract a block extracted from a file """
 		if start > end:
-			raise Exception, "start address must be > to end address"
+			raise Exception, "Start address must be lower than end address!"
 		f.seek(start)
 		
 		if previous_seek:
 			f.seek(previous_seek)
 		
 		return f.read((end - start)+1)
-		
-			
+
 	@staticmethod
 	def insert(f, dump, end, start=0):
 		""" insert a block inside a file """
 		if len(dump) > (end - start):
-			raise Exception, "the block is too large and it can't be inserted!"
+			raise Exception, "Dump size is too large and it can't be inserted!"
 		else:
 			f.seek(start)
 			f.write(dump)
@@ -47,53 +46,59 @@ class Dump():
 		
 	def __cmp__ (self, dump):
 		if not isinstance(dump, Dump):
-			raise TypeError, "Illegal argument type for built-in operation"
+			raise TypeError, "Illegal argument type for built-in operation!"
 		return self._dump == dump.getDump()
 		
 	def getDump(self):
 		return self._dump
 		
-	def fromTxt(self, table=None, filename="dump.txt", separated_byte_format=True):
-		f = open(filename, "r")
-		
-		if separated_byte_format:
-			while True:
-			
-				byte = f.read(1)
-				
-				if not byte:
-					break
-				
-				if byte == "{":
-					while "}" not in byte:
-						byte += f.read(1)
-					if byte == "{END}":
-						byte += f.read(2)
-						self._dump += int2byte(table.find(byte))
-					else:
-						if table.find(byte[1:len(byte)-1]):
-							self._dump += int2byte(table.find(byte[1:len(byte)-1]))
+	def fromTxt(self, table=None, filename="dump2.txt", separated_byte_format=True):
+		"""  """
+		with open(filename, "rb") as f:
+			if table:
+				if separated_byte_format:
+					while True:
+						byte = f.read(1)
+						if not byte:
+							break
+						if byte == '\n':
+							self._dump += int2byte(table.getBreakline())
+							#print table.getBreakline()				
+						if byte == "{":
+							while "}" not in byte:
+								byte += f.read(1)
+							if byte == "{END}":
+								f.read(4)
+								self._dump += int2byte(table.getNewline())
+							else:
+								if table.find(byte[1:len(byte)-1]):
+									self._dump += int2byte(table.find(byte[1:len(byte)-1]))
+								else:
+									self._dump += HexToByte(byte[1:len(byte)-1])
 						else:
-							self._dump += HexToByte(byte[1:len(byte)-1])
+							found = table.find(byte)
+							if found:
+								self._dump += int2byte(found)
+							else:
+								self._dump += byte
 				else:
-					self._dump += int2byte(table.find(byte))
-					
-		else:
-			pass
-		f.close()
+					#todo
+					pass
+			else:
+				#todo
+				pass
 
 	def toTxt(self, table=None, filename="dump.txt", separated_byte_format=True):
 		"""  """
-		out = open(filename, "w")
-		if table:
-			for byte in self._dump:
-				if table.get(byte2int(byte)):
-					if separated_byte_format and table.isDTE(byte2int(byte)):
-						out.write("{%s}" % table.get(byte2int(byte)))
+		with open(filename, "w") as f:
+			if table:
+				for byte in self._dump:
+					if table.get(byte2int(byte)):
+						if separated_byte_format and table.isDTE(byte2int(byte)):
+							f.write("{%s}" % table.get(byte2int(byte)))
+						else:
+							f.write(table.get(byte2int(byte)))
 					else:
-						out.write(table.get(byte2int(byte)))
-				else:
-					out.write("{%s}" % ByteToHex(byte))
-		else:
-			out.write(text_extracted)
-		out.close()
+						f.write("{%s}" % ByteToHex(byte))
+			else:
+				f.write(self._dump)
