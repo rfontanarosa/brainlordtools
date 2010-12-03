@@ -77,9 +77,15 @@ class Table():
 	def isNewline(self, key):
 		return self._newline == key
 
+	def getNewline(self):
+		return self._newline
+
 	def isBreakline(self, key):
 		return self._breakline == key
-			
+
+	def getBreakline(self):
+		return self._breakline
+
 	def find(self, value):
 		k = None
 		for key in self._table.keys():
