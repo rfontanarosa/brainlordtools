@@ -30,13 +30,15 @@ class Dump():
 	@staticmethod
 	def insert(f, dump, end, start=0):
 		""" insert a block inside a file """
-		if len(dump) > (end - start):
+		if len(dump) > ((end - start)+1):
 			raise Exception, "Dump size is too large and it can't be inserted!"
 		else:
 			f.seek(start)
 			f.write(dump)
+		"""
 		while(f.tell() < end):
 			f.write("0")
+		"""
 		
 	def __init__(self, dump=""):
 		self._dump = dump
@@ -56,19 +58,19 @@ class Dump():
 		"""  """
 		with open(filename, "rb") as f:
 			if table:
+				#print separated_byte_format
 				if separated_byte_format:
 					while True:
 						byte = f.read(1)
 						if not byte:
 							break
-						if byte == '\n':
-							self._dump += int2byte(table.getBreakline())
-							#print table.getBreakline()				
-						if byte == "{":
+						if byte == "\n":
+							self._dump += int2byte(table.getBreakline())			
+						elif byte == "{":
 							while "}" not in byte:
 								byte += f.read(1)
 							if byte == "{END}":
-								f.read(4)
+								f.read(2)
 								self._dump += int2byte(table.getNewline())
 							else:
 								if table.find(byte[1:len(byte)-1]):
@@ -82,15 +84,22 @@ class Dump():
 							else:
 								self._dump += byte
 				else:
-					#todo
-					pass
+					while True:
+						byte = f.read(1)
+						found = table.find(byte)
+						if found:
+							self._dump += int2byte(found)
+						else:
+							self._dump += byte
+						if not byte:
+							break
 			else:
 				#todo
 				pass
 
 	def toTxt(self, table=None, filename="dump.txt", separated_byte_format=True):
 		"""  """
-		with open(filename, "w") as f:
+		with open(filename, "wb") as f:
 			if table:
 				for byte in self._dump:
 					if table.get(byte2int(byte)):
