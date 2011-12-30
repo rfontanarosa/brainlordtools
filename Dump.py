@@ -1,8 +1,11 @@
 __author__ = "Roberto Fontanarosa"
-__license__ = "GPL"
-__version__ = ""
+__license__ = "GPLv2"
+__version__ = "r20"
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
+
+import sys
+import mmap
 
 try:
 	from HexByteConversion import ByteToHex
@@ -10,104 +13,145 @@ try:
 except ImportError:
 	sys.exit("missing HexByteConversion module!")
 
-from utils import dec2hex, hex2dec, int2byte, byte2int
+from utils import *
+
+from xml.dom.minidom import Document
 
 class Dump():
-	
-	@staticmethod
-	#todo anche end deve essere None
-	def extract(f, end, start=0, previous_seek=None):
-		""" extract a block extracted from a file """
-		if start > end:
-			raise Exception, "Start address must be lower than end address!"
-		f.seek(start)
-		
-		if previous_seek:
-			f.seek(previous_seek)
-		
-		return f.read((end - start)+1)
 
-	@staticmethod
-	def insert(f, dump, end, start=0):
-		""" insert a block inside a file """
-		if len(dump) > ((end - start)+1):
-			raise Exception, "Dump size is too large and it can't be inserted!"
-		else:
-			f.seek(start)
-			f.write(dump)
-		"""
-		while(f.tell() < end):
-			f.write("0")
-		"""
-		
 	def __init__(self, dump=""):
 		self._dump = dump
-		
+ 
+	def __str__(self):
+		return self._dump.__str__()
+ 
 	def __len__(self):
 		return len(self._dump)
-		
+        
 	def __cmp__ (self, dump):
 		if not isinstance(dump, Dump):
-			raise TypeError, "Illegal argument type for built-in operation!"
+			raise TypeError, "Illegal argument type for built-in operation"
 		return self._dump == dump.getDump()
-		
+
 	def getDump(self):
 		return self._dump
-		
-	def fromTxt(self, table=None, filename="dump2.txt", separated_byte_format=True):
-		"""  """
-		with open(filename, "rb") as f:
-			if table:
-				#print separated_byte_format
-				if separated_byte_format:
-					while True:
-						byte = f.read(1)
-						if not byte:
-							break
-						if byte == "\n":
-							self._dump += int2byte(table.getBreakline())			
-						elif byte == "{":
-							while "}" not in byte:
-								byte += f.read(1)
-							if byte == "{END}":
-								f.read(2)
-								self._dump += int2byte(table.getNewline())
-							else:
-								if table.find(byte[1:len(byte)-1]):
-									self._dump += int2byte(table.find(byte[1:len(byte)-1]))
-								else:
-									self._dump += HexToByte(byte[1:len(byte)-1])
+
+	def fromTxt(self, table=None, filename="dump.txt", separated_byte_format=True):
+		with open(filename, "r") as f:
+			if separated_byte_format:
+				while True:
+					byte = f.read(1)
+					if not byte:
+						break
+					elif byte == "{":
+						while "}" not in byte:
+							byte += f.read(1)
+						if byte == "{END}":
+							f.read(1) # \n
+							self._dump += int2byte(table.getNewline())
 						else:
-							found = table.find(byte)
-							if found:
-								self._dump += int2byte(found)
+							found_in_table = table.find(byte[1:len(byte)-1])
+							if found_in_table:
+								self._dump += int2byte(found_in_table)
 							else:
-								self._dump += byte
-				else:
-					while True:
-						byte = f.read(1)
-						found = table.find(byte)
-						if found:
-							self._dump += int2byte(found)
-						else:
-							self._dump += byte
-						if not byte:
-							break
+								self._dump += HexToByte(byte[1:len(byte)-1])
+					else:
+						self._dump += int2byte(table.find(byte))
 			else:
-				#todo
-				pass
+				while True:
+					byte = f.read(1)
+					if not byte:
+						break
+					self._dump += byte
 
 	def toTxt(self, table=None, filename="dump.txt", separated_byte_format=True):
 		"""  """
-		with open(filename, "wb") as f:
+		with open(filename, "w") as out:
 			if table:
 				for byte in self._dump:
-					if table.get(byte2int(byte)):
-						if separated_byte_format and table.isDTE(byte2int(byte)):
-							f.write("{%s}" % table.get(byte2int(byte)))
+					key = byte2int(byte) # byte2int
+					if key in table:
+						if separated_byte_format and (table.isDTE(key) or table.isMTE(key)):
+							out.write("{%s}" % table[key])
 						else:
-							f.write(table.get(byte2int(byte)))
+							out.write(table[key])
 					else:
-						f.write("{%s}" % ByteToHex(byte))
+						if separated_byte_format:
+							out.write("{%s}" % ByteToHex(byte))
+						else:
+							out.write(byte)
 			else:
-				f.write(self._dump)
+				out.write(self._dump)
+
+	def toXml(self, table, filename="dump.xml", separated_byte_format=True):
+		"""  """
+		doc = Document()
+		root = doc.createElement("dump")
+		elem = ""
+		if table:
+			with open(filename, "w") as out:
+				for byte in self._dump:
+					key = byte2int(byte) # byte2int			
+					if key in table:
+						if table.isNewline(key):
+							text = doc.createElement("text")
+							text.appendChild(doc.createCDATASection(elem))
+							root.appendChild(text)
+							elem = ""
+						else:
+							if separated_byte_format and (table.isDTE(key) or table.isMTE(key)):
+								elem += "{%s}" % table[key]
+							else:
+								elem += (table[key])
+					else:
+						if separated_byte_format:
+							elem += '{%s}' % ByteToHex(byte)
+						else:
+							elem += byte
+				doc.appendChild(root)
+				doc.writexml(out, '\n')
+		else:
+			pass
+               
+	@staticmethod
+	def extract(f, start=0, end=0):
+		""" extract data from a file """
+		
+		if end and start > end:
+			raise Exception, "start address must be > to end address"
+        
+		text = ""
+		  
+		if isinstance(f, mmap.mmap):
+			if not end:
+				text = f[start:]
+			if not start:
+				text = f[:end]
+			if start and end:
+				text = f[start:end]
+
+		if isinstance(f, file):
+			f.tell(start)
+			text = f2.read(end - start)
+
+		return text
+
+	@staticmethod
+	def insert(f, dump, start=0, end=0):
+		""" insert data into a file """
+
+		if end and len(dump) > (end - start):
+			raise Exception, "The dump is too large than the block and it can't be inserted!"
+			
+		if isinstance(f, mmap.mmap):
+			if len(dump) > len(f[start:]):
+				raise Exception, "The dump is too large than the file and it can't be inserted!"
+			f.seek(start)
+			f.write(dump)
+
+		if isinstance(f, file):
+			#todo condition for raise Exception, "The dump is too large than the file and it can't be inserted!"
+			f.seek(start)
+			f.write(dump)
+			while(f.tell() < end):
+				f.write("0")
