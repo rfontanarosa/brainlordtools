@@ -1,3 +1,9 @@
+__author__ = "Roberto Fontanarosa"
+__license__ = "GPL"
+__version__ = ""
+__maintainer__ = "Roberto Fontanarosa"
+__email__ = "robertofontanarosa@gmail.com"
+
 def int2byte(n):
 	""" convert an integer to a byte """
 	return chr(n)
@@ -35,7 +41,22 @@ def string_address2int_address(s, switch=False, offset=0):
 	else:
 		i = (byte2int(s[0]) << 8) + byte2int(s[1]) + offset
 	return i
-
+	
+def int_address2string_address(i, switch=False, shift=0):
+	import binascii
+	h = int2hex(i)
+	s = binascii.unhexlify(h[shift:])
+	if (switch):
+		s = s[1] + s[0]
+	return s
+	
+def crc32(filename):
+	import zlib
+	prev = 0
+	for eachLine in open(filename, 'rb'):
+		prev = zlib.crc32(eachLine, prev)
+	return '%X' % (prev & 0xFFFFFFFF)
+	
 def test():
 	s = "a"
 	i = 97
