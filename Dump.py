@@ -1,6 +1,6 @@
 __author__ = "Roberto Fontanarosa"
 __license__ = "GPLv2"
-__version__ = "r20"
+__version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 

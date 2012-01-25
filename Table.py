@@ -1,6 +1,6 @@
 __author__ = "Roberto Fontanarosa"
 __license__ = "GPLv2"
-__version__ = "r20"
+__version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
@@ -12,6 +12,7 @@ except ImportError:
 
 from utils import *
 
+import sys
 import string
 
 class Table():
@@ -69,14 +70,23 @@ class Table():
 
 	def get(self, key):
 		return self._table.get(key)
-
-	def encode(self, text, separated_byte_format=False, encode_newline=False):
-		decoded = ""
+	
+	def encode(self, text, separated_byte_format=False):
+		decoded = b""
+		flag = 0
 		if (text):
 			for byte in text:
 				key = byte2int(byte)
-				if (not encode_newline and self.isNewline(key)):
-					pass
+				if self.isNewline(key):
+					if separated_byte_format:
+						decoded += '{%s}' % '00'
+					else:
+						decoded += byte
+				elif self.isBreakline(key):
+					if separated_byte_format:
+						decoded += '{%s}' % '01'
+					else:
+						decoded += byte
 				else:
 					if key in self:
 						if separated_byte_format and (self.isDTE(key) or self.isMTE(key)):
@@ -85,25 +95,42 @@ class Table():
 							decoded += (self[key])
 					else:
 						if separated_byte_format:
-							decoded += '{%s}' % ByteToHex(byte)
+							#decoded += '{%s}' % ByteToHex(byte)
+							decoded += '{%s}' % byte.encode('hex_codec')
 						else:
-							decoded += byte
+							decoded += byte	
 		return decoded
 
 	def decode(self, text, separated_byte_format=False):
-		encoded = ""
+		decoded = b""
 		if (text):
 			if separated_byte_format:
-				pass
+				i = 0
+				while i < len(text):
+					byte = text[i]
+					if byte == '{':
+						try:
+							if (text[i+3] != '}'):
+								raise TypeError
+							byte_to_decode = text[i+1:i+3]
+							byte_decoded = '%s' % byte_to_decode.decode('hex_codec')
+							decoded += byte_decoded
+							i += 4
+						except TypeError:
+							decoded += byte
+							i += 1
+					else:
+						decoded += byte
+						i += 1
 			else:
 				for byte in text:
 					key = self.find(byte)
 					if (key):
-						encoded += self.get(key)
+						decoded += self.get(key)
 					else:
-						encoded += byte
-		return encoded
-
+						decoded += byte
+		return decoded	
+		
 	def isDTE(self, key):
 		""" Check if the element is a DTE (Dual Tile Encoding) """
 		return self.get(key) and len(self.get(key)) == 2 and not self.isNewline(key) and not self.isBreakline(key)
