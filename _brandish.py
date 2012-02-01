@@ -1,48 +1,54 @@
 __author__ = "Roberto Fontanarosa"
-__license__ = "GPL"
+__license__ = "GPLv2"
 __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import sys
-
 import os
-from os import SEEK_SET, SEEK_CUR, SEEK_END
 import mmap
 
 try:
 	from HexByteConversion import ByteToHex
 	from HexByteConversion import HexToByte
 except ImportError:
-	sys.exit("missing HexByteConversion module!")
+	sys.exit('Missing HexByteConversion module!')
 
-from utils import *
+try:
+	from Table import Table
+	from Dump import Dump
+	from utils import *
+except ImportError:
+	sys.exit('Missing BrandishTools module!')	
 
-from xml.dom.minidom import *
-
-from Table import Table
-from Dump import Dump
-
-TEXT_POINTER_BLOCK_START = 0x50d2a
-TEXT_POINTER_BLOCK_END = 0x50fbd
+CRC32 = '74F70A0B'
+	
 TEXT_BLOCK_START = 0x50fbe
 TEXT_BLOCK_END = 0x594ef
 TEXT_BLOCK_LIMIT = 0x594ef
-
-TEXT_BLOCK_SIZE = (TEXT_BLOCK_END - TEXT_BLOCK_START) + 1
+TEXT_BLOCK_SIZE = TEXT_BLOCK_END - TEXT_BLOCK_START
 TEXT_BLOCK_MAX_SIZE = TEXT_BLOCK_LIMIT - TEXT_BLOCK_START
 
-#TEXT_ENTRIES = 330
+TEXT_POINTER_BLOCK_START = 0x50d2a
+TEXT_POINTER_BLOCK_END = 0x50fbd
 
-filename = "roms/Brandish (U) [!].smc"
+filename = 'roms/Brandish (U) [!].smc'
+filename2 = 'roms/Brandish (U) [!] - Copy.smc'
 tablename = "tbls/Brandish (U) [!].tbl"
-dumpname_txt = "dump/brandish_dump.txt"
-dumpname_xml = "dump/brandish_dump.xml"
+dumpname_txt = 'dump/brandish_dump.txt'
+dumpname_xml = 'dump/brandish_dump.xml'
+db = '/Program Files/Apache Software Foundation/Apache2.2/htdocs/brandish/db/brandish.db'
 
 table = Table(tablename)
 
-# DUMP TXT AND XML USING DUMP.PY
-with open(filename, "rb+") as f:
+# CHECKSUM (CRC32)
+if crc32(filename) != CRC32:
+	sys.exit('CHECKSUM: FAIL')
+else:
+	print 'CHECKSUM: OK'
+
+# DUMP (TXT AND XML USING DUMP.PY)
+with open(filename, 'r+b') as f:
 	table = Table(tablename)
 	map = mmap.mmap(f.fileno(), 0)
 	text_extracted = Dump.extract(map, start=TEXT_BLOCK_START, end=TEXT_BLOCK_END)	
@@ -51,7 +57,7 @@ with open(filename, "rb+") as f:
 	dump.toXml(table=table, filename="dump/brandish_dump2.xml")
 	map.close()
 
-# DUMP TXT
+# DUMP (TXT)
 with open(filename, "rb+") as f:
 	f.seek(TEXT_POINTER_BLOCK_START)
 	with open(dumpname_txt, "w") as out:
@@ -64,7 +70,7 @@ with open(filename, "rb+") as f:
 				f.seek(f.tell() - 2)
 			else:
 				next_pointer_value = None
-			with open(filename, "rb+") as f2:
+			with open(filename, "r+b") as f2:
 				f2.seek(curr_pointer_value)
 				if (next_pointer_value):
 					text = f2.read(next_pointer_value - curr_pointer_value)
@@ -77,16 +83,17 @@ with open(filename, "rb+") as f:
 							break
 						else:
 							text += b
-				text = table.encode(text, separated_byte_format=True, encode_newline=True)
+				text = table.encode(text, separated_byte_format=True)
 				out.write(text)
 				
-# DUMP XML
-with open(filename, "rb+") as f:
+# DUMP (XML)
+from xml.dom.minidom import *
+with open(filename, "rb") as f:
 	doc = Document()
 	root = doc.createElement("root")
 	root.setAttribute("file", filename)
 	root.setAttribute("size", str(TEXT_BLOCK_SIZE))
-	idx = 1
+	id = 1
 	f.seek(TEXT_POINTER_BLOCK_START)
 	while(f.tell() < TEXT_POINTER_BLOCK_END):
 		curr_pointer_address = f.tell()
@@ -97,42 +104,33 @@ with open(filename, "rb+") as f:
 			f.seek(f.tell() - 2)
 		else:
 			next_pointer_value = None
-		with open(filename, "rb+") as f2:
+		with open(filename, 'rb') as f2:
 			f2.seek(curr_pointer_value)
 			if (next_pointer_value):
 				size = next_pointer_value - curr_pointer_value
-				text = f2.read(size)
 			else:
-				size = 0
-				text = ""
-				while True:
-					b = f2.read(1)
-					i = byte2int(b)
-					size = size + 1
-					if (i == 255):
-						break
-					else:
-						text += b
-			text = table.encode(text, separated_byte_format=True)
-			elem = doc.createElement("text")
-			elem.setAttribute("id", str(idx))
-			elem.setAttribute("text_address", int2hex(curr_pointer_value))
-			elem.setAttribute("pointer_address", int2hex(int(curr_pointer_address)))
-			elem.setAttribute("size", str(size))
+				size = TEXT_BLOCK_LIMIT - f2.tell()
+			text = f2.read(size)
+			text_encoded = table.encode(text, separated_byte_format=True)
+			elem = doc.createElement('text')
+			elem.setAttribute('id', str(id))
+			elem.setAttribute('text_address', int2hex(curr_pointer_value))
+			elem.setAttribute('pointer_address', int2hex(int(curr_pointer_address)))
+			elem.setAttribute('size', str(size))
 			if (next_pointer_value):
 				elem.setAttribute("next_pointer_address", int2hex(int(curr_pointer_value) + size))
-			cdata = doc.createCDATASection(text)
-			#cdata = doc.createTextNode(text)
+			cdata = doc.createCDATASection(text_encoded)
+			#cdata = doc.createTextNode(text_encoded)
 			elem.appendChild(cdata)
 			root.appendChild(elem)
-			idx = idx + 1
+			id += 1
 	doc.appendChild(root)
-	with open(dumpname_xml, "wb") as out:
-		doc.writexml(out, encoding="latin-1")
+	with open(dumpname_xml, 'wb') as out:
+		doc.writexml(out, encoding='latin-1')
 
-#DUMP TXTS
-with open(filename, "rb+") as f:
-	idx = 1
+#DUMP (TXTS)
+with open(filename, "rb") as f:
+	id = 1
 	f.seek(TEXT_POINTER_BLOCK_START)
 	while(f.tell() < TEXT_POINTER_BLOCK_END):
 		curr_pointer_address = f.tell()
@@ -143,39 +141,27 @@ with open(filename, "rb+") as f:
 			f.seek(f.tell() - 2)
 		else:
 			next_pointer_value = None
-		with open(filename, "rb+") as f2:
+		with open(filename, 'rb') as f2:
 			f2.seek(curr_pointer_value)
 			if (next_pointer_value):
 				size = next_pointer_value - curr_pointer_value
-				text = f2.read(size)
 			else:
-				size = 0
-				text = ""
-				while True:
-					b = f2.read(1)
-					i = byte2int(b)
-					size = size + 1
-					if (i == 255):
-						break
-					else:
-						text += b
-			text = table.encode(text)
+				size = TEXT_BLOCK_LIMIT - f2.tell()
+			text = f2.read(size)
 			text_encoded = table.encode(text, separated_byte_format=True)
 			pointer_address = int2hex(int(curr_pointer_address))
-			""" """
-			with open("dump/" + str(idx) + ".txt", "w") as out:
-				#out.write(text)
+			with open("dump/" + str(id) + ".txt", "w") as out:
 				out.write(text_encoded)
 				pass
-			""" """
-			idx = idx + 1
+			id += 1
 
-#DUMP DB
+#DUMP (SQLITE3)
 import sqlite3
-conn = sqlite3.connect('./db/brandish.db')
-c = conn.cursor()
-with open(filename, "rb+") as f:
-	idx = 1
+conn = sqlite3.connect(db)
+conn.text_factory = str
+cur = conn.cursor()
+with open(filename, "rb") as f:
+	id = 1
 	f.seek(TEXT_POINTER_BLOCK_START)
 	while(f.tell() < TEXT_POINTER_BLOCK_END):
 		curr_pointer_address = f.tell()
@@ -186,49 +172,145 @@ with open(filename, "rb+") as f:
 			f.seek(f.tell() - 2)
 		else:
 			next_pointer_value = None
-		with open(filename, "rb+") as f2:
+		with open(filename, 'rb') as f2:
 			f2.seek(curr_pointer_value)
 			if (next_pointer_value):
 				size = next_pointer_value - curr_pointer_value
-				text = f2.read(size)
 			else:
-				size = 0
-				text = ""
-				while True:
-					b = f2.read(1)
-					i = byte2int(b)
-					size = size + 1
-					if (i == 255):
-						break
-					else:
-						text += b
-			text = table.encode(text)
+				size = TEXT_BLOCK_LIMIT - f2.tell()
+			text = f2.read(size)
+			text_bynary = sqlite3.Binary(text)
 			text_encoded = table.encode(text, separated_byte_format=True)
-			u = text.decode('latin-1')
+			#text_encoded_binary = sqlite3.Binary(text_encoded)
 			text_address = int2hex(curr_pointer_value)
 			pointer_address = int2hex(int(curr_pointer_address))
-			""" """
-			c.execute("insert into texts values (?, ?, ?, ?, ?)", (idx, u, text_encoded, text_address, pointer_address))
-			""" """
-			idx = idx + 1
-c.close()
+			cur.execute("insert or replace into texts values (?, ?, ?, ?, ?, ?)", (id, buffer(text_bynary), buffer(text_encoded), text_address, pointer_address, size))
+			id += 1
+cur.close()
 conn.commit()
 conn.close()
 
-# INSERT XML
-"""
-with open("roms/Brandish2 (U) [!].smc", "ab+") as f:
-	dom = parse(dumpname_xml)
-	elements = dom.getElementsByTagName("text")
-	print len(elements)
-	for elem in elements:
-		id = elem.getAttribute("id")
-		text_address = elem.getAttribute("text_address")
-		pointer_address = hex2dec(elem.getAttribute("pointer_address"))
-		size = elem.getAttribute("size")
-		f.seek(pointer_address)
-		text = elem.firstChild.nodeValue
-		#text = table.decode(text, separated_byte_format=False)
-		#text = table.decode(text, separated_byte_format=True)
-		#print text.encode('latin-1')
-"""
+# REPOINTER (SQLITE3)
+import sqlite3
+conn = sqlite3.connect(db)
+conn.text_factory = str
+cur = conn.cursor()
+with open(filename2, 'r+b') as f:
+	address = TEXT_BLOCK_START
+	f.seek(TEXT_POINTER_BLOCK_START)
+	cur.execute("SELECT text, new_text, address, pointer_address, id FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='clomax') AS t2 ON t1.id=t2.id_text")
+	for row in cur:
+		original_text = row[0]
+		new_text = row[1]
+		if (new_text):
+			text = new_text
+		else:
+			text = original_text
+		decoded_text = table.decode(text, True)
+		curr_pointer_value = int_address2string_address(address, switch=True, shift=3)
+
+		""" START DEBUG """
+		with open("debug.txt", "a+b") as f2:
+			f2.write(str(row[4]) + '\n')
+			# pointer address - pointer value
+			f2.write(str(row[3]) + ' - ' + str(row[2]) + '\n')
+			f2.write(str(address) + '\n')
+			f2.write(str(hex(f.tell())) + ' - ' + str(hex(string_address2int_address(curr_pointer_value, switch=True, offset=327680))) + '\n')
+			f2.write(str(len(decoded_text)) + '\n')
+			f2.write(str(len(original_text)) + '\n')
+			f2.write(str(original_text) + '\n')				
+			f2.write(str(new_text) + '\n')		
+			if str(row[2]) != str(hex(string_address2int_address(curr_pointer_value, switch=True, offset=327680))):
+				f2.write('WARNING!!!!!!!!\n')				
+			f2.write("---------------------------\n")
+		#sys.exit()
+		""" STOP DEBUG """
+
+		f.write(curr_pointer_value)	
+		address += len(decoded_text)
+cur.close()
+conn.close()
+
+#INSERTER (SQLITE3)
+import sqlite3
+conn = sqlite3.connect(db)
+conn.text_factory = str
+cur = conn.cursor()
+with open(filename2, 'r+b') as f:
+	f.seek(TEXT_BLOCK_START)
+	cur.execute("SELECT text, new_text, text_encoded, id FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='clomax') AS t2 ON t1.id=t2.id_text")
+	for row in cur:
+		original_text = row[0]
+		new_text = row[1]
+		if (new_text):
+			text = new_text
+		else:
+			text = original_text
+		decoded_text = table.decode(text, True)
+		from django.utils.encoding import smart_str, smart_unicode
+		f.write(smart_str(decoded_text))
+		if f.tell() > TEXT_BLOCK_LIMIT:
+			sys.exit('CRITICAL ERROR!!!')
+
+		""" START DEBUG """
+		with open("debug1.txt", "a+b") as f2:
+			f2.write(str(row[3]) + '\n')
+			if (len(row[0]) != len(table.decode(row[2], True))):
+				f2.write('WARNING!!!!!!!!\n')
+			if (len(smart_str(row[0])) != len(smart_str(table.decode(row[2], True)))):
+				f2.write('WARNING2!!!!!!!!\n')
+			if smart_str(row[0]) != smart_str(table.decode(row[2], True)):
+				f2.write('WARNING3!!!!!!!!\n')				
+			f2.write(row[0] + '\n')
+			f2.write(str(len(row[0])) + '\n')
+			f2.write(row[2] + '\n')
+			f2.write(str(len(row[2])) + '\n')			
+			f2.write(smart_str(row[2]) + '\n')
+			f2.write(str(len(smart_str(row[2]))) + '\n')
+			f2.write(smart_str(row[0]) + '\n')
+			f2.write(str(len(smart_str(row[0]))) + '\n')		
+			if (row[1]):
+				f2.write(row[1] + '\n')
+				f2.write(str(len(row[1])) + '\n')
+			decoded_text = table.decode(row[0], True)
+			f2.write(decoded_text + '\n')
+			f2.write(str(len(decoded_text)) + '\n')
+			decoded_text = table.decode(row[2], True)
+			f2.write(decoded_text + '\n')
+			f2.write(str(len(decoded_text)) + '\n')
+			if (row[1]):
+				decoded_text = table.decode(row[1], True)
+				f2.write(decoded_text + '\n')
+				f2.write(str(len(decoded_text)) + '\n')
+			f2.write("---------------------------\n")
+		#sys.exit()
+		""" STOP DEBUG """
+		
+cur.close()
+conn.close()
+
+#CHECK
+import sqlite3
+conn = sqlite3.connect(db)
+conn.text_factory = str
+cur = conn.cursor()
+block = 0
+
+with open(filename2, 'r+b') as f:
+	f.seek(TEXT_BLOCK_START)
+	cur.execute("SELECT text, new_text, text_encoded, id FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='clomax') AS t2 ON t1.id=t2.id_text")
+	for row in cur:
+		original_text = row[0]
+		new_text = row[1]
+		if (new_text):
+			text = new_text
+		else:
+			text = original_text
+		decoded_text = table.decode(text, True)
+		block += len(decoded_text)
+		
+print TEXT_BLOCK_SIZE
+print block
+
+cur.close()
+conn.close()
