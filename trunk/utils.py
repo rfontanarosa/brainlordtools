@@ -12,6 +12,12 @@ def byte2int(b):
 	""" returns an integer representing a 8-bit string """
 	return ord(b)
 
+def byte22int(b2):
+	return (ord(b2[0]) << 8) + ord(b2[1])
+
+def byte32int(b3):
+	return (ord(b3[0]) << 16) + (ord(b3[1]) << 8) + ord(b3[2])
+
 def int2hex(i):
 	""" convert an integer number to a hexadecimal string """
 	return hex(i)
