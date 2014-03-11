@@ -4,11 +4,13 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
+"""
 try:
 	from HexByteConversion import ByteToHex
 	from HexByteConversion import HexToByte
 except ImportError:
 	sys.exit("missing HexByteConversion module!")
+"""
 
 from utils import *
 
@@ -42,11 +44,11 @@ class Table():
 						key = int(parts[0], 16)
 						value = parts[2]
 						self._table[key] = value
-               # newline
+					# newline
 					elif line.startswith(Table.NEWLINE_CHAR):
 						self._newline = int(line[1:], 16)
-						self._table[int(line[1:], 16)] = "\r" 
-               # breakline
+						self._table[int(line[1:], 16)] = "\r"
+					# breakline
 					elif line.startswith(Table.BREAKLINE_CHAR):
 						self._breakline = int(line[1:len(line)], 16)
 						self._table[int(line[1:len(line)], 16)] = "\n"
@@ -70,7 +72,7 @@ class Table():
 
 	def get(self, key):
 		return self._table.get(key)
-	
+
 	def encode(self, text, separated_byte_format=False):
 		decoded = b""
 		flag = 0
@@ -98,7 +100,7 @@ class Table():
 							#decoded += '{%s}' % ByteToHex(byte)
 							decoded += '{%s}' % byte.encode('hex_codec')
 						else:
-							decoded += byte	
+							decoded += byte
 		return decoded
 
 	def decode(self, text, separated_byte_format=False):
@@ -129,8 +131,8 @@ class Table():
 						decoded += self.get(key)
 					else:
 						decoded += byte
-		return decoded	
-		
+		return decoded
+
 	def isDTE(self, key):
 		""" Check if the element is a DTE (Dual Tile Encoding) """
 		return self.get(key) and len(self.get(key)) == 2 and not self.isNewline(key) and not self.isBreakline(key)
@@ -159,7 +161,7 @@ class Table():
 
 	def getComments(self):
 		return self._comments
-		
+
 	def find(self, value):
 		k = None
 		for key in self._table.keys():
