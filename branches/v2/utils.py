@@ -16,7 +16,7 @@ def byte22int(b2):
 	return (ord(b2[0]) << 8) + ord(b2[1])
 
 def byte32int(b3):
-	return (ord(b3[0]) << 16) + (ord(b3[1]) << 8) + ord(b3[2])
+	return (ord(b3[2]) << 16) + (ord(b3[1]) << 8) + ord(b3[0])
 
 def int2hex(i):
 	""" convert an integer number to a hexadecimal string """
@@ -26,20 +26,6 @@ def hex2dec(s):
 	""" convert a hexadecimal string to an integer """
 	return int(s, 16)
 
-def to_little_endian(p):
-	"""  """
-	pointer = p[4:6] + p[2:4] + 'd7'
-	return pointer
-	
-def to_big_endian(p):
-	"""  """
-	pointer = 'd7' + p[2:4] + p[0:2]
-	return pointer
-
-def switch_byte(p):
-	"""  """
-	return p[2:4] + p[0:2]
-
 def string_address2int_address(s, switch=False, offset=0):
 	"""  """
 	if (switch):
@@ -47,7 +33,7 @@ def string_address2int_address(s, switch=False, offset=0):
 	else:
 		i = (byte2int(s[0]) << 8) + byte2int(s[1]) + offset
 	return i
-	
+
 def int_address2string_address(i, switch=False, shift=0):
 	import binascii
 	h = int2hex(i)
@@ -55,14 +41,27 @@ def int_address2string_address(i, switch=False, shift=0):
 	if (switch):
 		s = s[1] + s[0]
 	return s
-	
-def crc32(filename):
+
+#######
+# ROM #
+#######
+
+def crc32(file):
 	import zlib
 	prev = 0
-	for eachLine in open(filename, 'rb'):
+	for eachLine in open(file, 'rb'):
 		prev = zlib.crc32(eachLine, prev)
 	return '%X' % (prev & 0xFFFFFFFF)
-	
+
+def hasHeader(file):
+	import os
+	size = os.path.getsize(file)
+	return size == 512
+
+########
+# TEST #
+########
+
 def test():
 	s = "a"
 	i = 97
