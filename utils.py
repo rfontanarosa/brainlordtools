@@ -18,9 +18,9 @@ def byte22int(b2):
 def byte32int(b3):
 	return (ord(b3[2]) << 16) + (ord(b3[1]) << 8) + ord(b3[0])
 
-def int2hex(i):
+def int2hex(n):
 	""" convert an integer number to a hexadecimal string """
-	return hex(i)
+	return hex(n)
 
 def hex2dec(s):
 	""" convert a hexadecimal string to an integer """
@@ -29,14 +29,14 @@ def hex2dec(s):
 def string_address2int_address(s, switch=False, offset=0):
 	"""  """
 	if (switch):
-		i = byte2int(s[0]) + (byte2int(s[1]) << 8) + offset
+		n = byte2int(s[0]) + (byte2int(s[1]) << 8) + offset
 	else:
-		i = (byte2int(s[0]) << 8) + byte2int(s[1]) + offset
-	return i
+		n = (byte2int(s[0]) << 8) + byte2int(s[1]) + offset
+	return n
 
-def int_address2string_address(i, switch=False, shift=0):
+def int_address2string_address(n, switch=False, shift=0):
 	import binascii
-	h = int2hex(i)
+	h = int2hex(n)
 	s = binascii.unhexlify(h[shift:])
 	if (switch):
 		s = s[1] + s[0]
