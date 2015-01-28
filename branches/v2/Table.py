@@ -113,22 +113,30 @@ class Table():
 					if byte == '{':
 						try:
 							if (text[i+3] != '}'):
-								raise TypeError
+								raise TypeError # only dte is supported
 							byte_to_decode = text[i+1:i+3]
-							byte_decoded = '%s' % byte_to_decode.decode('hex_codec')
+							byte_decoded = self.find(byte_to_decode)
+							if not byte_decoded:
+								byte_decoded = '%s' % byte_to_decode.decode('hex_codec')
+							else:
+								byte_decoded = int2byte(byte_decoded)
 							decoded += byte_decoded
 							i += 4
 						except TypeError:
 							decoded += byte
 							i += 1
 					else:
-						decoded += byte
+						key = self.find(byte)
+						if (key):
+							decoded += int2byte(key)
+						else:
+							decoded += byte
 						i += 1
 			else:
 				for byte in text:
 					key = self.find(byte)
 					if (key):
-						decoded += self.get(key)
+						decoded += int2byte(key)
 					else:
 						decoded += byte
 		return decoded
