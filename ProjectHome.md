@@ -1,0 +1,3 @@
+A collection of utilities to translate **Brain Lord** (SNES), **Brandish** (SNES) and **Brandish 2** (SNES).
+
+<img src='http://www.romhacking.it/upload/titles/[60]Brain%20Lord%20(U)%20[!]000.png' alt='' /> <img src='http://www.romhacking.it/upload/titles/[500]Brandish (U) [!]000.png' alt='' /> <img src='http://www.romhacking.it/upload/titles/[452]Brandish%202%20-%20The%20Planet%20Buster%20(J)000.png' alt='' />
