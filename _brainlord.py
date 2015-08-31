@@ -12,27 +12,33 @@ try:
 	from HexByteConversion import ByteToHex
 	from HexByteConversion import HexToByte
 except ImportError:
-	sys.exit("missing HexByteConversion module!")
+	sys.exit('Missing HexByteConversion module!')
 
-from PointersTable import PointersTable
-from Pointer import Pointer
+try:
+	from Table import Table
+	from Dump import Dump
+	from utils import *
+except ImportError:
+	sys.exit('Missing BrainlordTools module!')
 
-# TODO trovare un modo per verificare se e presente o meno l'header
-# TODO aggiungere agli indirizzi i byte dell'header SE questo e presente
+CRC32 = 'AC443D87'
+	
 TEXT_BLOCK_START = 0x170000
 TEXT_BLOCK_END = 0x17fac9
 TEXT_BLOCK_LIMIT = 0x17ffff
-TEXT_BLOCK_SIZE = (TEXT_BLOCK_END - TEXT_BLOCK_START) + 1
+TEXT_BLOCK_SIZE = TEXT_BLOCK_END - TEXT_BLOCK_START
 TEXT_BLOCK_MAX_SIZE = TEXT_BLOCK_LIMIT - TEXT_BLOCK_START
 
+TEXT_POINTER_BLOCK_START = 0x50013
+TEXT_POINTER_BLOCK_END = 0x50267
+#TEXT_POINTER_BLOCK_END = 0x50285
+
+"""
 TEXT_BLOCK2_START = 0x66618
 TEXT_BLOCK2_END = 0x67100
 
 TEXT_POINTER1_BLOCK_START = 0xf9e
 TEXT_POINTER1_BLOCK_END = 0xfef
-
-TEXT_POINTER2_BLOCK_START = 0x50010
-TEXT_POINTER2_BLOCK_END = 0x55567
 
 ## there are 20 (?) pointers in this block and every pointer starts with 0x01
 #FAERIES_POINTER_START_BYTE = 0x01
@@ -41,76 +47,57 @@ FAERIES_POINTER_BLOCK_END = 0x18f9b
 
 SHOP_POINTER_BLOCK_START = 0x23000
 SHOP_POINTER_BLOCK_END = 0x25000
+"""
 
-def is_valid_address(address):
-	"""  """
-	return (TEXT_POINTER1_BLOCK_END >= address >= TEXT_POINTER1_BLOCK_START) \
-			or (TEXT_POINTER2_BLOCK_END >= address >= TEXT_POINTER2_BLOCK_START) \
-			or (FAERIES_POINTER_BLOCK_END >= address >= FAERIES_POINTER_BLOCK_START) \
-			or (TEXT_BLOCK_END >= address >= TEXT_BLOCK_START)
+filename = 'roms/Brain Lord (U) [!].smc'
+filename2 = 'roms/Brain Lord (U) [!] - Copy.smc'
+tablename = 'tbls/Brain Lord (U) [!].tbl'
+dumpname_txt = 'dump/brainlord_dump.txt'
+dumpname_xml = 'dump/brainlord_dump.xml'
+db = '/Program Files/Apache Software Foundation/Apache2.2/htdocs/brainlord/db/brainlord.db'
 
-def is_shop_pointer(address):
-	"""  """
-	return address in range(SHOP_POINTER_BLOCK_START, SHOP_POINTER_BLOCK_END)
+table = Table(tablename)
 
-def is_in_text_block(address):
-	"""  """
-	return address in range(TEXT_BLOCK_START, TEXT_BLOCK_END)
-
-def brainlord_repointer(f, f2):
-	"""  """
-
-	pointers_table = PointersTable(file=f, start=TEXT_BLOCK_START)
-	pointers_table.resolvePointers(f)
-	pointers_table.toTxt(filename="pointers_table.txt")
-	pointers_table2 = PointersTable(file=f2, start=TEXT_BLOCK_START)
-	pointers_table2.toTxt(filename="pointers_table2.txt")
-	shop_pointers_table = PointersTable()
-
-	if len(pointers_table)==len(pointers_table2):
+# CHECKSUM (CRC32)
+if crc32(filename) != CRC32:
+	sys.exit('CHECKSUM: FAIL')
+else:
+	print 'CHECKSUM: OK'
 	
-		for pointer, pointer2 in zip(pointers_table, pointers_table2):
-		
-            # if the pointer has not been found it could be a shop pointer
-			if not pointer.getFound():
-				## shop_repointer - create, found and add a shop pointer in shop_pointer table
-				shop_pointer = Pointer("a9" + str(pointer)[0:4:1])
-				shop_pointer.find(f, in_range=False)
-				new_shop_pointer = Pointer("a9" + str(pointer2)[0:4:1])
-				new_shop_pointer.setFound(shop_pointer.getFound())
-				shop_pointers_table.add(new_shop_pointer)
-			
-			#
-			if pointer.getFound():
-				## text_repointer
-				for address in pointer.getFound():
-					if is_valid_address(address):
-						if is_in_text_block(address):
-							new_pointer = Pointer(str(pointer))			
-							new_pointer.find(f2, start=TEXT_BLOCK_START)
-							if new_pointer.getFound():
-								for new_address in new_pointer.getFound():
-									f2.seek(new_address)
-									f2.write(HexToByte(str(pointer2)))
-						if not is_in_text_block(address):
-							f2.seek(address)
-							f2.write(HexToByte(str(pointer2)))
-
-					else:
-						pass
-
-		for shop_pointer in shop_pointers_table:
-			if shop_pointer.getFound():
-				for new_shop_address in shop_pointer.getFound():
-					if is_shop_pointer(new_shop_address):
-						f2.seek(new_shop_address)
-						f2.write(HexToByte(str(shop_pointer)))
-					else:
-						pass
+#DUMP (SQLITE3)
+import sqlite3
+conn = sqlite3.connect(db)
+conn.text_factory = str
+cur = conn.cursor()
+with open(filename, "rb") as f:
+	id = 1
+	f.seek(TEXT_POINTER_BLOCK_START)
+	while(f.tell() < TEXT_POINTER_BLOCK_END):
+		curr_pointer_address = f.tell()
+		curr_pointer_value = byte32int(f.read(3)) - 0xc00000
+		print byte32int(f.read(3)) - 0xc00000
+		next_pointer_address = f.tell()
+		if (next_pointer_address < TEXT_POINTER_BLOCK_END):
+			next_pointer_value = byte32int(f.read(3)) - 0xc00000
+		else:
+			next_pointer_value = None
+		with open(filename, 'rb') as f2:
+			f2.seek(curr_pointer_value)
+			if (next_pointer_value):
+				size = next_pointer_value - curr_pointer_value
 			else:
-				pass
-
-		shop_pointers_table.toTxt(filename="shop_pointers.txt")
-
-	else:
-		sys.exit('DRAMATIC ERROR! array of original pointers is not alligned with the array of modified pointers')		
+				size = TEXT_BLOCK_LIMIT - f2.tell()
+			text = f2.read(size)
+			text_bynary = sqlite3.Binary(text)
+			text_encoded = table.encode(text, separated_byte_format=True)
+			#text_encoded_binary = sqlite3.Binary(text_encoded)
+			text_address = int2hex(curr_pointer_value)
+			pointer_address = int2hex(int(curr_pointer_address))
+			cur.execute("insert or replace into texts values (?, ?, ?, ?, ?, ?)", (id, buffer(text_bynary), buffer(text_encoded), text_address, pointer_address, size))
+			id += 1
+			""" START DEBUG """
+			with open("debug1.txt", "a+b") as f3:
+				f3.write(text_encoded + '\n')
+cur.close()
+conn.commit()
+conn.close()
