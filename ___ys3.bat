@@ -1,0 +1,2 @@
+python _ys3.py --crc32check -s "ys3/roms/Ys III - Wanderers from Ys (U) [!].smc" -d "ys3/roms/Ys III - Wanderers from Ys (I) [!].smc" -t1 "ys3/tables/Ys III - Wanderers from Ys (U) [!].tbl" -t2 "ys3/tables/Ys III - Wanderers from Ys (U) [!].tbl" -u clomax -db "ys3/db/ys3.db"
+pause
