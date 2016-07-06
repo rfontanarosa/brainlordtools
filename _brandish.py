@@ -14,6 +14,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--crc32check', action='store_true', default=False, help='Execute CRC32CHECK')
 parser.add_argument('--dump', action='store_true', default=False, help='Execute DUMP')
+parser.add_argument('--insert', action='store_true', default=False, help='Execute INSERTER')
 parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 parser.add_argument('-d', '--dest',  action='store', dest='dest_file', required=True, help='Destination filename')
 parser.add_argument('-t1', '--table1', action='store', dest='table1', required=True, help='Original table filename')
@@ -24,6 +25,7 @@ args = parser.parse_args()
 
 execute_crc32check = args.crc32check
 execute_dump = args.dump
+execute_inserter = args.insert
 filename = args.source_file
 filename2 = args.dest_file
 tablename = args.table1
@@ -49,15 +51,15 @@ POINTER_BLOCK_END = 0x50fbd
 table = Table(tablename)
 table2 = Table(tablename2)
 
-# CHECKSUM (CRC32)
 if execute_crc32check:
+	""" CHECKSUM (CRC32) """
 	if crc32(filename) != CRC32:
 		sys.exit('ROM CHECKSUM: FAIL')
 	else:
 		print 'ROM CHECKSUM: OK'
 
-# DUMP (TXTs + SQLITE3)
 if execute_dump:
+	""" DUMP """
 	conn = sqlite3.connect(db)
 	conn.text_factory = str
 	cur = conn.cursor()
@@ -95,74 +97,51 @@ if execute_dump:
 	conn.commit()
 	conn.close()
 
-# REPOINTER (SQLITE3)
-conn = sqlite3.connect(db)
-conn.text_factory = str
-cur = conn.cursor()
-with open(filename2, 'r+b') as f:
-	address = TEXT_BLOCK_START
-	f.seek(POINTER_BLOCK_START)
-	cur.execute("SELECT text, text_encoded, new_text2, id FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s') AS t2 ON t1.id=t2.id_text WHERE t1.block = 1" % user_name)
-	for row in cur:
-		original_text = row[0]
-		new_text = row[2]
-		if (new_text):
-			text = new_text
-			decoded_text = table2.decode(text, True)
-		else:
-			text = original_text
-			decoded_text = table.decode(text, True)
-		pvalue = struct.pack('H', address - 0x50000) 
-		f.write(pvalue) # address to write
-		address += len(decoded_text) # next address to write
-cur.close()
-conn.close()
+if execute_inserter:
+	""" REPOINTER """
+	conn = sqlite3.connect(db)
+	conn.text_factory = str
+	cur = conn.cursor()
+	with open(filename2, 'r+b') as f:
+		address = TEXT_BLOCK_START
+		f.seek(POINTER_BLOCK_START)
+		cur.execute("SELECT text, text_encoded, new_text2, id FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s') AS t2 ON t1.id=t2.id_text WHERE t1.block = 1" % user_name)
+		for row in cur:
+			original_text = row[1]
+			new_text = row[2]
+			if (new_text):
+				text = new_text
+				decoded_text = table2.decode(text, True)
+			else:
+				text = original_text
+				decoded_text = table.decode(text, True)
+			pvalue = struct.pack('H', address - 0x50000) 
+			f.write(pvalue) # address to write
+			address += len(decoded_text) # next address to write
+	cur.close()
+	conn.close()
 
-# INSERTER (SQLITE3)
-conn = sqlite3.connect(db)
-conn.text_factory = str
-cur = conn.cursor()
-with open(filename2, 'r+b') as f:
-	f.seek(TEXT_BLOCK_START)
-	cur.execute("SELECT text, text_encoded, new_text2, id FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s') AS t2 ON t1.id=t2.id_text WHERE t1.block = 1" % user_name)
-	for row in cur:
-		original_text = row[1]
-		new_text = row[2]
-		if (new_text):
-			text = new_text
-			decoded_text = table2.decode(text, True)
-		else:
-			text = original_text
-			decoded_text = table.decode(text, True)
-		f.write(decoded_text)
-		if f.tell() > TEXT_BLOCK_LIMIT:
-			sys.exit('CRITICAL ERROR! TEXT_BLOCK_LIMIT! %s > %s (%s)' % (f.tell(), TEXT_BLOCK_LIMIT, (TEXT_BLOCK_LIMIT - f.tell())))
-	for i in range(0, TEXT_BLOCK_LIMIT - f.tell()):
-		f.write('0')
-cur.close()
-conn.close()
-
-#CHECK
-"""
-conn = sqlite3.connect(db)
-conn.text_factory = str
-cur = conn.cursor()
-block = 0
-with open(filename2, 'r+b') as f:
-	f.seek(TEXT_BLOCK_START)
-	cur.execute("SELECT text, new_text2, id FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s') AS t2 ON t1.id=t2.id_text" % user_name)
-	for row in cur:
-		original_text = row[0]
-		new_text = row[1]
-		if (new_text):
-			text = new_text
-			decoded_text = table2.decode(text, True)
-		else:
-			text = original_text
-			decoded_text = table.decode(text, True)
-		block += len(decoded_text)
-print block
-print TEXT_BLOCK_SIZE
-cur.close()
-conn.close()
-"""
+if execute_inserter:
+	""" INSERTER """
+	conn = sqlite3.connect(db)
+	conn.text_factory = str
+	cur = conn.cursor()
+	with open(filename2, 'r+b') as f:
+		f.seek(TEXT_BLOCK_START)
+		cur.execute("SELECT text, text_encoded, new_text2, id FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s') AS t2 ON t1.id=t2.id_text WHERE t1.block = 1" % user_name)
+		for row in cur:
+			original_text = row[1]
+			new_text = row[2]
+			if (new_text):
+				text = new_text
+				decoded_text = table2.decode(text, True)
+			else:
+				text = original_text
+				decoded_text = table.decode(text, True)
+			f.write(decoded_text)
+			if f.tell() > TEXT_BLOCK_LIMIT:
+				sys.exit('CRITICAL ERROR! TEXT_BLOCK_LIMIT! %s > %s (%s)' % (f.tell(), TEXT_BLOCK_LIMIT, (TEXT_BLOCK_LIMIT - f.tell())))
+		for i in range(0, TEXT_BLOCK_LIMIT - f.tell()):
+			f.write('0')
+	cur.close()
+	conn.close()
