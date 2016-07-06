@@ -4,9 +4,8 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
+import sys, string
 from utils import *
-import sys
-import string
 
 class Table():
 
@@ -127,7 +126,7 @@ class Table():
 								byte_decoded = self.find(byte_to_decode)
 								if not byte_decoded:
 									byte_decoded = '%s' % byte_to_decode.decode('hex_codec')
-								else:									
+								else:
 									byte_decoded = hex2byte(format(byte_decoded, 'x'))
 								decoded += byte_decoded
 								i += 3
@@ -157,13 +156,6 @@ class Table():
 						decoded += int2byte(key)
 					else:
 						decoded += byte
-		"""
-		print text
-		print len(text)
-		print decoded
-		print len(decoded)
-		sys.exit()
-		"""
 		return decoded
 
 	def isDTE(self, key):

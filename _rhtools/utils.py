@@ -1,5 +1,5 @@
 __author__ = "Roberto Fontanarosa"
-__license__ = "GPL"
+__license__ = "GPLv2"
 __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
@@ -28,12 +28,19 @@ def int2hex(n):
 	""" convert an integer number to a hexadecimal string """
 	return hex(n).rstrip('L')
 
-def hex2byte(h):	
+def hex2byte(h):
 	return HexToByte(h)
 
 def hex2dec(s):
 	""" convert a hexadecimal string to an integer """
 	return int(s, 16)
+
+def int_to_bytes(i):
+	"""  """
+	import binascii
+	hex_string = '%x' % i
+	n = len(hex_string)
+	return binascii.unhexlify(hex_string.zfill(n + (n & 1)))
 
 def string_address2int_address(s, switch=False, offset=0):
 	"""  """
@@ -44,6 +51,7 @@ def string_address2int_address(s, switch=False, offset=0):
 	return n
 
 def int_address2string_address(n, switch=False, shift=0):
+	"""  """
 	import binascii
 	h = int2hex(n)
 	s = binascii.unhexlify(h[shift:])
@@ -52,6 +60,7 @@ def int_address2string_address(n, switch=False, shift=0):
 	return s
 
 def int_address2string_address2(n, switch=False, shift=0):
+	"""  """
 	import binascii
 	h = int2hex(n)
 	unhex = h[shift:]
@@ -61,6 +70,12 @@ def int_address2string_address2(n, switch=False, shift=0):
 	if (switch):
 		s = s[1] + s[0]
 	return s
+
+def clean_text(text):
+	"""  """
+	import re
+	replaced = re.sub('{..}', '\n', text)
+	return replaced
 
 #######
 # ROM #
