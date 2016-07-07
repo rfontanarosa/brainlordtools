@@ -8,7 +8,7 @@ import sys, os, mmap, struct, sqlite3
 from collections import OrderedDict
 
 from _rhtools.utils import *
-from _rhtools.Table import Table
+from _rhtools.Table2 import Table
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -68,10 +68,10 @@ if execute_dump:
 		f.seek(POINTER_BLOCK_START)
 		while(f.tell() < POINTER_BLOCK_END):
 			curr_pointer_address = f.tell()
-			curr_pointer_value = struct.unpack('H', f.read(2))[0] + 0x50000
+			curr_pointer_value = struct.unpack('H', f.read(2))[0] + (SNES_BANK_SIZE * 0xa)
 			next_pointer_address = f.tell()
 			if (next_pointer_address < POINTER_BLOCK_END):
-				next_pointer_value = struct.unpack('H', f.read(2))[0] + 0x50000
+				next_pointer_value = struct.unpack('H', f.read(2))[0] + (SNES_BANK_SIZE * 0xa)
 				f.seek(f.tell() - 2)
 			else:
 				next_pointer_value = None
@@ -82,7 +82,7 @@ if execute_dump:
 				else:
 					size = TEXT_BLOCK_LIMIT - f2.tell()
 				text = f2.read(size)
-				text_encoded = table.encode(text, separated_byte_format=True)
+				text_encoded = table.encode(text, False, False)
 				text_binary = sqlite3.Binary(text)
 				text_address = int2hex(curr_pointer_value)
 				text_length = len(text_binary)
@@ -111,11 +111,11 @@ if execute_inserter:
 			new_text = row[2]
 			if (new_text):
 				text = new_text
-				decoded_text = table2.decode(text, True)
+				decoded_text = table2.decode(text, False, False)
 			else:
 				text = original_text
-				decoded_text = table.decode(text, True)
-			pvalue = struct.pack('H', address - 0x50000) 
+				decoded_text = table.decode(text, False, False)
+			pvalue = struct.pack('H', address - (SNES_BANK_SIZE * 0xa)) 
 			f.write(pvalue) # address to write
 			address += len(decoded_text) # next address to write
 	cur.close()
@@ -134,10 +134,10 @@ if execute_inserter:
 			new_text = row[2]
 			if (new_text):
 				text = new_text
-				decoded_text = table2.decode(text, True)
+				decoded_text = table2.decode(text, False, False)
 			else:
 				text = original_text
-				decoded_text = table.decode(text, True)
+				decoded_text = table.decode(text, False, False)
 			f.write(decoded_text)
 			if f.tell() > TEXT_BLOCK_LIMIT:
 				sys.exit('CRITICAL ERROR! TEXT_BLOCK_LIMIT! %s > %s (%s)' % (f.tell(), TEXT_BLOCK_LIMIT, (TEXT_BLOCK_LIMIT - f.tell())))
