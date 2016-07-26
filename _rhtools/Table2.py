@@ -93,7 +93,7 @@ class Table():
 				decoded += self.PATTERN_SEPARATED_BYTE % byte.encode('hex_codec')
 		return decoded
 
-	def encode(self, text, mte_resolver=True, dict_resolver=True):
+	def encode(self, text, mte_resolver=True, dict_resolver=True, cmd_list=[]):
 		decoded = b''
 		if (text):
 			iter = enumerate(text)
@@ -104,7 +104,12 @@ class Table():
 				elif self.isBreakline(key):
 					decoded += '\n'
 				else:
-					if dict_resolver and key in self._dict:
+					if key in cmd_list:
+						bytes = byte + iter.next()[1]
+						subkey = byte2int(bytes[1])
+						decoded += self.PATTERN_SEPARATED_BYTE % bytes[0].encode('hex_codec')
+						decoded += self.PATTERN_SEPARATED_BYTE % bytes[1].encode('hex_codec')
+					elif dict_resolver and key in self._dict:
 						bytes = byte + iter.next()[1]
 						subkey = byte2int(bytes[1])
 						if subkey in self._dict[key]:

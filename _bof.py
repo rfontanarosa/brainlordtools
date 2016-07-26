@@ -56,7 +56,8 @@ POINTER_BLOCK2_START = 0x77240
 POINTER_BLOCK2_END = POINTER_BLOCK2_LIMIT = 0x77dfe
 
 TEXT_BLOCK1_START = 0x60000
-TEXT_BLOCK1_END = TEXT_BLOCK1_LIMIT = 0x633d1
+#TEXT_BLOCK1_END = TEXT_BLOCK1_LIMIT = 0x633d1
+TEXT_BLOCK1_END = TEXT_BLOCK1_LIMIT = 0x633ff
 TEXT_BLOCK2_START = 0x68000
 TEXT_BLOCK2_END = TEXT_BLOCK2_LIMIT = 0x76ebf
 
@@ -119,7 +120,7 @@ if execute_dump:
 					text += byte
 				byte = f.read(1)
 				text += byte
-			text_encoded = table.encode(text)
+			text_encoded = table.encode(text, cmd_list=[0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c])
 			# DUMP - DB
 			text_binary = sqlite3.Binary(text)
 			text_address = int2hex(pointer)
@@ -155,7 +156,7 @@ if execute_dump:
 					text += byte
 				byte = f.read(1)
 				text += byte
-			text_encoded = table.encode(text)
+			text_encoded = table.encode(text, cmd_list=[0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c])
 			# DUMP - DB
 			text_binary = sqlite3.Binary(text)
 			text_address = int2hex(pointer)
@@ -190,31 +191,32 @@ if execute_inserter:
 			for row in cur:
 				# INSERTER X
 				id = row[3]
-				original_text = row[2]
-				new_text = row[4]
-				if (new_text):
-					text = new_text
-				else:
-					text = original_text
-				decoded_text = table2.decode(text)
-				new_text_address = f.tell()
-				f.seek(new_text_address)
-				f.write(decoded_text)
-				next_text_address = f.tell()
-				if next_text_address > (TEXT_BLOCK_LIMIT + 1):
-					sys.exit('CRITICAL ERROR! ID %d - BLOCK %d - TEXT_BLOCK_LIMIT! %s > %s (%s)' % (id, block, next_text_address, TEXT_BLOCK_LIMIT, (TEXT_BLOCK_LIMIT - next_text_address)))
-				# REPOINTER X
-				pointer_addresses = row[6]
-				if pointer_addresses:
-					for pointer_address in pointer_addresses.split(';'):
-						if pointer_address:
-							pointer_address = hex2dec(pointer_address)
-							f.seek(pointer_address)
-							pvalue = struct.pack('H', new_text_address - TEXT_BLOCK_START)
-							f.write(pvalue)
-							if pointer_address > (POINTER_BLOCK_LIMIT + 1):
-								sys.exit('CRITICAL ERROR! ID %d - BLOCK %d - POINTER_BLOCK_LIMIT! %s > %s (%s)' % (id, block, pointer_address, POINTER_BLOCK_LIMIT, (POINTER_BLOCK_LIMIT - pointer_address)))
-				f.seek(next_text_address)
+				if id not in (207, 444):
+					original_text = row[2]
+					new_text = row[4]
+					if (new_text):
+						text = new_text
+					else:
+						text = original_text
+					decoded_text = table2.decode(text)
+					new_text_address = f.tell()
+					if new_text_address + len(decoded_text) > (TEXT_BLOCK_LIMIT + 1):
+						sys.exit('CRITICAL ERROR! ID %d - BLOCK %d - TEXT_BLOCK_LIMIT! %s > %s (%s)' % (id, block, next_text_address, TEXT_BLOCK_LIMIT, (TEXT_BLOCK_LIMIT - next_text_address)))
+					f.seek(new_text_address)
+					f.write(decoded_text)
+					next_text_address = f.tell()
+					# REPOINTER X
+					pointer_addresses = row[6]
+					if pointer_addresses:
+						for pointer_address in pointer_addresses.split(';'):
+							if pointer_address:
+								pointer_address = hex2dec(pointer_address)
+								f.seek(pointer_address)
+								pvalue = struct.pack('H', new_text_address - TEXT_BLOCK_START)
+								f.write(pvalue)
+								if pointer_address > (POINTER_BLOCK_LIMIT + 1):
+									sys.exit('CRITICAL ERROR! ID %d - BLOCK %d - POINTER_BLOCK_LIMIT! %s > %s (%s)' % (id, block, pointer_address, POINTER_BLOCK_LIMIT, (POINTER_BLOCK_LIMIT - pointer_address)))
+					f.seek(next_text_address)
 	cur.close()
 	conn.close()
 
