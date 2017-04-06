@@ -53,7 +53,7 @@ DICT1_BLOCK_END = DICT1_BLOCK_LIMIT = 0x63e04
 POINTER_BLOCK1_START = 0x77000
 POINTER_BLOCK1_END = POINTER_BLOCK1_LIMIT = 0x7723f
 POINTER_BLOCK2_START = 0x77240
-POINTER_BLOCK2_END = POINTER_BLOCK2_LIMIT = 0x77dfe
+POINTER_BLOCK2_END = POINTER_BLOCK2_LIMIT = 0x77dff
 
 TEXT_BLOCK1_START = 0x60000
 #TEXT_BLOCK1_END = TEXT_BLOCK1_LIMIT = 0x633d1
@@ -63,15 +63,6 @@ TEXT_BLOCK2_END = TEXT_BLOCK2_LIMIT = 0x76ebf
 
 table = Table(tablename)
 table2 = Table(tablename2)
-
-def bofBlockResolver(address):
-	""" """
-	block = 0
-	if address >= TEXT_BLOCK1_START and address <= TEXT_BLOCK1_LIMIT:
-		block = 1
-	if address >= TEXT_BLOCK2_START and address <= TEXT_BLOCK2_LIMIT:
-		block = 2
-	return block
 
 def bofBlockLimitsResolver(block):
 	""" """
@@ -173,6 +164,7 @@ if execute_dump:
 		conn.close()
 
 if execute_inserter:
+	""" INSERTER """
 	conn = sqlite3.connect(db)
 	conn.text_factory = str
 	cur = conn.cursor()
@@ -201,7 +193,7 @@ if execute_inserter:
 					decoded_text = table2.decode(text)
 					new_text_address = f.tell()
 					if new_text_address + len(decoded_text) > (TEXT_BLOCK_LIMIT + 1):
-						sys.exit('CRITICAL ERROR! ID %d - BLOCK %d - TEXT_BLOCK_LIMIT! %s > %s (%s)' % (id, block, next_text_address, TEXT_BLOCK_LIMIT, (TEXT_BLOCK_LIMIT - next_text_address)))
+						sys.exit('CRITICAL ERROR! ID %d - BLOCK %d - TEXT_BLOCK_LIMIT! %s > %s (%s)' % (id, block, next_text_address + len(decoded_text), TEXT_BLOCK_LIMIT, (TEXT_BLOCK_LIMIT - next_text_address - len(decoded_text))))
 					f.seek(new_text_address)
 					f.write(decoded_text)
 					next_text_address = f.tell()
@@ -229,7 +221,7 @@ if execute_mtefinder:
 		while(f.tell() < DICT1_POINTER_BLOCK_END):
 			p_offset = f.tell()
 			p_bytes = f.read(2)
-			p_value = 0x63400 + (byte2int(p_bytes[1])*0x100) + byte2int(p_bytes[0])
+			p_value = 0x63400 + (byte2int(p_bytes[1]) * 0x100) + byte2int(p_bytes[0])
 			pointer = {'offset':p_offset, 'bytes':p_bytes, 'value':p_value}
 			mte_pointers.append(pointer)
 		for i, p in enumerate(mte_pointers):
@@ -248,7 +240,7 @@ if execute_mtefinder:
 				pass
 
 if execute_mteoptimizer:
-	""" """
+	""" MTE OPTIMIZER """
 	# DICTIONARY OPTIMIZATION
 	with open('mteOptBoFText-input.txt', 'w') as out:
 		conn = sqlite3.connect(db)
@@ -266,7 +258,7 @@ if execute_mteoptimizer:
 			text = clean_text(text)
 			out.write(text + '\n')
 	os.system("mteOpt.py -s \"mteOptBoFText-input.txt\" -d \"mteOptBoFText-output.txt\" -m 3 -M 12 -l 255 -o 768")
-	# OPTIMIZED TABLE
+	# TABLE OPTIMIZATION
 	with open(tablename3, 'rU') as f:
 		table3content = f.read()
 		with open('mteOptBoFText-output.txt', 'rU') as f2:
@@ -274,7 +266,7 @@ if execute_mteoptimizer:
 			with open(tablename2, 'w') as f3:
 				f3.write('\n' + table3content)
 				f3.write('\n' + mteOpt)
-	##
+	## DUMP
 	values = []
 	length = 0
 	with open('mteOptBoFText-output.txt', 'rb') as f:
@@ -303,4 +295,4 @@ if execute_mteoptimizer:
 			f.write(p_value)
 			if f.tell() > (DICT1_POINTER_BLOCK_LIMIT + 1):
 				sys.exit('CRITICAL ERROR! MTE REPOINTER!')
-			length += len(value) + 1
+			length += (len(value) + 1)
