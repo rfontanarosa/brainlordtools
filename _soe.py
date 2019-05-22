@@ -50,10 +50,6 @@ TEXT_BLOCK['rare_item_names'] = (0x47397, 0x473D3)
 TEXT_BLOCK['rare_item_descriptions'] = (0x473D4, 0x473DD)
 TEXT_BLOCK['charm_descriptions'] = (0x473DE, 0x47712)
 
-POINTERS = {
-    'ring': (0xe814c, 0xe8653)
-}
-
 table = Table(tablename)
 
 def read_text(f, end_byte=0x00):
@@ -95,7 +91,17 @@ def get_ring_pointers(f, block_limits=(0xe814c, 0xe8653)):
         pointers[p_value] = p_offset
     return pointers
 
-def get_weapons_pointers(f):
+def get_alchemy_names_pointers(f, block_limits=(0x45d09, 0x45d4e)):
+    pointers = OrderedDict()
+    f.seek(block_limits[0])
+    while(f.tell() < block_limits[1]):
+        p_offset = f.tell()
+        pointer = f.read(2)
+        p_value = string_address2int_address(pointer, switch=True, offset=0x40000)
+        pointers[p_value] = p_offset
+    return pointers
+
+def get_weapon_names_pointers(f):
     pointers = OrderedDict()
     for start in (0xd8c3e, 0xd8e17, 0xd8fee):
         f.seek(start)
@@ -104,7 +110,19 @@ def get_weapons_pointers(f):
             pointer = f.read(112)
             p_value = string_address2int_address(pointer[3:5], switch=True, offset=0x40000)
             pointers[p_value] = p_offset
-            print int2hex(p_value)
+            #print int2hex(p_value)
+    return pointers
+
+def get_status_pointers(f):
+    pointers = OrderedDict()
+    for start in [0x43b06]:
+        f.seek(start)
+        while(f.tell() < start + (10*40)):
+            p_offset = f.tell()
+            pointer = f.read(10)
+            p_value = string_address2int_address(pointer[:2], switch=True, offset=0x40000)
+            pointers[p_value] = p_offset
+            #print int2hex(p_value)
     return pointers
 
 def repoint_ring(f, pointers, new_pointers, offset=0x40000):
@@ -131,16 +149,12 @@ if execute_dump:
     with open(filename, 'rb') as f:
         dump_block(f)
 
-
-"""
-pointers = where was the text => where is the pointer
-new_pointers = where was the text => where is the text now
-"""
-
 if execute_inserter:
     with open(filename, 'rb') as f:
         pointers = get_ring_pointers(f)
-        pointers1 = get_weapons_pointers(f)
+        pointers1 = get_alchemy_names_pointers(f)
+        pointers2 = get_weapon_names_pointers(f)
+        pointers3 = get_status_pointers(f)
     with open(filename2, 'r+b') as f:
         #
         new_pointers = OrderedDict()
