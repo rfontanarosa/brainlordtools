@@ -88,7 +88,7 @@ def get_ring_pointers(f, block_limits=(0xe814c, 0xe8653)):
         p_offset = f.tell()
         pointer = f.read(8)
         p_value = string_address2int_address(pointer[:2], switch=True, offset=0x40000)
-        pointers[p_value] = p_offset
+        pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
 def get_alchemy_names_pointers(f, block_limits=(0x45d09, 0x45d4e)):
@@ -98,7 +98,27 @@ def get_alchemy_names_pointers(f, block_limits=(0x45d09, 0x45d4e)):
         p_offset = f.tell()
         pointer = f.read(2)
         p_value = string_address2int_address(pointer, switch=True, offset=0x40000)
-        pointers[p_value] = p_offset
+        pointers.setdefault(p_value, []).append(p_offset)
+    return pointers
+
+def get_alchemy_descriptions_pointers(f, block_limits=(0x45d51, 0x45d96)):
+    pointers = OrderedDict()
+    f.seek(block_limits[0])
+    while(f.tell() < block_limits[1]):
+        p_offset = f.tell()
+        pointer = f.read(2)
+        p_value = string_address2int_address(pointer, switch=True, offset=0x40000)
+        pointers.setdefault(p_value, []).append(p_offset)
+    return pointers
+
+def get_alchemy_ingredient_names_pointers(f, block_limits=(0x45fc5, 0x4601e)):
+    pointers = OrderedDict()
+    f.seek(block_limits[0])
+    while(f.tell() < block_limits[1]):
+        p_offset = f.tell()
+        pointer = f.read(2)
+        p_value = string_address2int_address(pointer, switch=True, offset=0x40000)
+        pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
 def get_weapon_names_pointers(f):
@@ -106,42 +126,132 @@ def get_weapon_names_pointers(f):
     for start in (0xd8c3e, 0xd8e17, 0xd8fee):
         f.seek(start)
         while(f.tell() < start + (112*4)):
-            p_offset = f.tell()
+            p_offset = f.tell() +3
             pointer = f.read(112)
             p_value = string_address2int_address(pointer[3:5], switch=True, offset=0x40000)
-            pointers[p_value] = p_offset
-            #print int2hex(p_value)
+            pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
-def get_status_pointers(f):
+def get_weapon_descriptions_pointers(f, block_limits=(0x459fa, 0x45a11)):
     pointers = OrderedDict()
-    for start in [0x43b06]:
-        f.seek(start)
-        while(f.tell() < start + (10*40)):
-            p_offset = f.tell()
-            pointer = f.read(10)
-            p_value = string_address2int_address(pointer[:2], switch=True, offset=0x40000)
-            pointers[p_value] = p_offset
-            #print int2hex(p_value)
+    f.seek(block_limits[0])
+    while(f.tell() < block_limits[1]):
+        p_offset = f.tell()
+        pointer = f.read(2)
+        p_value = string_address2int_address(pointer, switch=True, offset=0x40000)
+        pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
-def repoint_ring(f, pointers, new_pointers, offset=0x40000):
-    for p_value, p_address in pointers.iteritems():
-        p_new_value = new_pointers.get(p_value)
-        f.seek(p_address)
-        f.write(struct.pack('H', p_new_value - offset))
+def get_status_weapons_pointers(f, block_limits=(0x4390c, 0x43b04)):
+    pointers = OrderedDict()
+    f.seek(block_limits[0])
+    while (f.tell() < block_limits[1]):
+        p_offset = f.tell()
+        pointer = f.read(36)
+        p_value = string_address2int_address(pointer[:2], switch=True, offset=0x40000)
+        pointers.setdefault(p_value, []).append(p_offset)
+    return pointers
 
-def get_translated_texts():
+def get_status_armors_pointers(f, block_limits=(0x43b06, 0x43c96)):
+    pointers = OrderedDict()
+    f.seek(block_limits[0])
+    while (f.tell() < block_limits[1]):
+        p_offset = f.tell()
+        pointer = f.read(10)
+        p_value = string_address2int_address(pointer[:2], switch=True, offset=0x40000)
+        pointers.setdefault(p_value, []).append(p_offset)
+    return pointers
+
+def get_trade_goods_pointers(f, block_limits=(0xcbc00, 0xcbc19)):
+    pointers = OrderedDict()
+    f.seek(block_limits[0])
+    while(f.tell() < block_limits[1]):
+        p_offset = f.tell()
+        pointer = f.read(2)
+        p_value = string_address2int_address(pointer, switch=True, offset=0x40000)
+        pointers.setdefault(p_value, []).append(p_offset)
+    return pointers
+
+def get_charm_names_pointers(f, block_limits=(0xcbc1a, 0xcbc35)):
+    pointers = OrderedDict()
+    f.seek(block_limits[0])
+    while(f.tell() < block_limits[1]):
+        p_offset = f.tell()
+        pointer = f.read(2)
+        p_value = string_address2int_address(pointer, switch=True, offset=0x40000)
+        pointers.setdefault(p_value, []).append(p_offset)
+    return pointers
+
+def get_charm_descriptions_pointers(f, block_limits=(0xcc3d0, 0xcc3eb)):
+    pointers = OrderedDict()
+    f.seek(block_limits[0])
+    while(f.tell() < block_limits[1]):
+        p_offset = f.tell()
+        pointer = f.read(2)
+        p_value = string_address2int_address(pointer, switch=True, offset=0x40000)
+        pointers.setdefault(p_value, []).append(p_offset)
+    return pointers
+
+def get_rare_items_pointers(f, block_limits=(0xcbc36, 0xcbc42)):
+    pointers = OrderedDict()
+    f.seek(block_limits[0])
+    while(f.tell() < block_limits[1]):
+        p_offset = f.tell()
+        pointer = f.read(2)
+        p_value = string_address2int_address(pointer, switch=True, offset=0x40000)
+        pointers.setdefault(p_value, []).append(p_offset)
+    return pointers
+
+def get_rare_item_descriptions_pointers(f, block_limits=(0xcc3ec, 0xcc3f7)):
+    pointers = OrderedDict()
+    f.seek(block_limits[0])
+    while(f.tell() < block_limits[1]):
+        p_offset = f.tell()
+        pointer = f.read(2)
+        p_value = string_address2int_address(pointer, switch=True, offset=0x40000)
+        pointers.setdefault(p_value, []).append(p_offset)
+    return pointers
+
+def get_npc_enemy_names_pointers(f, block_limits=(0xeb70c, 0xedf84)):
+    pointers = OrderedDict()
+    f.seek(block_limits[0])
+    while f.tell() < block_limits[1]:
+        p_offset = f.tell()
+        pointer = f.read(74)
+        p_value = string_address2int_address(pointer[:2], switch=True, offset=0x40000)
+        pointers.setdefault(p_value, []).append(p_offset)
+    return pointers
+
+def get_translated_texts(filename):
     translated_texts = OrderedDict()
-    for block_name, block_limits in TEXT_BLOCK.iteritems():
-        filename = os.path.join(dump_path, block_name + '.csv')
-        with open(filename, 'rb') as csv_file:
-            csv_reader = csv.reader(csv_file)
-            for row in csv_reader:
-                t_value = row[0]
-                t_address = int(row[1])
-                translated_texts[t_address] = t_value
+    with open(filename, 'rb') as csv_file:
+        csv_reader = csv.reader(csv_file)
+        for row in csv_reader:
+            t_value = row[0]
+            t_address = int(row[1])
+            translated_texts[t_address] = t_value
     return translated_texts
+
+def repoint(f, pointers, new_pointers, offset=0x40000):
+    for p_value, p_addresses in pointers.iteritems():
+        p_new_value = new_pointers.get(p_value)
+        if not p_new_value:
+            print 'NOT FOUND 1'
+        else:
+            for p_address in p_addresses:
+                f.seek(p_address)
+                f.write(struct.pack('H', p_new_value - offset))
+
+def repoint_npc_enemy_names(f, pointers, new_pointers, offset=0x340000):
+    for p_value, p_addresses in pointers.iteritems():
+        p_new_value = new_pointers.get(p_value)
+        if not p_new_value:
+            print 'NOT FOUND 2'
+        else:
+            for p_address in p_addresses:
+                f.seek(p_address)
+                f.write(struct.pack('H', p_new_value - offset))
+                f.write(int2byte(int(0xf4)))
 
 if execute_dump:
     shutil.rmtree(dump_path, ignore_errors=True)
@@ -150,18 +260,47 @@ if execute_dump:
         dump_block(f)
 
 if execute_inserter:
-    with open(filename, 'rb') as f:
-        pointers = get_ring_pointers(f)
-        pointers1 = get_alchemy_names_pointers(f)
-        pointers2 = get_weapon_names_pointers(f)
-        pointers3 = get_status_pointers(f)
-    with open(filename2, 'r+b') as f:
-        #
+    with open(filename, 'rb') as f0:
+        pointers0 = get_ring_pointers(f0)
+        pointers1 = get_alchemy_names_pointers(f0)
+        pointers2 = get_alchemy_descriptions_pointers(f0)
+        pointers3 = get_alchemy_ingredient_names_pointers(f0)
+        pointers4 = get_weapon_names_pointers(f0)
+        pointers5 = get_weapon_descriptions_pointers(f0)
+        pointers6 = get_status_weapons_pointers(f0)
+        pointers7 = get_status_armors_pointers(f0)
+        pointers8 = get_trade_goods_pointers(f0)
+        pointers9 = get_charm_names_pointers(f0)
+        pointers10 = get_charm_descriptions_pointers(f0)
+        pointers11 = get_rare_items_pointers(f0)
+        pointers12 = get_rare_item_descriptions_pointers(f0)
+        pointers13 = get_npc_enemy_names_pointers(f0)
+    with open(filename2, 'r+b') as f1:
+        translated_blocks = OrderedDict()
+        for block_name, block_limits in TEXT_BLOCK.iteritems():
+            file2read = os.path.join(dump_path, block_name + '.csv')
+            translated_blocks[block_name] = get_translated_texts(file2read)
+        # new pointers
         new_pointers = OrderedDict()
-        translated_texts = get_translated_texts()
-        f.seek(0x460AE)
-        for t_address, t_value in translated_texts.iteritems():
-            t_new_address = write_text(f, t_value)
-            new_pointers[t_address] = t_new_address
-        #
-        repoint_ring(f, pointers, new_pointers)
+        f1.seek(0x460ae)
+        for block_name, translated_texts in translated_blocks.iteritems():
+            for t_address, t_value in translated_texts.iteritems():
+                if block_name not in ('npc_enemy_names1', 'npc_enemy_names2'):
+                    t_new_address = write_text(f1, t_value)
+                    new_pointers[t_address] = t_new_address
+                else:
+                    t_new_address = write_text(f1, 'X')
+                    new_pointers[t_address] = t_new_address
+        # repointing
+        for curr_pointers in (pointers0, pointers1, pointers2, pointers3, pointers4, pointers5, pointers6, pointers7, pointers8, pointers9, pointers10, pointers11, pointers12):
+            repoint(f1, curr_pointers, new_pointers)
+        # npc/enemies new pointers
+        new_pointers = OrderedDict()
+        f1.seek(0x340000)
+        for block_name, translated_texts in translated_blocks.iteritems():
+            if block_name in ('npc_enemy_names1', 'npc_enemy_names2'):
+                for t_address, t_value in translated_texts.iteritems():
+                    t_new_address = write_text(f1, t_value)
+                    new_pointers[t_address] = t_new_address
+        # repointing npc/enemies
+        repoint_npc_enemy_names(f1, pointers13, new_pointers)
