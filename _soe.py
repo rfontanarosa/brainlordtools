@@ -26,7 +26,8 @@ execute_inserter = args.insert
 filename = args.source_file
 filename2 = args.dest_file
 tablename = args.table1
-dump_path = 'soe/dump/'
+dump_path = 'soe/dump'
+translation_path = 'soe/translation'
 
 CRC32 = 'A5C0045E'
 
@@ -61,11 +62,20 @@ def read_text(f, end_byte=0x00):
             text += byte
     return text
 
-def write_text(f, text, end_byte=0x00):
+def write_text(f, text, end_byte=0x00, limit=0x47712):
     new_address = f.tell()
+    text = text.replace(u'à', '{11}')
+    text = text.replace(u'è', '{13}')
+    text = text.replace(u'é', '{15}')
+    text = text.replace(u'ì', '{17}')
+    text = text.replace(u'ò', '{19}')
+    text = text.replace(u'ù', '{1B}')
+    text = text.replace(u'È', '{1D}')
     decoded_text = table.decode(text)
     f.write(decoded_text)
     f.write(int2byte(end_byte))
+    if f.tell() > limit:
+        raise Exception()
     return new_address
 
 def dump_block(f):
@@ -227,7 +237,7 @@ def get_translated_texts(filename):
     with open(filename, 'rb') as csv_file:
         csv_reader = csv.reader(csv_file)
         for row in csv_reader:
-            t_value = row[0]
+            t_value = row[0].decode('utf8')
             t_address = int(row[1])
             translated_texts[t_address] = t_value
     return translated_texts
@@ -278,7 +288,7 @@ if execute_inserter:
     with open(filename2, 'r+b') as f1:
         translated_blocks = OrderedDict()
         for block_name, block_limits in TEXT_BLOCK.iteritems():
-            file2read = os.path.join(dump_path, block_name + '.csv')
+            file2read = os.path.join(translation_path, block_name + '.csv')
             translated_blocks[block_name] = get_translated_texts(file2read)
         # new pointers
         new_pointers = OrderedDict()
@@ -300,7 +310,7 @@ if execute_inserter:
         for block_name, translated_texts in translated_blocks.iteritems():
             if block_name in ('npc_enemy_names1', 'npc_enemy_names2'):
                 for t_address, t_value in translated_texts.iteritems():
-                    t_new_address = write_text(f1, t_value)
+                    t_new_address = write_text(f1, t_value, limit=0x341000)
                     new_pointers[t_address] = t_new_address
         # repointing npc/enemies
         repoint_npc_enemy_names(f1, pointers13, new_pointers)
