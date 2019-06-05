@@ -166,7 +166,7 @@ def get_weapon_descriptions_pointers(f, block_limits=(0x459fa, 0x45a11)):
         pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
-def get_status_weapons_pointers(f, block_limits=(0x4390c, 0x43b04)):
+def get_status_weapons_pointers(f, block_limits=(0x438e8, 0x43b04)):
     pointers = OrderedDict()
     f.seek(block_limits[0])
     while (f.tell() < block_limits[1]):
