@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 __author__ = "Roberto Fontanarosa"
 __license__ = "GPLv2"
 __version__ = ""
@@ -28,6 +30,7 @@ filename2 = args.dest_file
 tablename = args.table1
 dump_path = 'soe/dump'
 translation_path = 'soe/translation'
+misc_path = 'soe/resources'
 
 CRC32 = 'A5C0045E'
 
@@ -62,8 +65,7 @@ def read_text(f, end_byte=0x00):
             text += byte
     return text
 
-def write_text(f, text, end_byte=0x00, limit=0x47712):
-    new_address = f.tell()
+def decode_text(text):
     text = text.replace(u'à', '{11}')
     text = text.replace(u'è', '{13}')
     text = text.replace(u'é', '{15}')
@@ -71,12 +73,24 @@ def write_text(f, text, end_byte=0x00, limit=0x47712):
     text = text.replace(u'ò', '{19}')
     text = text.replace(u'ù', '{1B}')
     text = text.replace(u'È', '{1D}')
+    return text
+
+def write_text(f, text, end_byte=0x00, limit=0x47712):
+    new_address = f.tell()
+    text = decode_text(text)
     decoded_text = table.decode(text)
     f.write(decoded_text)
     f.write(int2byte(end_byte))
     if f.tell() > limit:
         raise Exception()
     return new_address
+
+def write_text1(f, offset, text,end_byte=0x00):
+    f.seek(offset)
+    text = decode_text(text)
+    decoded_text = table.decode(text)
+    f.write(decoded_text)
+    f.write(int2byte(end_byte))
 
 def dump_block(f):
     for block_name, block_limits in TEXT_BLOCK.iteritems():
@@ -242,6 +256,19 @@ def get_translated_texts(filename):
             translated_texts[t_address] = t_value
     return translated_texts
 
+def get_translated_misc(filename):
+    translated_misc = OrderedDict()
+    with open(filename, 'rb') as csv_file:
+        csv_reader = csv.reader(csv_file)
+        for row in csv_reader:
+            t_value = row[0].decode('utf8')
+            if t_value:
+                t_address = int(row[1], 16)
+                trans_value = row[2].decode('utf8')
+                if trans_value and len(trans_value) <= len(t_value):
+                    translated_misc[t_address] = trans_value
+    return translated_misc
+
 def repoint(f, pointers, new_pointers, offset=0x40000):
     for p_value, p_addresses in pointers.iteritems():
         p_new_value = new_pointers.get(p_value)
@@ -288,8 +315,8 @@ if execute_inserter:
     with open(filename2, 'r+b') as f1:
         translated_blocks = OrderedDict()
         for block_name, block_limits in TEXT_BLOCK.iteritems():
-            file2read = os.path.join(translation_path, block_name + '.csv')
-            translated_blocks[block_name] = get_translated_texts(file2read)
+            translation_file = os.path.join(translation_path, block_name + '.csv')
+            translated_blocks[block_name] = get_translated_texts(translation_file)
         # new pointers
         new_pointers = OrderedDict()
         f1.seek(0x460ae)
@@ -314,3 +341,8 @@ if execute_inserter:
                     new_pointers[t_address] = t_new_address
         # repointing npc/enemies
         repoint_npc_enemy_names(f1, pointers13, new_pointers)
+        # misc
+        misc_file = os.path.join(misc_path, 'misc.csv')
+        translated_misc = get_translated_misc(misc_file)
+        for t_address, trans_value in translated_misc.iteritems():
+            write_text1(f1, t_address, trans_value, end_byte=0x00)
