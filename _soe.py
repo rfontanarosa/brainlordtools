@@ -283,7 +283,7 @@ def repoint_misc(filename, f, next_text_address=0x360000):
                             f.write(new_pointer)
                     trans_value = row.get('trans2') or row.get('trans1') or row.get('text')
                     trans_value = trans_value.decode('utf8')
-                    f.seek(next_text_address)
+                    next_text_address = write_text1(f, next_text_address, trans_value)
 
 def repoint(f, pointers, new_pointers, offset=0x40000):
     for p_value, p_addresses in pointers.iteritems():
