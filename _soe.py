@@ -75,22 +75,23 @@ def decode_text(text):
     text = text.replace(u'È', '{1D}')
     return text
 
-def write_text(f, text, end_byte=0x00, limit=0x47712):
+def write_text(f, text, end_byte=0x00, limit=None):
     new_address = f.tell()
     text = decode_text(text)
     decoded_text = table.decode(text)
     f.write(decoded_text)
     f.write(int2byte(end_byte))
-    if f.tell() > limit:
+    if limit and f.tell() > limit:
         raise Exception()
     return new_address
 
-def write_text1(f, offset, text,end_byte=0x00):
+def write_text1(f, offset, text, end_byte=0x00):
     f.seek(offset)
     text = decode_text(text)
     decoded_text = table.decode(text)
     f.write(decoded_text)
     f.write(int2byte(end_byte))
+    return f.tell()
 
 def dump_block(f):
     for block_name, block_limits in TEXT_BLOCK.iteritems():
@@ -256,18 +257,33 @@ def get_translated_texts(filename):
             translated_texts[t_address] = t_value
     return translated_texts
 
-def get_translated_misc(filename):
-    translated_misc = OrderedDict()
+def repoint_misc(filename, f, next_text_address=0x360000):
     with open(filename, 'rb') as csv_file:
-        csv_reader = csv.reader(csv_file)
+        csv_reader = csv.DictReader(csv_file)
         for row in csv_reader:
-            t_value = row[0].decode('utf8')
-            if t_value:
-                t_address = int(row[1], 16)
-                trans_value = row[2].decode('utf8')
-                if trans_value and len(trans_value) <= len(t_value):
-                    translated_misc[t_address] = trans_value
-    return translated_misc
+            text_address = row.get('text_address')
+            if text_address:
+                p_addresses = row.get('pointer_addresses')
+                if p_addresses:
+                    for p_address in p_addresses.split(','):
+                        p_address = int(p_address, 16)
+                        f.seek(p_address)
+                        pointer = f.read(6)
+                        if text_address in ('0xd9f43', '0xd9f53'):
+                            pass
+                        elif text_address in ('0xda692', '0xda69b', '0xdaf68', '0xdaf71'):
+                            pass
+                        elif text_address == '0xddef3':
+                            pass
+                        else:
+                            new_pointer = struct.pack('H', next_text_address - 0x360000)
+                            new_pointer += pointer[2:5]
+                            new_pointer += int2byte(0xf6)
+                            f.seek(p_address)
+                            f.write(new_pointer)
+                    trans_value = row.get('trans2') or row.get('trans1') or row.get('text')
+                    trans_value = trans_value.decode('utf8')
+                    f.seek(next_text_address)
 
 def repoint(f, pointers, new_pointers, offset=0x40000):
     for p_value, p_addresses in pointers.iteritems():
@@ -323,10 +339,10 @@ if execute_inserter:
         for block_name, translated_texts in translated_blocks.iteritems():
             for t_address, t_value in translated_texts.iteritems():
                 if block_name not in ('npc_enemy_names1', 'npc_enemy_names2'):
-                    t_new_address = write_text(f1, t_value)
+                    t_new_address = write_text(f1, t_value, limit=0x47712)
                     new_pointers[t_address] = t_new_address
                 else:
-                    t_new_address = write_text(f1, 'X')
+                    t_new_address = write_text(f1, 'X', limit=0x47712)
                     new_pointers[t_address] = t_new_address
         # repointing
         for curr_pointers in (pointers0, pointers1, pointers2, pointers3, pointers4, pointers5, pointers6, pointers7, pointers8, pointers9, pointers10, pointers11, pointers12):
@@ -337,12 +353,10 @@ if execute_inserter:
         for block_name, translated_texts in translated_blocks.iteritems():
             if block_name in ('npc_enemy_names1', 'npc_enemy_names2'):
                 for t_address, t_value in translated_texts.iteritems():
-                    t_new_address = write_text(f1, t_value, limit=0x341000)
+                    t_new_address = write_text(f1, t_value)
                     new_pointers[t_address] = t_new_address
         # repointing npc/enemies
         repoint_npc_enemy_names(f1, pointers13, new_pointers)
         # misc
         misc_file = os.path.join(misc_path, 'misc.csv')
-        translated_misc = get_translated_misc(misc_file)
-        for t_address, trans_value in translated_misc.iteritems():
-            write_text1(f1, t_address, trans_value, end_byte=0x00)
+        repoint_misc(misc_file, f1)
