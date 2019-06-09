@@ -269,8 +269,18 @@ def repoint_misc(filename, f, next_text_address=0x360000):
                             f.write(new_pointer)
                             f.seek(0xd9f24)
                             f.write(int2byte(0xf6))
-                        elif text_address in ('0xda692', '0xda69b', '0xdaf68', '0xdaf71'):
-                            pass
+                        elif text_address in ('0xda692', '0xda69b'):
+                            new_pointer = struct.pack('H', next_text_address - 0x360000)
+                            f.seek(p_address)
+                            f.write(new_pointer)
+                            f.seek(0xda2bc)
+                            f.write(int2byte(0xf6))
+                        elif text_address in ('0xdaf68', '0xdaf71'):
+                            new_pointer = struct.pack('H', next_text_address - 0x360000)
+                            f.seek(p_address)
+                            f.write(new_pointer)
+                            f.seek(0xdab67)
+                            f.write(int2byte(0xf6))
                         elif text_address == '0xddef3':
                             new_pointer = struct.pack('H', next_text_address - 0x360000)
                             f.seek(p_address)
