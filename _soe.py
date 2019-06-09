@@ -90,12 +90,13 @@ def dump_block(f):
         filename = os.path.join(dump_path, block_name + '.csv')
         with open(filename, 'wb+') as csv_file:
             csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['text_address', 'text', 'trans'])
             f.seek(block_limits[0])
-            while(f.tell() < block_limits[1]):
-                address = f.tell()
+            while f.tell() < block_limits[1]:
+                text_address = f.tell()
                 text = read_text(f)
                 text_encoded = table.encode(text)
-                fields = [text_encoded, address, int2hex(address)]
+                fields = [int2hex(text_address), text_encoded]
                 csv_writer.writerow(fields)
 
 def get_ring_pointers(f, block_limits=(0xe814c, 0xe8653)):
@@ -242,11 +243,12 @@ def get_npc_enemy_names_pointers(f, block_limits=(0xeb70c, 0xedf84)):
 def get_translated_texts(filename):
     translated_texts = OrderedDict()
     with open(filename, 'rb') as csv_file:
-        csv_reader = csv.reader(csv_file)
+        csv_reader = csv.DictReader(csv_file)
         for row in csv_reader:
-            t_value = row[0].decode('utf8')
-            t_address = int(row[1])
-            translated_texts[t_address] = t_value
+            trans = row.get('trans') or row.get('text')
+            trans = trans.decode('utf-8')
+            text_address = int(row['text_address'], 16)
+            translated_texts[text_address] = trans
     return translated_texts
 
 def repoint_misc(filename, f, next_text_address=0x360000):
@@ -262,20 +264,26 @@ def repoint_misc(filename, f, next_text_address=0x360000):
                         f.seek(p_address)
                         pointer = f.read(6)
                         if text_address in ('0xd9f43', '0xd9f53'):
-                            pass
+                            new_pointer = struct.pack('H', next_text_address - 0x360000)
+                            f.seek(p_address)
+                            f.write(new_pointer)
+                            f.seek(0xd9f24)
+                            f.write(int2byte(0xf6))
                         elif text_address in ('0xda692', '0xda69b', '0xdaf68', '0xdaf71'):
                             pass
                         elif text_address == '0xddef3':
-                            pass
+                            new_pointer = struct.pack('H', next_text_address - 0x360000)
+                            f.seek(p_address)
+                            f.write(new_pointer)
                         else:
                             new_pointer = struct.pack('H', next_text_address - 0x360000)
                             new_pointer += pointer[2:5]
                             new_pointer += int2byte(0xf6)
                             f.seek(p_address)
                             f.write(new_pointer)
-                    trans_value = row.get('trans2') or row.get('trans1') or row.get('text')
-                    trans_value = trans_value.decode('utf8')
-                    next_text_address = write_text(f, next_text_address, trans_value)
+                    trans = row.get('trans2') or row.get('trans1') or row.get('text')
+                    trans = trans.decode('utf8')
+                    next_text_address = write_text(f, next_text_address, trans)
 
 def repoint(f, pointers, new_pointers, offset=0x40000):
     for p_value, p_addresses in pointers.iteritems():
