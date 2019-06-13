@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, re
 from collections import OrderedDict
 
 import argparse
@@ -41,18 +41,14 @@ def extractLinesFromFile(filename):
 		lines = f.readlines()
 	return lines
 
-def characterFilter(list):
+def characterFilter(words):
 	""" ripulisce le parole da caretteri e byte inutili """
-	filteredList = []
-	if list:
-		for index, elem in enumerate(list):
-			filtered = list[index].replace("\n", "").replace("\r", "")
-			filtered = filtered.replace(",", "").replace(";", "").replace(".", "").replace("!", "").replace("?", "")
-			filtered = filtered.replace("(", "").replace(")", "").replace("[", "").replace("]", "")
-			filtered = filtered.replace("+", "").replace(":", "")
-			if filtered and filtered != '':
-				filteredList.append(filtered)
-	return filteredList
+	filteredWords = []
+	if words:
+		regex = re.compile(r'[\n\r,;.!?()\[\]+:]+')
+		filteredWords = list(map(lambda x: regex.sub('', x), words))
+		filteredWords = list(filter(lambda x: x and x != '', filteredWords))
+	return filteredWords
 
 def syllableCounter(list, min=2, max=3):
 	"""  """
