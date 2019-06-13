@@ -4,7 +4,7 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, mmap, struct, sqlite3
+import sys, os, struct, sqlite3
 from collections import OrderedDict
 
 from _rhtools.utils import *
@@ -73,6 +73,17 @@ def bofBlockLimitsResolver(block):
 		blockLimits = (TEXT_BLOCK2_START, TEXT_BLOCK2_LIMIT, POINTER_BLOCK2_START, POINTER_BLOCK2_END, POINTER_BLOCK2_LIMIT)
 	return blockLimits
 
+def read_text(f, end_byte=0x00):
+	text = b''
+	byte = b'1'
+	while not byte2int(byte) == end_byte:
+		if byte2int(byte) in (0x03, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c):
+			byte = f.read(1)
+			text += byte
+		byte = f.read(1)
+		text += byte
+	return text
+
 if execute_crc32check:
 	""" CHECKSUM (CRC32) """
 	if crc32(filename) != CRC32:
@@ -88,76 +99,56 @@ if execute_dump:
 	id = 1
 	with open(filename, 'rb') as f:
 		# TEXT POINTERS 1
+		block = 1
 		pointers = OrderedDict()
 		f.seek(POINTER_BLOCK1_START)
-		while(f.tell() < POINTER_BLOCK1_END):
+		while (f.tell() < POINTER_BLOCK1_END):
 			paddress = f.tell()
 			pvalue = f.read(2)
-			poffset = struct.unpack('H', pvalue)[0] + 0x60000
-			if poffset not in pointers:
-				pointers[poffset] = []
-			pointers[poffset].append(paddress)
+			taddress = struct.unpack('H', pvalue)[0] + 0x60000
+			pointers.setdefault(taddress, []).append(paddress)
 		# TEXT 1
-		for pointer in pointers:
-			pointer_addresses = ''
-			for pointer_address in pointers[pointer]:
-				pointer_addresses += str(int2hex(pointer_address)) + ';'
-			f.seek(pointer)
-			text = b''
-			byte = b'1'
-			while not byte2int(byte) == table.getNewline():
-				if byte2int(byte) in (0x03, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c):
-					byte = f.read(1)
-					text += byte
-				byte = f.read(1)
-				text += byte
+		for taddress, paddresses in pointers.iteritems():
+			pointer_addresses = ';'.join(str(int2hex(x)) for x in paddresses)
+			f.seek(taddress)
+			text = read_text(f, end_byte=table.getNewline())
 			text_encoded = table.encode(text, cmd_list=[0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c])
 			# DUMP - DB
 			text_binary = sqlite3.Binary(text)
-			text_address = int2hex(pointer)
+			text_address = int2hex(taddress)
 			text_length = len(text_binary)
-			block = 1
 			cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, ?)', (id, buffer(text_binary), text_encoded, text_address, pointer_addresses, text_length, block))
+			"""
 			# DUMP - TXT
-			with open('%s - %d.txt' % (dump_path + str(id).zfill(4), len(pointers[pointer])), 'w') as out:
+			with open('%s - %d.txt' % (dump_path + str(id).zfill(4), len(paddresses)), 'w') as out:
 				out.write(text_encoded)
-				pass
+			"""
 			id += 1
+		block = 2
 		# TEXT POINTERS 2
 		pointers = OrderedDict()
 		f.seek(POINTER_BLOCK2_START)
 		while(f.tell() < POINTER_BLOCK2_END):
 			paddress = f.tell()
 			pvalue = f.read(2)
-			poffset = struct.unpack('H', pvalue)[0] + 0x68000
-			if poffset not in pointers:
-				pointers[poffset] = []
-			pointers[poffset].append(paddress)
+			taddress = struct.unpack('H', pvalue)[0] + 0x68000
+			pointers.setdefault(taddress, []).append(paddress)
 		# TEXT 2
-		for pointer in pointers:
-			pointer_addresses = ''
-			for pointer_address in pointers[pointer]:
-				pointer_addresses += str(int2hex(pointer_address)) + ';'
-			f.seek(pointer)
-			text = b''
-			byte = b'1'
-			while not byte2int(byte) == table.getNewline():
-				if byte2int(byte) in (0x03, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c):
-					byte = f.read(1)
-					text += byte
-				byte = f.read(1)
-				text += byte
+		for taddress, paddresses in pointers.iteritems():
+			pointer_addresses = ';'.join(str(int2hex(x)) for x in paddresses)
+			f.seek(taddress)
+			text = read_text(f, end_byte=table.getNewline())
 			text_encoded = table.encode(text, cmd_list=[0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c])
 			# DUMP - DB
 			text_binary = sqlite3.Binary(text)
-			text_address = int2hex(pointer)
+			text_address = int2hex(taddress)
 			text_length = len(text_binary)
-			block = 2
 			cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, ?)', (id, buffer(text_binary), text_encoded, text_address, pointer_addresses, text_length, block))
+			"""
 			# DUMP - TXT
-			with open('%s - %d.txt' % (dump_path + str(id).zfill(4), len(pointers[pointer])), 'w') as out:
+			with open('%s - %d.txt' % (dump_path + str(id).zfill(4), len(paddresses)), 'w') as out:
 				out.write(text_encoded)
-				pass
+			"""
 			id += 1
 		cur.close()
 		conn.commit()
@@ -250,10 +241,7 @@ if execute_mteoptimizer:
 		for row in cur:
 			new_text = row[1]
 			original_text = row[0]
-			if (new_text):
-				text = new_text
-			else:
-				text = original_text
+			text = new_text if new_text else original_text
 			text = text.replace('{04}', '\n')
 			text = clean_text(text)
 			out.write(text + '\n')
