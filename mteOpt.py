@@ -28,7 +28,6 @@ def extractWordsFromFile(filename):
 			wordsToAdd = filter(None, wordsToAdd)
 			for word in wordsToAdd:
 				if word + ' ' in line:
-					pass
 					wordsToAdd.append(word + ' ')
 					wordsToAdd.remove(word)
 			words += wordsToAdd
@@ -45,7 +44,8 @@ def characterFilter(words):
 	""" ripulisce le parole da caretteri e byte inutili """
 	filteredWords = []
 	if words:
-		regex = re.compile(r'[\n\r,;.!?()\[\]+:]+')
+		#regex = re.compile(r'[,;.:!?()\[\]+]+')
+		regex = re.compile(r'[()\[\]+]+')
 		filteredWords = list(map(lambda x: regex.sub('', x), words))
 		filteredWords = list(filter(lambda x: x and x != '', filteredWords))
 	return filteredWords
@@ -100,6 +100,7 @@ dictionary = wordCounter(filteredList, min=MIN, max=MAX)
 #print dictionary
 weightDictionary = calculateWeight(dictionary)
 #print "---------"
+#print weightDictionary
 weightDictionaryByValue = sortDictByValue(weightDictionary)
 #print weightDictionaryByValue
 #print weightDictionaryByValue[:LIMIT]

@@ -56,7 +56,8 @@ POINTER_BLOCK2_START = 0x77240
 POINTER_BLOCK2_END = POINTER_BLOCK2_LIMIT = 0x77dff
 
 TEXT_BLOCK1_START = 0x60000
-#TEXT_BLOCK1_END = TEXT_BLOCK1_LIMIT = 0x633d1
+TEXT_BLOCK1_END =  0x633d1
+TEXT_BLOCK1_LIMIT = 0x633ff
 TEXT_BLOCK1_END = TEXT_BLOCK1_LIMIT = 0x633ff
 TEXT_BLOCK2_START = 0x68000
 TEXT_BLOCK2_END = TEXT_BLOCK2_LIMIT = 0x76ebf
@@ -98,16 +99,16 @@ if execute_dump:
 	cur = conn.cursor()
 	id = 1
 	with open(filename, 'rb') as f:
-		# TEXT POINTERS 1
+		# READ POINTERS BLOCK 1
 		block = 1
 		pointers = OrderedDict()
 		f.seek(POINTER_BLOCK1_START)
 		while (f.tell() < POINTER_BLOCK1_END):
 			paddress = f.tell()
 			pvalue = f.read(2)
-			taddress = struct.unpack('H', pvalue)[0] + 0x60000
+			taddress = struct.unpack('H', pvalue)[0] + TEXT_BLOCK1_START
 			pointers.setdefault(taddress, []).append(paddress)
-		# TEXT 1
+		# READ TEXT BLOCK 1
 		for taddress, paddresses in pointers.iteritems():
 			pointer_addresses = ';'.join(str(int2hex(x)) for x in paddresses)
 			f.seek(taddress)
@@ -125,15 +126,15 @@ if execute_dump:
 			"""
 			id += 1
 		block = 2
-		# TEXT POINTERS 2
+		# READ POINTERS BLOCK 2
 		pointers = OrderedDict()
 		f.seek(POINTER_BLOCK2_START)
 		while(f.tell() < POINTER_BLOCK2_END):
 			paddress = f.tell()
 			pvalue = f.read(2)
-			taddress = struct.unpack('H', pvalue)[0] + 0x68000
+			taddress = struct.unpack('H', pvalue)[0] + TEXT_BLOCK2_START
 			pointers.setdefault(taddress, []).append(paddress)
-		# TEXT 2
+		# READ TEXT BLOCK 2
 		for taddress, paddresses in pointers.iteritems():
 			pointer_addresses = ';'.join(str(int2hex(x)) for x in paddresses)
 			f.seek(taddress)
@@ -177,10 +178,7 @@ if execute_inserter:
 				if id not in (207, 444):
 					original_text = row[2]
 					new_text = row[4]
-					if (new_text):
-						text = new_text
-					else:
-						text = original_text
+					text = new_text if new_text else original_text
 					decoded_text = table2.decode(text)
 					new_text_address = f.tell()
 					if new_text_address + len(decoded_text) > (TEXT_BLOCK_LIMIT + 1):
@@ -212,7 +210,7 @@ if execute_mtefinder:
 		while(f.tell() < DICT1_POINTER_BLOCK_END):
 			p_offset = f.tell()
 			p_bytes = f.read(2)
-			p_value = 0x63400 + (byte2int(p_bytes[1]) * 0x100) + byte2int(p_bytes[0])
+			p_value = DICT1_POINTER_BLOCK_START + (byte2int(p_bytes[1]) * 0x100) + byte2int(p_bytes[0])
 			pointer = {'offset':p_offset, 'bytes':p_bytes, 'value':p_value}
 			mte_pointers.append(pointer)
 		for i, p in enumerate(mte_pointers):
@@ -245,7 +243,19 @@ if execute_mteoptimizer:
 			text = text.replace('{04}', '\n')
 			text = clean_text(text)
 			out.write(text + '\n')
-	os.system("mteOpt.py -s \"mteOptBoFText-input.txt\" -d \"mteOptBoFText-output.txt\" -m 3 -M 12 -l 255 -o 768")
+	#os.system("mteOpt.py -s \"mteOptBoFText-input.txt\" -d \"mteOptBoFText-output.txt\" -m 3 -M 12 -l 255 -o 768")
+	# MORPHER MTE OPTIMIZER
+	os.system("MTEOpt.exe  3 10 \"mteOptBoFText-input.txt\" \"mteOptBoFText-morpher-output.txt\" 255")
+	with open('mteOptBoFText-morpher-output.txt', 'rU') as f1:
+		with open('mteOptBoFText-output.txt', 'w') as f2:
+			for i, e in enumerate(f1):
+				e = e.replace('\n', '').replace('\r', '')
+				e = e.split('\t')
+				n = hex(i + 768).rstrip('L')
+				b = (n + '').replace('0x', '')
+				b = b.zfill(4)
+				line = "%s=%s" % (b, e[1][1:-1])
+				f2.write(line + '\n')
 	# TABLE OPTIMIZATION
 	with open(tablename3, 'rU') as f:
 		table3content = f.read()
