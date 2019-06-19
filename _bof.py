@@ -1,10 +1,12 @@
+# -*- coding: utf-8 -*-
+
 __author__ = "Roberto Fontanarosa"
 __license__ = "GPLv2"
 __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, struct, sqlite3
+import sys, os, struct, sqlite3, csv
 from collections import OrderedDict
 
 from _rhtools.utils import *
@@ -15,10 +17,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--crc32check', action='store_true', default=False, help='Execute CRC32CHECK')
 parser.add_argument('--dump', action='store_true', default=False, help='Execute DUMP')
 parser.add_argument('--insert', action='store_true', default=False, help='Execute INSERTER')
+parser.add_argument('--insert_misc', action='store_true', default=False, help='Execute MISC INSERTER')
 parser.add_argument('--mte_finder', action='store_true', default=False, help='Find MTE')
 parser.add_argument('--mte_optimizer', action='store_true', default=False, help='Optimize MTE')
 parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 parser.add_argument('-d', '--dest',  action='store', dest='dest_file', required=True, help='Destination filename')
+parser.add_argument('-m', '--misc',  action='store', dest='misc_file', required=False, help='Misc filename')
 parser.add_argument('-t1', '--table1', action='store', dest='table1', required=True, help='Original table filename')
 parser.add_argument('-t2', '--table2', action='store', dest='table2', required=True, help='Modified table filename')
 parser.add_argument('-t3', '--table3', action='store', dest='table3', required=False, help='Base original table without')
@@ -29,10 +33,12 @@ args = parser.parse_args()
 execute_crc32check = args.crc32check
 execute_dump = args.dump
 execute_inserter = args.insert
+execute_inserter_misc = args.insert_misc
 execute_mtefinder = args.mte_finder
 execute_mteoptimizer = args.mte_optimizer
 filename = args.source_file
 filename2 = args.dest_file
+filename3 = args.misc_file
 tablename = args.table1
 tablename2 = args.table2
 tablename3 = args.table3
@@ -64,6 +70,7 @@ TEXT_BLOCK2_END = TEXT_BLOCK2_LIMIT = 0x76ebf
 
 table = Table(tablename)
 table2 = Table(tablename2)
+table3 = Table(tablename3)
 
 def bofBlockLimitsResolver(block):
 	""" """
@@ -83,6 +90,16 @@ def read_text(f, end_byte=0x00):
 			text += byte
 		byte = f.read(1)
 		text += byte
+	return text
+
+def decode_text(text):
+	text = text.replace(u'à', '{10}')
+	text = text.replace(u'è', '{11}')
+	text = text.replace(u'é', '{12}')
+	text = text.replace(u'ì', '{13}')
+	text = text.replace(u'ò', '{14}')
+	text = text.replace(u'ù', '{15}')
+	text = text.replace(u'È', '{16}')
 	return text
 
 if execute_crc32check:
@@ -200,6 +217,27 @@ if execute_inserter:
 					f.seek(next_text_address)
 	cur.close()
 	conn.close()
+
+if execute_inserter_misc:
+	with open(filename2, 'r+b') as f:
+		with open(filename3, 'rb') as csv_file:
+			csv_reader = csv.DictReader(csv_file)
+			for row in csv_reader:
+				text_address = row.get('text_address')
+				if text_address:
+					text_address = int(text_address, 16)
+					text = row.get('text')
+					trans = row.get('trans') or text
+					trans = trans.decode('utf8')
+					#
+					f.seek(text_address)
+					decoded_text = table3.decode(text)
+					trans = decode_text(trans)
+					decoded_trans = table3.decode(trans)
+					if len(decoded_trans) > len(decoded_text):
+						print int2hex(text_address)
+					else:
+						f.write(decoded_trans)
 
 if execute_mtefinder:
 	""" MTE FINDER """

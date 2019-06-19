@@ -1,6 +1,6 @@
 set USER="clomax"
 set DB="bof/db/bof.db"
-set SOURCE="bof/roms/gemini/bof.smc"
+set SOURCE="bof/gemini/roms/bof.smc"
 set DESTINATION="bof/gemini/roms/bof-ita.smc"
 set TABLE1="bof/tables/Breath of Fire (U) [!].tbl"
 set TABLE2="bof/tables/Breath of Fire (I) [!].tbl"
