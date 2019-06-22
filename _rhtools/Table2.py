@@ -143,7 +143,7 @@ class Table():
 						key = int2byte(self._reverse_mte[value])
 						h = self.PATTERN_SEPARATED_BYTE % key.encode('hex_codec')
 						h = h[:2] + '-' + h[2:]
-						text = text.replace(value, h)
+						text = re.sub(r'(?<!' + self.PATTERN_SEPARATED_BYTE[0] + ')' + re.escape(value), h, text)
 			i = 0
 			while i < len(text):
 				byte = text[i]
