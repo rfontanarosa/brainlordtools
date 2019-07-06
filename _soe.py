@@ -99,6 +99,16 @@ def dump_block(f):
                 fields = [int2hex(text_address), text_encoded]
                 csv_writer.writerow(fields)
 
+def get_currency_names_pointers(f, block_limits=(0xf8704, 0xf870f)):
+    pointers = OrderedDict()
+    f.seek(block_limits[0])
+    while f.tell() < block_limits[1]:
+        p_offset = f.tell()
+        pointer = f.read(3)
+        p_value = string_address2int_address(pointer[:2], switch=True, offset=0x40000)
+        pointers.setdefault(p_value, []).append(p_offset)
+    return pointers
+
 def get_ring_pointers(f, block_limits=(0xe814c, 0xe8653)):
     pointers = OrderedDict()
     f.seek(block_limits[0])
@@ -324,6 +334,7 @@ if execute_dump:
 
 if execute_inserter:
     with open(filename, 'rb') as f0:
+        pointers00 = get_currency_names_pointers(f0)
         pointers0 = get_ring_pointers(f0)
         pointers1 = get_alchemy_names_pointers(f0)
         pointers2 = get_alchemy_descriptions_pointers(f0)
@@ -354,7 +365,7 @@ if execute_inserter:
                 else:
                     t_new_address = write_text(f1, t_new_address, 'X', limit=0x47712)
         # repointing
-        for curr_pointers in (pointers0, pointers1, pointers2, pointers3, pointers4, pointers5, pointers6, pointers7, pointers8, pointers9, pointers10, pointers11, pointers12):
+        for curr_pointers in (pointers00, pointers0, pointers1, pointers2, pointers3, pointers4, pointers5, pointers6, pointers7, pointers8, pointers9, pointers10, pointers11, pointers12):
             repoint(f1, curr_pointers, new_pointers)
         # npc/enemies new pointers
         new_pointers = OrderedDict()
