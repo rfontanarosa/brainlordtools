@@ -70,7 +70,7 @@ TEXT_BLOCK2_END = TEXT_BLOCK2_LIMIT = 0x76ebf
 
 table = Table(tablename)
 table2 = Table(tablename2)
-table3 = Table(tablename3)
+table3 = Table(tablename3) if tablename3 else None
 
 def bofBlockLimitsResolver(block):
 	""" """
