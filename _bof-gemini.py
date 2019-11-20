@@ -10,9 +10,6 @@ from collections import OrderedDict
 from _rhtools.utils import *
 from _rhtools.Table2 import Table
 
-from _rhtools.HexByteConversion import ByteToHex
-from _rhtools.HexByteConversion import HexToByte
-
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--crc32check', action='store_true', default=False, help='Execute CRC32CHECK')
@@ -80,7 +77,7 @@ if execute_crc32check:
 	if crc32(filename) != CRC32:
 		sys.exit('ROM CHECKSUM: FAIL')
 	else:
-		print 'ROM CHECKSUM: OK'
+		print('ROM CHECKSUM: OK')
 
 if execute_inserter:
 	""" INSERTER """

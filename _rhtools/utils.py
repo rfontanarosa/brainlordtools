@@ -101,6 +101,6 @@ def test():
 	s = "a"
 	i = 97
 	h = "61"
-	print byte2int(s) == i
-	print int2byte(i) == s
-	print hex2dec(h) == i
+	print(byte2int(s) == i)
+	print(int2byte(i) == s)
+	print(hex2dec(h) == i)

@@ -51,7 +51,7 @@ if execute_dump:
 				byte = f.read(1)
 				text += byte
 			text_encoded = table.encode(text, cmd_list=[0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c])
-			print text_encoded
+			print(text_encoded)
 			# DUMP - DB
 			text_binary = sqlite3.Binary(text)
 			#text_address = int2hex(pointer)

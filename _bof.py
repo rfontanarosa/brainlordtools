@@ -107,7 +107,7 @@ if execute_crc32check:
 	if crc32(filename) != CRC32:
 		sys.exit('ROM CHECKSUM: FAIL')
 	else:
-		print 'ROM CHECKSUM: OK'
+		print('ROM CHECKSUM: OK')
 
 if execute_dump:
 	""" DUMP """
@@ -235,7 +235,7 @@ if execute_inserter_misc:
 					trans = decode_text(trans)
 					decoded_trans = table3.decode(trans)
 					if len(decoded_trans) > len(decoded_text):
-						print int2hex(text_address)
+						print(int2hex(text_address))
 					else:
 						f.write(decoded_trans)
 
@@ -262,7 +262,7 @@ if execute_mtefinder:
 					if byte2int(byte) != 0x03:
 						mte += byte
 				b = (int2hex(i + 0x300) + '').replace('x', '')
-				print '%s=%s' % (b, table.encode(mte))
+				print('%s=%s' % (b, table.encode(mte)))
 			else:
 				pass
 

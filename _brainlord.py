@@ -4,7 +4,7 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, mmap, struct, sqlite3
+import sys, os, struct, sqlite3
 from collections import OrderedDict
 
 from _rhtools.utils import *
@@ -59,7 +59,7 @@ if execute_crc32check:
 	if crc32(filename) != CRC32:
 		sys.exit('ROM CHECKSUM: FAIL')
 	else:
-		print 'ROM CHECKSUM: OK'
+		print('ROM CHECKSUM: OK')
 
 if execute_dump:
 	""" DUMP """
@@ -78,9 +78,6 @@ if execute_dump:
 			pValue1 = struct.unpack('H', pValue1)[0]
 			pValue2 = f.read(1)
 			pValue2 = (byte2int(pValue2) - 0xc0) * 0x10000
-            print pValue2
-
-
 			pValue = pValue2 + pValue1
 			if pValue not in pointers1:
 				pointers1[pValue] = []

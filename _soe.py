@@ -309,7 +309,7 @@ def repoint(f, pointers, new_pointers, offset=0x40000):
     for p_value, p_addresses in pointers.iteritems():
         p_new_value = new_pointers.get(p_value)
         if not p_new_value:
-            print 'NOT FOUND 1'
+            print('NOT FOUND 1')
         else:
             for p_address in p_addresses:
                 f.seek(p_address)
@@ -319,7 +319,7 @@ def repoint_npc_enemy_names(f, pointers, new_pointers, offset=0x340000):
     for p_value, p_addresses in pointers.iteritems():
         p_new_value = new_pointers.get(p_value)
         if not p_new_value:
-            print 'NOT FOUND 2'
+            print('NOT FOUND 2')
         else:
             for p_address in p_addresses:
                 f.seek(p_address)

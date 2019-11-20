@@ -4,7 +4,7 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, mmap, struct, sqlite3
+import sys, os, struct, sqlite3
 from collections import OrderedDict
 
 from _rhtools.utils import *
@@ -55,7 +55,7 @@ if execute_crc32check:
 	if crc32(filename) != CRC32:
 		sys.exit('ROM CHECKSUM: FAIL')
 	else:
-		print 'ROM CHECKSUM: OK'
+		print('ROM CHECKSUM: OK')
 
 if execute_dump:
 	""" DUMP """
@@ -91,7 +91,7 @@ if execute_dump:
 					pointer_addresses += str(int2hex(pointer_address)) + ';'
 					pointers_found.append(curr_pointer_value)
 			else:
-				print 'Pointer Not found: ' + str(id) + ' - ' + hex(curr_pointer_value)
+				print('Pointer Not found: ' + str(id) + ' - ' + hex(curr_pointer_value))
 			while not byte2int(byte) == table.getNewline():
 				byte = f.read(1)
 				text += byte
@@ -108,7 +108,7 @@ if execute_dump:
 			id += 1
 		for key in pointers:
 			if key not in pointers_found:
-				print 'Pointer Not used: ' + hex(key) + ' Values: ' + str(pointers[key])
+				print('Pointer Not used: ' + hex(key) + ' Values: ' + str(pointers[key]))
 	cur.close()
 	conn.commit()
 	conn.close()

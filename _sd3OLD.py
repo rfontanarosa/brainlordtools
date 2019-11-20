@@ -4,7 +4,7 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, mmap, struct, sqlite3
+import sys, os, struct, sqlite3
 from collections import OrderedDict
 
 db = 'sd3/db/sd3.db'

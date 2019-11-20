@@ -4,7 +4,7 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, mmap, struct, sqlite3
+import sys, os, struct, sqlite3
 from collections import OrderedDict
 
 from _rhtools.utils import *
@@ -61,7 +61,7 @@ if execute_crc32check:
 	if crc32(filename) != CRC32:
 		sys.exit('ROM CHECKSUM: FAIL')
 	else:
-		print 'ROM CHECKSUM: OK'
+		print('ROM CHECKSUM: OK')
 
 if execute_dump:
 	""" DUMP """
