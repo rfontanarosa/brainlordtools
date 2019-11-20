@@ -93,14 +93,27 @@ def hasHeader(file):
 	size = os.path.getsize(file)
 	return size == 512
 
-########
-# TEST #
-########
+import unittest
 
-def test():
-	s = "a"
-	i = 97
-	h = "61"
-	print(byte2int(s) == i)
-	print(int2byte(i) == s)
-	print(hex2dec(h) == i)
+class TestUtils(unittest.TestCase):
+
+	def setUp(self):
+		pass
+
+	def test_byte2int(self):
+		self.assertEqual(byte2int('a'), 97)
+
+	def test_int2byte(self):
+		self.assertEqual(int2byte(97), 'a')
+
+	def test_int2hex(self):
+		self.assertEqual(int2hex(97), '0x61')
+
+	def test_hex2byte(self):
+		self.assertEqual(hex2byte('61'), 'a')
+
+	def test_hex2dec(self):
+		self.assertEqual(hex2dec('61'), 97)
+
+if __name__ == '__main__':
+	unittest.main()
