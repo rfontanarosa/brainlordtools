@@ -4,6 +4,8 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
+import sys
+
 try:
 	from HexByteConversion import ByteToHex
 	from HexByteConversion import HexToByte
