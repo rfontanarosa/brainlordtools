@@ -28,9 +28,8 @@ execute_inserter = args.insert
 filename = args.source_file
 filename2 = args.dest_file
 tablename = args.table1
-dump_path = 'soe/dump'
-translation_path = 'soe/translation'
-misc_path = 'soe/resources'
+dump_path = './resources/soe/dump'
+translation_path = misc_path = './resources/soe'
 
 CRC32 = 'A5C0045E'
 
