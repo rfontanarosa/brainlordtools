@@ -32,7 +32,7 @@ tablename = args.table1
 tablename2 = args.table2
 db = args.database_file
 user_name = args.user
-dump_path = 'brandish2/dump/'
+dump_path = './resources/brandish2/dump/'
 
 SNES_HEADER_SIZE = 0x200
 SNES_BANK_SIZE = 0x8000
