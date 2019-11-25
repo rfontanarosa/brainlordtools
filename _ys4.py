@@ -4,7 +4,7 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, struct, sqlite3
+import sys, os, struct, sqlite3, urlparse
 from collections import OrderedDict
 
 from _rhtools.utils import *
@@ -38,7 +38,7 @@ tablename2 = args.table2
 tablename3 = args.table3
 db = args.database_file
 user_name = args.user
-dump_path = 'ys4/dump/'
+dump_path = './resources/ys4/dump/'
 
 SNES_HEADER_SIZE = 0x200
 SNES_BANK_SIZE = 0x8000
@@ -158,7 +158,7 @@ if execute_dump:
 				byte = f.read(1)
 				text += byte
 			if len(text) >= 10:
-				pre_text = table.separateByteencode(text[:10])
+				pre_text = table.separateByteEncode(text[:10])
 				text_encoded = table.encode(text[10:])
 			else:
 				pre_text = ''
@@ -388,7 +388,7 @@ if execute_mtefinder:
 if execute_mteoptimizer:
 	""" """
 	# DICTIONARY OPTIMIZATION
-	with open('mteOptYs4Text-input.txt', 'w') as out:
+	with open(urlparse.urljoin('./temp/', 'mteOptYs4Text-input.txt'), 'w') as out:
 		conn = sqlite3.connect(db)
 		conn.text_factory = str
 		cur = conn.cursor()
@@ -403,11 +403,11 @@ if execute_mteoptimizer:
 			text = text.replace('{fe}', '\n')
 			text = clean_text(text)
 			out.write(text + '\n')
-	os.system("mteOpt.py -s \"mteOptYs4Text-input.txt\" -d \"mteOptYs4Text-output.txt\" -m 3 -M 8 -l 1080 -o 53248")
+	os.system("python mteOpt.py -s \"./temp/mteOptYs4Text-input.txt\" -d \"./temp/mteOptYs4Text-output.txt\" -m 3 -M 8 -l 1080 -o 53248")
 	# OPTIMIZED TABLE
 	with open(tablename3, 'rU') as f:
 		table3content = f.read()
-		with open('mteOptYs4Text-output.txt', 'rU') as f2:
+		with open(urlparse.urljoin('./temp/', 'mteOptYs4Text-output.txt'), 'rU') as f2:
 			mteOpt = f2.read()
 			with open(tablename2, 'w') as f3:
 				f3.write('\n' + table3content)
@@ -415,7 +415,7 @@ if execute_mteoptimizer:
 	##
 	values = []
 	length = 0
-	with open('mteOptYs4Text-output.txt', 'rb') as f:
+	with open(urlparse.urljoin('./temp/', 'mteOptYs4Text-output.txt'), 'rb') as f:
 		for line in f:
 			parts = line.partition('=')
 			value1 = parts[0]
