@@ -6,8 +6,10 @@ __email__ = "robertofontanarosa@gmail.com"
 
 import sys, os, struct, shutil, urlparse
 
-script_path = './resources/brandishdr/source/PSP_GAME/USERDIR/data/script/'
+from _rhtools.utils import byte2int
 
+act_path = './resources/brandishdr/source/PSP_GAME/USERDIR/data/pa/'
+script_path = './resources/brandishdr/source/PSP_GAME/USERDIR/data/script/'
 item_file_path = './resources/brandishdr/source/PSP_GAME/USERDIR/data/txt/item.tb'
 item_file_path_t = './resources/brandishdr/translated/PSP_GAME/USERDIR/data/txt/item.tb'
 
@@ -17,6 +19,7 @@ translation_path = './resources/brandishdr/translation/'
 dump_path1 = './resources/brandishdr/dump1/'
 dump_path2 = './resources/brandishdr/dump2/'
 
+unpack_act = True
 extract_scripts = True
 extract_items = True
 
@@ -25,6 +28,25 @@ insert_items = True
 def char2hex(char):
 	integer = int(char.encode('hex'), 16)
 	return hex(integer)
+
+if unpack_act:
+		act_file_path = urlparse.urljoin(act_path, 'st_de.act')
+		with open(act_file_path, 'rb') as f1, open(act_file_path, 'rb') as f2:
+			block = f1.read(16)
+			files = byte2int(block[0])
+			for File in range(files):
+				filename = f1.read(16)
+				file_offset = f1.read(4)
+				file_compressed_size = f1.read(4)
+				file_original_size = f1.read(4)
+				f1.read(4)
+				offset = struct.unpack('i', file_offset)[0]
+				compressed_size = struct.unpack('i', file_compressed_size)[0]
+				original_size = struct.unpack('i', file_original_size)[0]
+				f2.seek(offset)
+				file_content = f2.read(compressed_size)
+				with open(urlparse.urljoin(dump_path, 'st_de.act-' + filename.rstrip('\0')), 'wb') as out:
+					out.write(file_content)
 
 if extract_items:
 	path = urlparse.urljoin(dump_path, 'item.tb/')
