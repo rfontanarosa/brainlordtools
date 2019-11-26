@@ -6,7 +6,7 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, struct, sqlite3, csv
+import sys, os, struct, sqlite3, urlparse, csv
 from collections import OrderedDict
 
 from _rhtools.utils import *
@@ -231,9 +231,9 @@ if execute_inserter_misc:
 					trans = trans.decode('utf8')
 					#
 					f.seek(text_address)
-					decoded_text = table3.decode(text)
+					decoded_text = table3.decode(text, mte_resolver=False, dict_resolver=False)
 					trans = decode_text(trans)
-					decoded_trans = table3.decode(trans)
+					decoded_trans = table3.decode(trans, mte_resolver=False, dict_resolver=False)
 					if len(decoded_trans) > len(decoded_text):
 						print(int2hex(text_address))
 					else:
@@ -269,7 +269,7 @@ if execute_mtefinder:
 if execute_mteoptimizer:
 	""" MTE OPTIMIZER """
 	# DICTIONARY OPTIMIZATION
-	with open('mteOptBoFText-input.txt', 'w') as out:
+	with open(urlparse.urljoin('./temp/', 'mteOptBoFText-input.txt'), 'w') as out:
 		conn = sqlite3.connect(db)
 		conn.text_factory = str
 		cur = conn.cursor()
@@ -281,11 +281,12 @@ if execute_mteoptimizer:
 			text = text.replace('{04}', '\n')
 			text = clean_text(text)
 			out.write(text + '\n')
-	#os.system("mteOpt.py -s \"mteOptBoFText-input.txt\" -d \"mteOptBoFText-output.txt\" -m 3 -M 12 -l 255 -o 768")
+	#os.system("mteOpt.py -s \"./temp/mteOptBoFText-input.txt\" -d \"./temp/mteOptBoFText-output.txt\" -m 3 -M 12 -l 255 -o 768")
 	# MORPHER MTE OPTIMIZER
-	os.system("MTEOpt.exe  3 10 \"mteOptBoFText-input.txt\" \"mteOptBoFText-morpher-output.txt\" 255")
-	with open('mteOptBoFText-morpher-output.txt', 'rU') as f1:
-		with open('mteOptBoFText-output.txt', 'w') as f2:
+	command = "MTEOpt.exe 3 10 \"./temp/mteOptBoFText-input.txt\" \"./temp/mteOptBoFText-morpher-output.txt\" 255"
+	os.system("wine " + command)
+	with open(urlparse.urljoin('./temp/', 'mteOptBoFText-morpher-output.txt'), 'rU') as f1:
+		with open(urlparse.urljoin('./temp/', 'mteOptBoFText-output.txt'), 'w') as f2:
 			for i, e in enumerate(f1):
 				e = e.replace('\n', '').replace('\r', '')
 				e = e.split('\t')
@@ -297,7 +298,7 @@ if execute_mteoptimizer:
 	# TABLE OPTIMIZATION
 	with open(tablename3, 'rU') as f:
 		table3content = f.read()
-		with open('mteOptBoFText-output.txt', 'rU') as f2:
+		with open(urlparse.urljoin('./temp/', 'mteOptBoFText-output.txt'), 'rU') as f2:
 			mteOpt = f2.read()
 			with open(tablename2, 'w') as f3:
 				f3.write('\n' + table3content)
@@ -305,7 +306,7 @@ if execute_mteoptimizer:
 	## DUMP
 	values = []
 	length = 0
-	with open('mteOptBoFText-output.txt', 'rb') as f:
+	with open(urlparse.urljoin('./temp/', 'mteOptBoFText-output.txt'), 'rb') as f:
 		for line in f:
 			parts = line.partition('=')
 			value1 = parts[0]
