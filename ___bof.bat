@@ -1,11 +1,11 @@
 set USER="clomax"
-set DB="bof/db/bof.db"
-set SOURCE="bof/roms/Breath of Fire (U) [!].sfc"
-set DESTINATION="bof/roms/Breath of Fire (I) [!].sfc"
-set MISC="bof/misc.csv"
-set TABLE1="bof/tables/Breath of Fire (U) [!].tbl"
-set TABLE2="bof/tables/Breath of Fire (I) [!].tbl"
-set TABLE3="bof/tables/Breath of Fire (U) [!].base.tbl"
+set DB="./resources/bof/db/bof.db"
+set SOURCE="./resources/bof/roms/Breath of Fire (U) [!].sfc"
+set DESTINATION="./resources/bof/roms/Breath of Fire (I) [!].sfc"
+set MISC="./resources/bof/misc.csv"
+set TABLE1="./resources/bof/tables/Breath of Fire (U) [!].tbl"
+set TABLE2="./resources/bof/tables/Breath of Fire (I) [!].tbl"
+set TABLE3="./resources/bof/tables/Breath of Fire (U) [!].base.tbl"
 
 REM python _bof.py --mte_finder -u %USER% -db %DB% -s %SOURCE% -d %DESTINATION% -t1 %TABLE1% -t2 %TABLE2%
 
