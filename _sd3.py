@@ -7,8 +7,8 @@ __email__ = "robertofontanarosa@gmail.com"
 import sys, os, struct, sqlite3
 from collections import OrderedDict
 
-db = 'sd3/db/sd3.db'
-dump_path = 'sd3/dump/'
+db = './resources/sd3/db/sd3.db'
+dump_path = './resources/sd3/dump/'
 user_name = 'clomax'
 
 fullpath = os.path.join(dump_path, 'sd3.txt')
