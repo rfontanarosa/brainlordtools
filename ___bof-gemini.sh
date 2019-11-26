@@ -1,3 +1,5 @@
+#!/bin/bash
+
 USER="clomax"
 DB="./resources/bof/db/bof.db"
 SOURCE="./resources/bof/gemini/roms/bof.smc"

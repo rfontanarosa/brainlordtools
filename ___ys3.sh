@@ -7,5 +7,5 @@ DESTINATION="resources/ys3/roms/Ys III - Wanderers from Ys (I) [!].smc"
 TABLE1="resources/ys3/tables/Ys III - Wanderers from Ys (U) [!].tbl"
 TABLE2="resources/ys3/tables/Ys III - Wanderers from Ys (U) [!].tbl"
 
-python2 _ys3.py --crc32check --dump -u "$USER" -db "$DB" -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2"
-#python2 _ys3.py --insert -u "$USER" -db "$DB" -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2"
+python _ys3.py --crc32check --dump -u "$USER" -db "$DB" -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2"
+#python _ys3.py --insert -u "$USER" -db "$DB" -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2"
