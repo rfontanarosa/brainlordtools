@@ -128,5 +128,5 @@ if __name__ == '__main__':
     ##        g.write(decompress_FALCOM2(f.read()))
     ##with open('skill.tbb', 'rb') as f:
     ##    with open('output.unc', 'wb') as g:
-    ##        f.seek(4)
+    ##        #f.seek(4)
     ##        g.write(decompress_FALCOM3(f.read()))
