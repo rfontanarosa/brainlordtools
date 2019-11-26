@@ -5,7 +5,7 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import sys, string
-from utils import *
+from utils import hex2dec, byte2int, byte22int, hex2byte, int2byte
 
 class Table():
 
