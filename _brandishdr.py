@@ -7,11 +7,12 @@ __email__ = "robertofontanarosa@gmail.com"
 import sys, os, struct, shutil, urlparse
 
 from _rhtools.utils import byte2int
+from _falcomtools.falcom_decompress_v2 import decompress_FALCOM3
+from _falcomtools.falcom_compress_v2 import compress_FALCOM3
 
 act_path = './resources/brandishdr/source/PSP_GAME/USERDIR/data/pa/'
 script_path = './resources/brandishdr/source/PSP_GAME/USERDIR/data/script/'
-item_file_path = './resources/brandishdr/source/PSP_GAME/USERDIR/data/txt/item.tb'
-item_file_path_t = './resources/brandishdr/translated/PSP_GAME/USERDIR/data/txt/item.tb'
+txt_path = './resources/brandishdr/source/PSP_GAME/USERDIR/data/txt/item.tb'
 
 dump_path = './resources/brandishdr/dump/'
 translation_path = './resources/brandishdr/translation/'
@@ -20,6 +21,7 @@ dump_path1 = './resources/brandishdr/dump1/'
 dump_path2 = './resources/brandishdr/dump2/'
 
 unpack_act = True
+pack_act = True
 extract_scripts = True
 extract_items = True
 
@@ -30,6 +32,9 @@ def char2hex(char):
 	return hex(integer)
 
 if unpack_act:
+		st_de_act_path = urlparse.urljoin(dump_path, 'st_de.act/')
+		shutil.rmtree(st_de_act_path, ignore_errors=True)
+		os.mkdir(st_de_act_path)
 		act_file_path = urlparse.urljoin(act_path, 'st_de.act')
 		with open(act_file_path, 'rb') as f1, open(act_file_path, 'rb') as f2:
 			block = f1.read(16)
@@ -45,13 +50,17 @@ if unpack_act:
 				original_size = struct.unpack('i', file_original_size)[0]
 				f2.seek(offset)
 				file_content = f2.read(compressed_size)
-				with open(urlparse.urljoin(dump_path, 'st_de.act-' + filename.rstrip('\0')), 'wb') as out:
-					out.write(file_content)
+				with open(urlparse.urljoin(st_de_act_path, filename.rstrip('\0')), 'wb') as out:
+					if original_size == 0:
+						out.write(file_content)
+					else:
+						out.write(decompress_FALCOM3(file_content))
 
 if extract_items:
-	path = urlparse.urljoin(dump_path, 'item.tb/')
-	shutil.rmtree(path, ignore_errors=True)
-	os.mkdir(path)
+	item_tb_path = urlparse.urljoin(dump_path, 'item.tb/')
+	shutil.rmtree(item_tb_path, ignore_errors=True)
+	os.mkdir(item_tb_path)
+	item_file_path = './resources/brandishdr/source/PSP_GAME/USERDIR/data/txt/item.tb'
 	with open(item_file_path, 'rb') as f:
 		filesize = os.stat(f.name).st_size
 		i = 0
@@ -61,7 +70,7 @@ if extract_items:
 			name = block[4:32+4]
 			description = block[36:128+36]
 			other = block[164:]
-			with open(urlparse.urljoin(path, '%s.txt' % str(i).zfill(3)), 'wb') as out:
+			with open(urlparse.urljoin(item_tb_path, '%s.txt' % str(i).zfill(3)), 'wb') as out:
 				out.write(id)
 				out.write(name)
 				out.write(description)
@@ -69,6 +78,7 @@ if extract_items:
 			i += 1
 
 if insert_items:
+	item_file_path_t = './resources/brandishdr/translated/PSP_GAME/USERDIR/data/txt/item.tb'
 	with open(item_file_path_t, 'wb') as out:
 		path = urlparse.urljoin(translation_path, 'item.tb/')
 		files = sorted(os.listdir(path))
