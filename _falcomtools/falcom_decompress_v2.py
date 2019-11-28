@@ -7,7 +7,6 @@ def decompress_FALCOM3(indata):
     infilestream = io.BytesIO(indata)
     outfilestream = io.BytesIO()
     compressed_size = struct.unpack('<I', infilestream.read(4))[0]
-    print compressed_size
     uncompressed_size = struct.unpack('<I', infilestream.read(4))[0]
     chunks = struct.unpack('<I', infilestream.read(4))[0]
     for x in range(chunks):

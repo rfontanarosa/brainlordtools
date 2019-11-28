@@ -4,64 +4,64 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, struct, shutil, urlparse
+import sys, os, struct, shutil, csv
 
 from _rhtools.utils import byte2int
 from _falcomtools.falcom_decompress_v2 import decompress_FALCOM3
 from _falcomtools.falcom_compress_v2 import compress_FALCOM3
 
-act_path = './resources/brandishdr/source/PSP_GAME/USERDIR/data/pa/'
-script_path = './resources/brandishdr/source/PSP_GAME/USERDIR/data/script/'
-txt_path = './resources/brandishdr/source/PSP_GAME/USERDIR/data/txt/item.tb'
+resources_path = './resources/brandishdr/'
+data_path = os.path.join(resources_path, 'source/PSP_GAME/USERDIR/data/')
+translated_data_path = os.path.join(resources_path, 'translated/PSP_GAME/USERDIR/data/')
+dummy_path = './resources/brandishdr/dummy/'
 
-dump_path = './resources/brandishdr/dump/'
-translation_path = './resources/brandishdr/translation/'
-
-dump_path1 = './resources/brandishdr/dump1/'
-dump_path2 = './resources/brandishdr/dump2/'
 
 unpack_act = True
 pack_act = True
-extract_scripts = True
-extract_items = True
 
+extract_items = True
 insert_items = True
+
+extract_scripts = True
 
 def char2hex(char):
 	integer = int(char.encode('hex'), 16)
 	return hex(integer)
 
 if unpack_act:
-		st_de_act_path = urlparse.urljoin(dump_path, 'st_de.act/')
-		shutil.rmtree(st_de_act_path, ignore_errors=True)
-		os.mkdir(st_de_act_path)
-		act_file_path = urlparse.urljoin(act_path, 'st_de.act')
-		with open(act_file_path, 'rb') as f1, open(act_file_path, 'rb') as f2:
-			block = f1.read(16)
-			files = byte2int(block[0])
-			for File in range(files):
-				filename = f1.read(16)
-				file_offset = f1.read(4)
-				file_compressed_size = f1.read(4)
-				file_original_size = f1.read(4)
-				f1.read(4)
-				offset = struct.unpack('i', file_offset)[0]
-				compressed_size = struct.unpack('i', file_compressed_size)[0]
-				original_size = struct.unpack('i', file_original_size)[0]
-				f2.seek(offset)
-				file_content = f2.read(compressed_size)
-				with open(urlparse.urljoin(st_de_act_path, filename.rstrip('\0')), 'wb') as out:
-					if original_size == 0:
-						out.write(file_content)
-					else:
-						out.write(decompress_FALCOM3(file_content))
+	dump_path = os.path.join(resources_path, 'dump', 'st_de.act/')
+	shutil.rmtree(dump_path, ignore_errors=True)
+	os.mkdir(dump_path)
+	file_path = os.path.join(data_path, 'pa', 'st_de.act')
+	with open(file_path, 'rb') as f1, open(file_path, 'rb') as f2:
+		block = f1.read(16)
+		files = byte2int(block[0])
+		for File in range(files):
+			filename = f1.read(16)
+			file_offset = f1.read(4)
+			file_compressed_size = f1.read(4)
+			file_original_size = f1.read(4)
+			f1.read(4)
+			offset = struct.unpack('i', file_offset)[0]
+			compressed_size = struct.unpack('i', file_compressed_size)[0]
+			original_size = struct.unpack('i', file_original_size)[0]
+			f2.seek(offset)
+			file_content = f2.read(compressed_size)
+			with open(os.path.join(dump_path, filename.rstrip('\0')), 'wb') as out:
+				if original_size == 0:
+					out.write(file_content)
+				else:
+					out.write(decompress_FALCOM3(file_content))
+			with open(os.path.join(dump_path, 'filelist.csv'), 'a') as out:
+				csv_writer = csv.writer(out)
+				csv_writer.writerow([filename.rstrip('\0'), offset, compressed_size, original_size])
 
 if extract_items:
-	item_tb_path = urlparse.urljoin(dump_path, 'item.tb/')
-	shutil.rmtree(item_tb_path, ignore_errors=True)
-	os.mkdir(item_tb_path)
-	item_file_path = './resources/brandishdr/source/PSP_GAME/USERDIR/data/txt/item.tb'
-	with open(item_file_path, 'rb') as f:
+	dump_path = os.path.join(resources_path, 'dump', 'item.tb/')
+	shutil.rmtree(dump_path, ignore_errors=True)
+	os.mkdir(dump_path)
+	file_path = os.path.join(data_path, 'txt', 'item.tb')
+	with open(file_path, 'rb') as f:
 		filesize = os.stat(f.name).st_size
 		i = 0
 		while f.tell() != filesize:
@@ -70,7 +70,7 @@ if extract_items:
 			name = block[4:32+4]
 			description = block[36:128+36]
 			other = block[164:]
-			with open(urlparse.urljoin(item_tb_path, '%s.txt' % str(i).zfill(3)), 'wb') as out:
+			with open(os.path.join(dump_path, '%s.txt' % str(i).zfill(3)), 'wb') as out:
 				out.write(id)
 				out.write(name)
 				out.write(description)
@@ -78,16 +78,20 @@ if extract_items:
 			i += 1
 
 if insert_items:
-	item_file_path_t = './resources/brandishdr/translated/PSP_GAME/USERDIR/data/txt/item.tb'
-	with open(item_file_path_t, 'wb') as out:
-		path = urlparse.urljoin(translation_path, 'item.tb/')
-		files = sorted(os.listdir(path))
-		for file in files:
-			with open(urlparse.urljoin(path, file), 'rb') as f:
+	translated_file_path = os.path.join(translated_data_path, 'txt', 'item.tb')
+	with open(translated_file_path, 'wb') as out:
+		translation_path = os.path.join(resources_path, 'translation', 'item.tb/')
+		files = sorted(os.listdir(translation_path))
+		for File in files:
+			with open(os.path.join(translation_path, File), 'rb') as f:
 				block = f.read(188)
 				out.write(block)
 
 if extract_scripts:
+
+	script_path = os.path.join(data_path, 'script/')
+	dump_path1 = './resources/brandishdr/dump1/'
+	dump_path2 = './resources/brandishdr/dump2/'
 
 	shutil.rmtree(dump_path1, ignore_errors=True)
 	shutil.rmtree(dump_path2, ignore_errors=True)
