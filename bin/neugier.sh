@@ -10,5 +10,5 @@ DESTINATION="$RESOURCE_PATH/roms/Neugier - Umi to Kaze no Kodou (I).sfc"
 TABLE1="$RESOURCE_PATH/tables/Neugier - Umi to Kaze no Kodou (U).tbl"
 TABLE2="$RESOURCE_PATH/tables/Neugier - Umi to Kaze no Kodou (I).tbl"
 
-python _neugier.py dump -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_PATH" -db "$DB"
-#python _neugier.py insert -d "$DESTINATION" -t2 "$TABLE2" -db "$DB" -u "$USER"
+python ../brainlordtools/neugier.py dump -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_PATH" -db "$DB"
+#python ../brainlordtools/neugier.py insert -d "$DESTINATION" -t2 "$TABLE2" -db "$DB" -u "$USER"

@@ -8,7 +8,7 @@ set DESTINATION="%RESOURCE_PATH%/roms/Neugier - Umi to Kaze no Kodou (I).sfc"
 set TABLE1="%RESOURCE_PATH%/tables/Neugier - Umi to Kaze no Kodou (U).tbl"
 set TABLE2="%RESOURCE_PATH%/tables/Neugier - Umi to Kaze no Kodou (I).tbl"
 
-python _neugier.py dump -s %SOURCE% -t1 %TABLE1% -dp %DUMP_PATH% -db %DB%
-REM python _neugier.py insert -d %DESTINATION% -t2 %TABLE2% -db %DB% -u %USER%
+python ../brainlordtools/neugier.py dump -s %SOURCE% -t1 %TABLE1% -dp %DUMP_PATH% -db %DB%
+REM python ../brainlordtools/python neugier.py insert -d %DESTINATION% -t2 %TABLE2% -db %DB% -u %USER%
 
 pause

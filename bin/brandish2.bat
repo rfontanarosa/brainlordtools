@@ -1,4 +1,4 @@
-set RESOURCE_PATH=./resources/brandish2
+set RESOURCE_PATH=../resources/brandish2
 
 set USER=clomax
 set DUMP_PATH=%RESOURCE_PATH%/dump
@@ -8,7 +8,7 @@ set DESTINATION="%RESOURCE_PATH%/roms/Brandish 2 (I) [!].smc"
 set TABLE1="%RESOURCE_PATH%/tables/Brandish 2 (U) [!].tbl"
 set TABLE2="%RESOURCE_PATH%/tables/Brandish 2 (I) [!].tbl"
 
-python _brandish2.py dump -s %SOURCE% -t1 %TABLE1% -dp %DUMP_PATH% -db %DB%
-REM brandish2.py insert -d %DESTINATION% -t1 %TABLE1% -t2 %TABLE2% -db %DB% -u %USER%
+python ../brainlordtools/brandish2.py dump -s %SOURCE% -t1 %TABLE1% -dp %DUMP_PATH% -db %DB%
+REM python ../brainlordtools/brandish2.py insert -d %DESTINATION% -t1 %TABLE1% -t2 %TABLE2% -db %DB% -u %USER%
 
 pause
