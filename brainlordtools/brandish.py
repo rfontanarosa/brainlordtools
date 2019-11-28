@@ -7,8 +7,8 @@ __email__ = "robertofontanarosa@gmail.com"
 import sys, os, struct, sqlite3
 from collections import OrderedDict
 
-from _rhtools.utils import crc32, int2hex
-from _rhtools.Table2 import Table
+from rhtools.utils import crc32, int2hex
+from rhtools.Table import Table
 
 SNES_HEADER_SIZE = 0x200
 SNES_BANK_SIZE = 0x8000
@@ -41,12 +41,12 @@ def brandish_dumper(args):
 	table1_file = args.table1
 	dump_path = args.dump_path
 	db = args.database_file
+	if crc32(source_file) != CRC32:
+		sys.exit('SOURCE ROM CHECKSUM FAILED!')
 	table = Table(table1_file)
 	conn = sqlite3.connect(db)
 	conn.text_factory = str
 	cur = conn.cursor()
-	if crc32(source_file) != CRC32:
-		sys.exit('SOURCE ROM CHECKSUM FAILED!')
 	with open(source_file, 'rb') as f1, open(source_file, 'rb') as f2:
 		id = 1
 		f1.seek(POINTER_BLOCK_START)
