@@ -1,11 +1,14 @@
 #!/bin/bash
 
-USER="clomax"
-DB="./resources/neugier/db/neugier.db"
-SOURCE="./resources/neugier/roms/Neugier (J) [T+Eng2.00_Haeleth&RPGOne].sfc"
-DESTINATION="./resources/neugier/roms/Neugier - Umi to Kaze no Kodou (I).sfc"
-TABLE1="./resources/neugier/tables/Neugier - Umi to Kaze no Kodou (U).tbl"
-TABLE2="./resources/neugier/tables/Neugier - Umi to Kaze no Kodou (I).tbl"
+RESOURCE_PATH="./resources/neugier"
 
-python _neugier.py --crc32check --dump -u "$USER" -db "$DB" -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2"
-#python _neugier.py --insert -u "$USER" -db "$DB" -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2"
+USER="clomax"
+DUMP_PATH="$RESOURCE_PATH/dump"
+DB="$RESOURCE_PATH/db/neugier.db"
+SOURCE="$RESOURCE_PATH/roms/Neugier (J) [T+Eng2.00_Haeleth&RPGOne].sfc"
+DESTINATION="$RESOURCE_PATH/roms/Neugier - Umi to Kaze no Kodou (I).sfc"
+TABLE1="$RESOURCE_PATH/tables/Neugier - Umi to Kaze no Kodou (U).tbl"
+TABLE2="$RESOURCE_PATH/tables/Neugier - Umi to Kaze no Kodou (I).tbl"
+
+python _neugier.py dump -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_PATH" -db "$DB"
+#python _neugier.py insert -d "$DESTINATION" -t2 "$TABLE2" -db "$DB" -u "$USER"

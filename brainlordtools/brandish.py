@@ -43,7 +43,7 @@ def brandish_dumper(args):
 	db = args.database_file
 	if crc32(source_file) != CRC32:
 		sys.exit('SOURCE ROM CHECKSUM FAILED!')
-	table = Table(table1_file)
+	table1 = Table(table1_file)
 	conn = sqlite3.connect(db)
 	conn.text_factory = str
 	cur = conn.cursor()
@@ -58,16 +58,16 @@ def brandish_dumper(args):
 			#
 			f2.seek(taddress)
 			text = f2.read(size)
-			text_encoded = table.encode(text, False, False)
+			text_encoded = table1.encode(text, False, False)
 			text_binary = sqlite3.Binary(text)
 			text_address = int2hex(taddress)
 			text_length = len(text_binary)
 			pointer_address = int2hex(int(paddress))
 			cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, 1)', (id, buffer(text_binary), text_encoded, text_address, pointer_address, text_length))
 			# DUMP - TXT
-			with open('%s - %s.txt' % (dump_path + str(id).zfill(3), pointer_address), 'w') as out:
+			dump_file = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(3), pointer_address))
+			with open(dump_file, 'w') as out:
 				out.write(text_encoded)
-				pass
 			id += 1
 	cur.close()
 	conn.commit()
