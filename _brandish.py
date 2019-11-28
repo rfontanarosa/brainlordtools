@@ -7,32 +7,8 @@ __email__ = "robertofontanarosa@gmail.com"
 import sys, os, struct, sqlite3
 from collections import OrderedDict
 
-from _rhtools.utils import *
+from _rhtools.utils import crc32, int2hex
 from _rhtools.Table2 import Table
-
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument('--crc32check', action='store_true', default=False, help='Execute CRC32CHECK')
-parser.add_argument('--dump', action='store_true', default=False, help='Execute DUMP')
-parser.add_argument('--insert', action='store_true', default=False, help='Execute INSERTER')
-parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-parser.add_argument('-d', '--dest',  action='store', dest='dest_file', required=True, help='Destination filename')
-parser.add_argument('-t1', '--table1', action='store', dest='table1', required=True, help='Original table filename')
-parser.add_argument('-t2', '--table2', action='store', dest='table2', required=True, help='Modified table filename')
-parser.add_argument('-db', '--database',  action='store', dest='database_file', required=True, help='DB filename')
-parser.add_argument('-u', '--user', action='store', dest='user', required=True, help='')
-args = parser.parse_args()
-
-execute_crc32check = args.crc32check
-execute_dump = args.dump
-execute_inserter = args.insert
-filename = args.source_file
-filename2 = args.dest_file
-tablename = args.table1
-tablename2 = args.table2
-db = args.database_file
-user_name = args.user
-dump_path = './resources/brandish/dump/'
 
 SNES_HEADER_SIZE = 0x200
 SNES_BANK_SIZE = 0x8000
@@ -48,9 +24,6 @@ TEXT_BLOCK_MAX_SIZE = TEXT_BLOCK_LIMIT - TEXT_BLOCK_START
 POINTER_BLOCK_START = 0x50d2a
 POINTER_BLOCK_END = 0x50fbd
 
-table = Table(tablename)
-table2 = Table(tablename2)
-
 def get_size(f, taddress):
 	size = None
 	if f.tell() < POINTER_BLOCK_END:
@@ -62,50 +35,57 @@ def get_size(f, taddress):
 		size = TEXT_BLOCK_LIMIT - taddress
 	return size
 
-if execute_crc32check:
-	""" CHECKSUM (CRC32) """
-	if crc32(filename) != CRC32:
-		sys.exit('ROM CHECKSUM: FAIL')
-	else:
-		print('ROM CHECKSUM: OK')
-
-if execute_dump:
+def brandish_dumper(args):
 	""" DUMP """
+	source_file = args.source_file
+	table1_file = args.table1
+	dump_path = args.dump_path
+	db = args.database_file
+	table = Table(table1_file)
 	conn = sqlite3.connect(db)
 	conn.text_factory = str
 	cur = conn.cursor()
-	with open(filename, 'rb') as f:
-		with open(filename, 'rb') as f2:
-			id = 1
-			f.seek(POINTER_BLOCK_START)
-			while (f.tell() < POINTER_BLOCK_END):
-				paddress = f.tell()
-				pvalue = f.read(2)
-				taddress = struct.unpack('H', pvalue)[0] + (SNES_BANK_SIZE * 0xa)
-				size = get_size(f, taddress)
-				#
-				f2.seek(taddress)
-				text = f2.read(size)
-				text_encoded = table.encode(text, False, False)
-				text_binary = sqlite3.Binary(text)
-				text_address = int2hex(taddress)
-				text_length = len(text_binary)
-				pointer_address = int2hex(int(paddress))
-				cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, 1)', (id, buffer(text_binary), text_encoded, text_address, pointer_address, text_length))
-				# DUMP - TXT
-				with open('%s - %s.txt' % (dump_path + str(id).zfill(3), pointer_address), 'w') as out:
-					out.write(text_encoded)
-					pass
-				id += 1
+	if crc32(source_file) != CRC32:
+		sys.exit('SOURCE ROM CHECKSUM FAILED!')
+	with open(source_file, 'rb') as f1, open(source_file, 'rb') as f2:
+		id = 1
+		f1.seek(POINTER_BLOCK_START)
+		while (f1.tell() < POINTER_BLOCK_END):
+			paddress = f1.tell()
+			pvalue = f1.read(2)
+			taddress = struct.unpack('H', pvalue)[0] + (SNES_BANK_SIZE * 0xa)
+			size = get_size(f1, taddress)
+			#
+			f2.seek(taddress)
+			text = f2.read(size)
+			text_encoded = table.encode(text, False, False)
+			text_binary = sqlite3.Binary(text)
+			text_address = int2hex(taddress)
+			text_length = len(text_binary)
+			pointer_address = int2hex(int(paddress))
+			cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, 1)', (id, buffer(text_binary), text_encoded, text_address, pointer_address, text_length))
+			# DUMP - TXT
+			with open('%s - %s.txt' % (dump_path + str(id).zfill(3), pointer_address), 'w') as out:
+				out.write(text_encoded)
+				pass
+			id += 1
 	cur.close()
 	conn.commit()
 	conn.close()
 
-if execute_inserter:
+def brandish_inserter(args):
+	""" INSERT """
+	dest_file = args.dest_file
+	table1_file = args.table1
+	table2_file = args.table2
+	db = args.database_file
+	user_name = args.user
+	table1 = Table(table1_file)
+	table2 = Table(table2_file)
 	conn = sqlite3.connect(db)
 	conn.text_factory = str
 	cur = conn.cursor()
-	with open(filename2, 'r+b') as f:
+	with open(dest_file, 'r+b') as f:
 		""" REPOINTER """
 		taddress = TEXT_BLOCK_START
 		f.seek(POINTER_BLOCK_START)
@@ -114,7 +94,7 @@ if execute_inserter:
 			original_text = row[1]
 			new_text = row[2]
 			text = new_text if new_text else original_text
-			decoded_text = table2.decode(text, False, False) if new_text else table.decode(text, False, False)
+			decoded_text = table2.decode(text, False, False) if new_text else table1.decode(text, False, False)
 			pvalue = struct.pack('H', taddress - (SNES_BANK_SIZE * 0xa))
 			f.write(pvalue) # address to write
 			taddress += len(decoded_text) # next address to write
@@ -125,7 +105,7 @@ if execute_inserter:
 			original_text = row[1]
 			new_text = row[2]
 			text = new_text if new_text else original_text
-			decoded_text = table2.decode(text, False, False) if new_text else table.decode(text, False, False)
+			decoded_text = table2.decode(text, False, False) if new_text else table1.decode(text, False, False)
 			f.write(decoded_text)
 			if f.tell() > TEXT_BLOCK_LIMIT:
 				sys.exit('CRITICAL ERROR! TEXT_BLOCK_LIMIT! %s > %s (%s)' % (f.tell(), TEXT_BLOCK_LIMIT, (TEXT_BLOCK_LIMIT - f.tell())))
@@ -133,3 +113,22 @@ if execute_inserter:
 			f.write('0')
 	cur.close()
 	conn.close()
+
+import argparse
+parser = argparse.ArgumentParser()
+subparsers = parser.add_subparsers()
+a_parser = subparsers.add_parser('dump', help='Execute DUMP')
+a_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+a_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+a_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+a_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+a_parser.set_defaults(func=brandish_dumper)
+b_parser = subparsers.add_parser('insert', help='Execute INSERTER')
+b_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+b_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+b_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+b_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+b_parser.add_argument('-u', '--user', action='store', dest='user', help='')
+b_parser.set_defaults(func=brandish_inserter)
+args = parser.parse_args()
+args.func(args)
