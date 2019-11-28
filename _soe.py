@@ -77,7 +77,7 @@ def decode_text(text):
 def write_text(f, offset, text, end_byte=0x00, limit=None):
     f.seek(offset)
     text = decode_text(text)
-    decoded_text = table.decode(text)
+    decoded_text = table.decode(text, mte_resolver=False, dict_resolver=False)
     f.write(decoded_text)
     f.write(int2byte(end_byte))
     if limit and f.tell() > limit:
