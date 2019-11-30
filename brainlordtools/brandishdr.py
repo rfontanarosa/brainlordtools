@@ -6,15 +6,14 @@ __email__ = "robertofontanarosa@gmail.com"
 
 import sys, os, struct, shutil, csv
 
-from _rhtools.utils import byte2int
-from _falcomtools.falcom_decompress_v2 import decompress_FALCOM3
-from _falcomtools.falcom_compress_v2 import compress_FALCOM3
+from rhtools.utils import byte2int
+from falcomtools.falcom_decompress_v2 import decompress_FALCOM3
+from falcomtools.falcom_compress_v2 import compress_FALCOM3
 
-resources_path = './resources/brandishdr/'
+resources_path = '../resources/brandishdr/'
 data_path = os.path.join(resources_path, 'source/PSP_GAME/USERDIR/data/')
 translated_data_path = os.path.join(resources_path, 'translated/PSP_GAME/USERDIR/data/')
-dummy_path = './resources/brandishdr/dummy/'
-
+dummy_path = os.path.join(resources_path, 'dummy/')
 
 unpack_act = True
 pack_act = True
@@ -106,8 +105,9 @@ if insert_items:
 if extract_scripts:
 
 	script_path = os.path.join(data_path, 'script/')
-	dump_path1 = './resources/brandishdr/dump1/'
-	dump_path2 = './resources/brandishdr/dump2/'
+
+	dump_path1 = 	os.path.join(resources_path, 'dump1')
+	dump_path2 = 	os.path.join(resources_path, 'dump2')
 
 	shutil.rmtree(dump_path1, ignore_errors=True)
 	shutil.rmtree(dump_path2, ignore_errors=True)
