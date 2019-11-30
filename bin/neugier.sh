@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RESOURCE_PATH="./resources/neugier"
+RESOURCE_PATH="../resources/neugier"
 
 USER="clomax"
 DUMP_PATH="$RESOURCE_PATH/dump"

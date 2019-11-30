@@ -56,6 +56,22 @@ if unpack_act:
 				csv_writer = csv.writer(out)
 				csv_writer.writerow([filename.rstrip('\0'), offset, compressed_size, original_size])
 
+if pack_act:
+	translated_file_path = os.path.join(translated_data_path, 'pa', 'st_de.act')
+	dump_path = os.path.join(resources_path, 'dump', 'st_de.act/')
+	translation_path = os.path.join(resources_path, 'translation', 'st_de.act/')
+	filelist_path = os.path.join(dump_path, 'filelist.csv')
+	with open(filelist_path, 'r') as csv_file:
+		csv_reader = csv.reader(csv_file)
+		for row in csv_reader:
+			file_path = os.path.join(translation_path, row[0])
+			with open(file_path, 'rb') as f:
+				file_content = f.read()
+				with open(os.path.join(dummy_path, row[0]), 'w') as out:
+					print file_path
+					print os.path.join(dummy_path, row[0])
+					out.write(compress_FALCOM3(file_content))
+
 if extract_items:
 	dump_path = os.path.join(resources_path, 'dump', 'item.tb/')
 	shutil.rmtree(dump_path, ignore_errors=True)
