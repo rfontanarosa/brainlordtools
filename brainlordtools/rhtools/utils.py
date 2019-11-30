@@ -4,6 +4,8 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
+from HexByteConversion import HexToByte
+
 def byte2int(b):
 	""" returns an integer representing a 8-bit string """
 	return ord(b)
