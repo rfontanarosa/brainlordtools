@@ -87,7 +87,7 @@ def brandish2_dumper(args):
 	conn.close()
 
 def brandish2_inserter(args):
-	""" REPOINTER """
+	""" INSERTER + REPOINTER """
 	dest_file = args.dest_file
 	table1_file = args.table1
 	table2_file = args.table2

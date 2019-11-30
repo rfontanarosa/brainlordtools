@@ -1,11 +1,14 @@
-set USER="clomax"
-set DB="./resources/ys3/db/ys3.db"
-set SOURCE="./resources/ys3/roms/Ys III - Wanderers from Ys (U) [!].smc"
-set DESTINATION="./resources/ys3/roms/Ys III - Wanderers from Ys (I) [!].smc"
-set TABLE1="./resources/ys3/tables/Ys III - Wanderers from Ys (U) [!].tbl"
-set TABLE2="./resources/ys3/tables/Ys III - Wanderers from Ys (U) [!].tbl"
+set RESOURCE_PATH=./resources/ys3
 
-python _ys3.py --crc32check --dump -u %USER% -db %DB% -s %SOURCE% -d %DESTINATION% -t1 %TABLE1% -t2 %TABLE2%
-REM python _ys3.py --insert -u %USER% -db %DB% -s %SOURCE% -d %DESTINATION% -t1 %TABLE1% -t2 %TABLE2%
+set USER=clomax
+set DUMP_PATH=%RESOURCE_PATH%/dump
+set DB=%RESOURCE_PATH%/db/ys3.db
+set SOURCE="%RESOURCE_PATH%/roms/Ys III - Wanderers from Ys (U) [!].smc"
+set DESTINATION="%RESOURCE_PATH%/roms/Ys III - Wanderers from Ys (I) [!].smc"
+set TABLE1="%RESOURCE_PATH%/tables/Ys III - Wanderers from Ys (U) [!].tbl"
+set TABLE2="%RESOURCE_PATH%/tables/Ys III - Wanderers from Ys (U) [!].tbl"
+
+python _ys3.py dump -s %SOURCE% -t1 %TABLE1% -dp %DUMP_PATH% -db %DB%
+REM python _ys3.py insert -d %DESTINATION% -t1 %TABLE1% -t2 %TABLE2% -db %DB% -u %USER%
 
 pause
