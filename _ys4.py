@@ -4,41 +4,11 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, struct, sqlite3, urlparse
+import sys, os, struct, sqlite3
 from collections import OrderedDict
 
-from _rhtools.utils import *
+from _rhtools.utils import crc32, byte2int, int2hex, hex2dec, int_to_bytes, int2byte, clean_text
 from _rhtools.Table2 import Table
-
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument('--crc32check', action='store_true', default=False, help='Execute CRC32CHECK')
-parser.add_argument('--dump', action='store_true', default=False, help='Execute DUMP')
-parser.add_argument('--insert', action='store_true', default=False, help='Execute INSERTER')
-parser.add_argument('--mte_finder', action='store_true', default=False, help='Find MTE')
-parser.add_argument('--mte_optimizer', action='store_true', default=False, help='Optimize MTE')
-parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-parser.add_argument('-d', '--dest',  action='store', dest='dest_file', required=True, help='Destination filename')
-parser.add_argument('-t1', '--table1', action='store', dest='table1', required=True, help='Original table filename')
-parser.add_argument('-t2', '--table2', action='store', dest='table2', required=True, help='Modified table filename')
-parser.add_argument('-t3', '--table3', action='store', dest='table3', required=False, help='Base original table without')
-parser.add_argument('-db', '--database',  action='store', dest='database_file', required=True, help='DB filename')
-parser.add_argument('-u', '--user', action='store', dest='user', required=True, help='')
-args = parser.parse_args()
-
-execute_crc32check = args.crc32check
-execute_dump = args.dump
-execute_inserter = args.insert
-execute_mtefinder = args.mte_finder
-execute_mteoptimizer = args.mte_optimizer
-filename = args.source_file
-filename2 = args.dest_file
-tablename = args.table1
-tablename2 = args.table2
-tablename3 = args.table3
-db = args.database_file
-user_name = args.user
-dump_path = './resources/ys4/dump/'
 
 SNES_HEADER_SIZE = 0x200
 SNES_BANK_SIZE = 0x8000
@@ -79,9 +49,6 @@ PLACES_BLOCK_START = 0x4f23b
 #PLACES_BLOCK_END = PLACES_BLOCK_LIMIT = 0x4fba3
 PLACES_BLOCK_END = PLACES_BLOCK_LIMIT = 0x4fff0
 
-table = Table(tablename)
-table2 = Table(tablename2)
-
 def ys4BlockResolver(address):
 	""" """
 	block = 0
@@ -116,20 +83,20 @@ def ys4BlockLimitsResolver(block):
 		blockLimits = (TEXT_BLOCK6_START, TEXT_BLOCK6_LIMIT)
 	return blockLimits
 
-if execute_crc32check:
-	""" CHECKSUM (CRC32) """
-	if crc32(filename) != CRC32:
-		sys.exit('ROM CHECKSUM: FAIL')
-	else:
-		print('ROM CHECKSUM: OK')
-
-if execute_dump:
+def ys4_dumper(args):
 	""" DUMP """
+	source_file = args.source_file
+	table1_file = args.table1
+	dump_path = args.dump_path
+	db = args.database_file
+	if crc32(source_file) != CRC32:
+		sys.exit('SOURCE ROM CHECKSUM FAILED!')
+	table1 = Table(table1_file)
 	conn = sqlite3.connect(db)
 	conn.text_factory = str
 	cur = conn.cursor()
 	id = 1
-	with open(filename, 'rb') as f:
+	with open(source_file, 'rb') as f:
 		# TEXT POINTERS 1
 		pointers = OrderedDict()
 		f.seek(POINTER_BLOCK1_START)
@@ -151,18 +118,18 @@ if execute_dump:
 			f.seek(pointer)
 			text = b''
 			byte = b'1'
-			while not byte2int(byte) == table.getNewline():
+			while not byte2int(byte) == table1.getNewline():
 				if byte2int(byte) == 0xd0 or byte2int(byte) == 0xd1 or byte2int(byte) == 0xd2 or byte2int(byte) == 0xd3  or byte2int(byte) == 0xd4:
 					byte = f.read(1)
 					text += byte
 				byte = f.read(1)
 				text += byte
 			if len(text) >= 10:
-				pre_text = table.separateByteEncode(text[:10])
-				text_encoded = table.encode(text[10:])
+				pre_text = table1.separateByteEncode(text[:10])
+				text_encoded = table1.encode(text[10:])
 			else:
 				pre_text = ''
-				text_encoded = table.encode(text)
+				text_encoded = table1.encode(text)
 			# DUMP - DB
 			text_binary = sqlite3.Binary(text)
 			text_address = int2hex(pointer)
@@ -170,9 +137,9 @@ if execute_dump:
 			block = ys4BlockResolver(pointer)
 			cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, ?, ?)', (id, buffer(text_binary), text_encoded, text_address, pointer_addresses, text_length, block, pre_text))
 			# DUMP - TXT
-			with open('%s - %d.txt' % (dump_path + str(id).zfill(4), len(pointers[pointer])), 'w') as out:
+			dump_file = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(4), len(pointers[pointer])))
+			with open(dump_file, 'w') as out:
 				out.write(text_encoded)
-				pass
 			id += 1
 		# ITEM POINTERS
 		pointers = OrderedDict()
@@ -195,16 +162,16 @@ if execute_dump:
 			while not byte2int(byte) == 0xff:
 				byte = f.read(1)
 				text += byte
-			text_encoded = table.encode(text, dict_resolver=False)
+			text_encoded = table1.encode(text, dict_resolver=False)
 			# DUMP - DB
 			text_binary = sqlite3.Binary(text)
 			text_address = int2hex(pointer)
 			text_length = len(text_binary)
 			cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, ?, ?)', (id, buffer(text_binary), text_encoded, text_address, pointer_addresses, text_length, 7, ''))
 			# DUMP - TXT
-			with open('%s - %d.txt' % (dump_path + str(id).zfill(4), len(pointers[pointer])), 'w') as out:
+			dump_file = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(4), len(pointers[pointer])))
+			with open(dump_file, 'w') as out:
 				out.write(text_encoded)
-				pass
 			id += 1
 		# PLACES POINTERS
 		pointers = OrderedDict()
@@ -227,26 +194,31 @@ if execute_dump:
 			while not byte2int(byte) == 0xff:
 				byte = f.read(1)
 				text += byte
-			text_encoded = table.encode(text)
+			text_encoded = table1.encode(text)
 			# DUMP - DB
 			text_binary = sqlite3.Binary(text)
 			text_address = int2hex(pointer)
 			text_length = len(text_binary)
 			cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, ?, ?)', (id, buffer(text_binary), text_encoded, text_address, pointer_addresses, text_length, 8, ''))
 			# DUMP - TXT
-			with open('%s - %d.txt' % (dump_path + str(id).zfill(4), len(pointers[pointer])), 'w') as out:
+			dump_file = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(4), len(pointers[pointer])))
+			with open(dump_file, 'w') as out:
 				out.write(text_encoded)
-				pass
 			id += 1
 		cur.close()
 		conn.commit()
 		conn.close()
 
-if execute_inserter:
+def ys4_inserter(args):
+	dest_file = args.dest_file
+	table2_file = args.table2
+	db = args.database_file
+	user_name = args.user
+	table2 = Table(table2_file)
 	conn = sqlite3.connect(db)
 	conn.text_factory = str
 	cur = conn.cursor()
-	with open(filename2, 'r+b') as f:
+	with open(dest_file, 'r+b') as f:
 		# TEXT
 		for block in range(1, 7):
 			blockLimits = ys4BlockLimitsResolver(block)
@@ -358,9 +330,14 @@ if execute_inserter:
 	cur.close()
 	conn.close()
 
-if execute_mtefinder:
+def ys4_mte_finder(args):
+	source_file = args.source_file
+	table1_file = args.table1
+	if crc32(source_file) != CRC32:
+		sys.exit('SOURCE ROM CHECKSUM FAILED!')
+	table1 = Table(table1_file)
 	""" MTE FINDER """
-	with open(filename, 'rb') as f:
+	with open(source_file, 'rb') as f:
 		# MTE POINTERS 1
 		mte_pointers = []
 		f.seek(DICT1_POINTER_BLOCK_START)
@@ -381,14 +358,20 @@ if execute_mtefinder:
 					if byte2int(byte) != 0xdf:
 						mte += byte
 				b = (int2hex(i) + '').replace('x', '')
-				print '%s=%s' % (b, table.encode(mte))
+				print('%s=%s' % (b, table1.encode(mte)))
 			else:
 				pass
 
-if execute_mteoptimizer:
-	""" """
+def ys4_mte_optimizer(args):
+	dest_file = args.dest_file
+	table1_file = args.table1
+	table2_file = args.table2
+	table3_file = args.table3
+	db = args.database_file
+	user_name = args.user
+	table1 = Table(table1_file)
 	# DICTIONARY OPTIMIZATION
-	with open(urlparse.urljoin('./temp/', 'mteOptYs4Text-input.txt'), 'w') as out:
+	with open(os.path.join('./temp/', 'mteOptYs4Text-input.txt'), 'w') as out:
 		conn = sqlite3.connect(db)
 		conn.text_factory = str
 		cur = conn.cursor()
@@ -405,17 +388,17 @@ if execute_mteoptimizer:
 			out.write(text + '\n')
 	os.system("python mteOpt.py -s \"./temp/mteOptYs4Text-input.txt\" -d \"./temp/mteOptYs4Text-output.txt\" -m 3 -M 8 -l 1080 -o 53248")
 	# OPTIMIZED TABLE
-	with open(tablename3, 'rU') as f:
+	with open(table3_file, 'rU') as f:
 		table3content = f.read()
-		with open(urlparse.urljoin('./temp/', 'mteOptYs4Text-output.txt'), 'rU') as f2:
+		with open(os.path.join('./temp/', 'mteOptYs4Text-output.txt'), 'rU') as f2:
 			mteOpt = f2.read()
-			with open(tablename2, 'w') as f3:
+			with open(table2_file, 'w') as f3:
 				f3.write('\n' + table3content)
 				f3.write('\n' + mteOpt)
 	##
 	values = []
 	length = 0
-	with open(urlparse.urljoin('./temp/', 'mteOptYs4Text-output.txt'), 'rb') as f:
+	with open(os.path.join('./temp/', 'mteOptYs4Text-output.txt'), 'rb') as f:
 		for line in f:
 			parts = line.partition('=')
 			value1 = parts[0]
@@ -425,15 +408,15 @@ if execute_mteoptimizer:
 				values.append(value2)
 				length += len(value2)
 	# INSERTER
-	with open(filename2, 'r+b') as f:
+	with open(dest_file, 'r+b') as f:
 		f.seek(DICT1_BLOCK_START)
 		for i, value in enumerate(values):
-			t_value = table.decode(value, dict_resolver=False) + chr(0xdf)
+			t_value = table1.decode(value, dict_resolver=False) + chr(0xdf)
 			if f.tell() + len(t_value) > (DICT1_BLOCK_LIMIT + 1):
 				sys.exit('CRITICAL ERROR! MTE INSERTED: %d - TOTAL: %d!' % (i, len(values)))
 			f.write(t_value)
 	# REPOINTER
-	with open(filename2, 'r+b') as f:
+	with open(dest_file, 'r+b') as f:
 		f.seek(DICT1_POINTER_BLOCK_START)
 		length = 0
 		for i, value in enumerate(values):
@@ -442,3 +425,33 @@ if execute_mteoptimizer:
 			if f.tell() > (DICT1_POINTER_BLOCK_LIMIT + 1):
 				sys.exit('CRITICAL ERROR! MTE REPOINTER!')
 			length += len(value) + 1
+
+import argparse
+parser = argparse.ArgumentParser()
+subparsers = parser.add_subparsers()
+a_parser = subparsers.add_parser('dump', help='Execute DUMP')
+a_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+a_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+a_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+a_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+a_parser.set_defaults(func=ys4_dumper)
+b_parser = subparsers.add_parser('insert', help='Execute INSERTER')
+b_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+b_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+b_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+b_parser.add_argument('-u', '--user', action='store', dest='user', help='')
+b_parser.set_defaults(func=ys4_inserter)
+c_parser = subparsers.add_parser('mte_finder', help='Execute MTE Finder')
+c_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+c_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+c_parser.set_defaults(func=ys4_mte_finder)
+d_parser = subparsers.add_parser('mte_optimizer', help='Execute MTE Optimizer')
+d_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+d_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+d_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+d_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Base original table without')
+d_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+d_parser.add_argument('-u', '--user', action='store', dest='user', help='')
+d_parser.set_defaults(func=ys4_mte_optimizer)
+args = parser.parse_args()
+args.func(args)

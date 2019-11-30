@@ -1,15 +1,17 @@
 #!/bin/bash
 
+RESOURCE_PATH="./resources/ys4"
+
 USER="clomax"
-DB="./resources/ys4/db/ys4.db"
-SOURCE="./resources/ys4/roms/Ys IV - Mask of the Sun (U).sfc"
-DESTINATION="./resources/ys4/roms/Ys IV - Mask of the Sun (I).sfc"
-TABLE1="./resources/ys4/tables/Ys IV - Mask of the Sun (U).tbl"
-TABLE2="./resources/ys4/tables/Ys IV - Mask of the Sun (I).tbl"
-TABLE3="./resources/ys4/tables/Ys IV - Mask of the Sun.base.tbl"
+DUMP_PATH="$RESOURCE_PATH/dump"
+DB="$RESOURCE_PATH/db/ys4.db"
+SOURCE="$RESOURCE_PATH/roms/Ys IV - Mask of the Sun (U).sfc"
+DESTINATION="$RESOURCE_PATH/roms/Ys IV - Mask of the Sun (I).sfc"
+TABLE1="$RESOURCE_PATH/tables/Ys IV - Mask of the Sun (U).tbl"
+TABLE2="$RESOURCE_PATH/tables/Ys IV - Mask of the Sun (I).tbl"
+TABLE3="$RESOURCE_PATH/tables/Ys IV - Mask of the Sun.base.tbl"
 
-#python _ys4.py --mte_finder -u %USER% -db %DB% -s %SOURCE% -d %DESTINATION% -t1 %TABLE1% -t2 %TABLE2%
-
-python _ys4.py --crc32check --dump -u "$USER" -db "$DB" -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2"
-#python _ys4.py --mte_optimizer -u "$USER" -db "$DB" -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2" -t3 "$TABLE3"
-#python _ys4.py --insert -u "$USER" -db "$DB" -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2"
+#python _ys4.py mte_finder -s "$SOURCE" -t1 "$TABLE1"
+python _ys4.py dump -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_PATH" -db "$DB"
+#python _ys4.py mte_optimizer -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2" -t3 "$TABLE3" -db "$DB" -u "$USER"
+#python _ys4.py insert -d "$DESTINATION" -t2 "$TABLE2" -db "$DB" -u "$USER"
