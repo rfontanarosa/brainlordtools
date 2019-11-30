@@ -4,15 +4,19 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, struct, sqlite3
-from collections import OrderedDict
+import sys, os, sqlite3
 
-db = '. /resources/sd3/db/sd3.db'
-dump_path = './resources/sd3/dump/'
+resources_path = '../resources/sd3'
+dump_path = os.path.join(resources_path, 'dump')
+db = os.path.join(resources_path, 'db/sd3.db')
 user_name = 'clomax'
 
+fullpath = os.path.join(dump_path, 'sd3.txt')
+fullpathIta = os.path.join(dump_path, 'sd3-ita.txt')
+"""
 fullpath = os.path.join(dump_path, 'sd3OLD.txt')
 fullpathIta = os.path.join(dump_path, 'sd3OLD-ita.txt')
+"""
 
 conn = sqlite3.connect(db)
 conn.text_factory = str
@@ -29,12 +33,18 @@ with open(fullpath, 'rb') as f:
 			id += 1
 			text_encoded = ''
 		else:
+			if text_encoded == '' and '[Block $' in line:
+				id2 = line.strip('\n')
+			else:
+				text_encoded += line
+			"""
 			if text_encoded == '' and '[Sentence $' in line :
 				id2 = line.strip('[Sentence $')
 				id2 = id2.strip(']\n')
 			else:
 				if '[/Sentence]' not in line:
 					text_encoded += line
+			"""
 cur.close()
 conn.commit()
 conn.close()
@@ -56,9 +66,14 @@ with open(fullpathIta, 'ab') as f:
 			text = new_text
 		else:
 			text = original_text
+		f.write(id2 + '\n')
+		f.write(text)
+		f.write('\n')
+		"""
 		f.write('[Sentence $%s]\n' % (id2))
 		f.write(text)
 		f.write('[/Sentence]\n\n')
+		"""
 cur.close()
 conn.commit()
 conn.close()
