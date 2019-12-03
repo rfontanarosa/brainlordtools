@@ -12,40 +12,6 @@ from collections import OrderedDict
 from _rhtools.utils import *
 from _rhtools.Table2 import Table
 
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument('--crc32check', action='store_true', default=False, help='Execute CRC32CHECK')
-parser.add_argument('--dump', action='store_true', default=False, help='Execute DUMP')
-parser.add_argument('--insert', action='store_true', default=False, help='Execute INSERTER')
-parser.add_argument('--insert_misc', action='store_true', default=False, help='Execute MISC INSERTER')
-parser.add_argument('--mte_finder', action='store_true', default=False, help='Find MTE')
-parser.add_argument('--mte_optimizer', action='store_true', default=False, help='Optimize MTE')
-parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-parser.add_argument('-d', '--dest',  action='store', dest='dest_file', required=True, help='Destination filename')
-parser.add_argument('-m', '--misc',  action='store', dest='misc_file', required=False, help='Misc filename')
-parser.add_argument('-t1', '--table1', action='store', dest='table1', required=True, help='Original table filename')
-parser.add_argument('-t2', '--table2', action='store', dest='table2', required=True, help='Modified table filename')
-parser.add_argument('-t3', '--table3', action='store', dest='table3', required=False, help='Base original table without')
-parser.add_argument('-db', '--database',  action='store', dest='database_file', required=True, help='DB filename')
-parser.add_argument('-u', '--user', action='store', dest='user', required=True, help='')
-args = parser.parse_args()
-
-execute_crc32check = args.crc32check
-execute_dump = args.dump
-execute_inserter = args.insert
-execute_inserter_misc = args.insert_misc
-execute_mtefinder = args.mte_finder
-execute_mteoptimizer = args.mte_optimizer
-filename = args.source_file
-filename2 = args.dest_file
-filename3 = args.misc_file
-tablename = args.table1
-tablename2 = args.table2
-tablename3 = args.table3
-db = args.database_file
-user_name = args.user
-dump_path = 'bof/dump/'
-
 SNES_HEADER_SIZE = 0x200
 SNES_BANK_SIZE = 0x8000
 
@@ -67,10 +33,6 @@ TEXT_BLOCK1_LIMIT = 0x633ff
 TEXT_BLOCK1_END = TEXT_BLOCK1_LIMIT = 0x633ff
 TEXT_BLOCK2_START = 0x68000
 TEXT_BLOCK2_END = TEXT_BLOCK2_LIMIT = 0x76ebf
-
-table = Table(tablename)
-table2 = Table(tablename2)
-table3 = Table(tablename3) if tablename3 else None
 
 def bofBlockLimitsResolver(block):
 	""" """
@@ -102,20 +64,20 @@ def decode_text(text):
 	text = text.replace(u'È', '{16}')
 	return text
 
-if execute_crc32check:
-	""" CHECKSUM (CRC32) """
-	if crc32(filename) != CRC32:
-		sys.exit('ROM CHECKSUM: FAIL')
-	else:
-		print('ROM CHECKSUM: OK')
-
-if execute_dump:
+def bof_dumper(args):
 	""" DUMP """
+	source_file = args.source_file
+	table1_file = args.table1
+	dump_path = args.dump_path
+	db = args.database_file
+	if crc32(source_file) != CRC32:
+		sys.exit('SOURCE ROM CHECKSUM FAILED!')
+	table1 = Table(table1_file)
 	conn = sqlite3.connect(db)
 	conn.text_factory = str
 	cur = conn.cursor()
 	id = 1
-	with open(filename, 'rb') as f:
+	with open(source_file, 'rb') as f:
 		# READ POINTERS BLOCK 1
 		block = 1
 		pointers = OrderedDict()
@@ -129,8 +91,8 @@ if execute_dump:
 		for taddress, paddresses in pointers.iteritems():
 			pointer_addresses = ';'.join(str(int2hex(x)) for x in paddresses)
 			f.seek(taddress)
-			text = read_text(f, end_byte=table.getNewline())
-			text_encoded = table.encode(text, cmd_list=[0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c])
+			text = read_text(f, end_byte=table1.getNewline())
+			text_encoded = table1.encode(text, cmd_list=[0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c])
 			# DUMP - DB
 			text_binary = sqlite3.Binary(text)
 			text_address = int2hex(taddress)
@@ -155,8 +117,8 @@ if execute_dump:
 		for taddress, paddresses in pointers.iteritems():
 			pointer_addresses = ';'.join(str(int2hex(x)) for x in paddresses)
 			f.seek(taddress)
-			text = read_text(f, end_byte=table.getNewline())
-			text_encoded = table.encode(text, cmd_list=[0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c])
+			text = read_text(f, end_byte=table1.getNewline())
+			text_encoded = table1.encode(text, cmd_list=[0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c])
 			# DUMP - DB
 			text_binary = sqlite3.Binary(text)
 			text_address = int2hex(taddress)
@@ -172,12 +134,17 @@ if execute_dump:
 		conn.commit()
 		conn.close()
 
-if execute_inserter:
+def bof_inserter(args):
 	""" INSERTER """
+	dest_file = args.dest_file
+	table2_file = args.table2
+	db = args.database_file
+	user_name = args.user
+	table2 = Table(table2_file)
 	conn = sqlite3.connect(db)
 	conn.text_factory = str
 	cur = conn.cursor()
-	with open(filename2, 'r+b') as f:
+	with open(dest_file, 'r+b') as f:
 		# TEXT
 		for block in range(1, 3):
 			blockLimits = bofBlockLimitsResolver(block)
@@ -218,9 +185,13 @@ if execute_inserter:
 	cur.close()
 	conn.close()
 
-if execute_inserter_misc:
-	with open(filename2, 'r+b') as f:
-		with open(filename3, 'rb') as csv_file:
+def bof_misc_inserter(args):
+	dest_file = args.dest_file
+	misc_file1 = args.misc_file1
+	table3_file = args.table3
+	table3 = Table(table3_file)
+	with open(dest_file, 'r+b') as f:
+		with open(misc_file1, 'rb') as csv_file:
 			csv_reader = csv.DictReader(csv_file)
 			for row in csv_reader:
 				text_address = row.get('text_address')
@@ -239,9 +210,14 @@ if execute_inserter_misc:
 					else:
 						f.write(decoded_trans)
 
-if execute_mtefinder:
+def bof_mte_finder(args):
 	""" MTE FINDER """
-	with open(filename, 'rb') as f:
+	source_file = args.source_file
+	table1_file = args.table1
+	if crc32(source_file) != CRC32:
+		sys.exit('SOURCE ROM CHECKSUM FAILED!')
+	table1 = Table(table1_file)
+	with open(source_file, 'rb') as f:
 		# MTE POINTERS 1
 		mte_pointers = []
 		f.seek(DICT1_POINTER_BLOCK_START)
@@ -262,14 +238,28 @@ if execute_mtefinder:
 					if byte2int(byte) != 0x03:
 						mte += byte
 				b = (int2hex(i + 0x300) + '').replace('x', '')
-				print('%s=%s' % (b, table.encode(mte)))
+				print('%s=%s' % (b, table1.encode(mte)))
 			else:
 				pass
 
-if execute_mteoptimizer:
+def bof_mte_optimizer(args):
 	""" MTE OPTIMIZER """
+	dest_file = args.dest_file
+	table1_file = args.table1
+	table2_file = args.table2
+	table3_file = args.table3
+	mte_optimizer_path = args.mte_optimizer_path
+	temp_path = args.temp_path
+	db = args.database_file
+	user_name = args.user
+	table1 = Table(table1_file)
 	# DICTIONARY OPTIMIZATION
-	with open(urlparse.urljoin('./temp/', 'mteOptBoFText-input.txt'), 'w') as out:
+	text_input_filename = os.path.join(temp_path, 'mteOptBoFText-input.txt')
+	text_output_filename = os.path.join(temp_path, 'mteOptBofText-output.txt')
+	#mte_optimizer_tool_filename = os.path.join(mte_optimizer_path, 'mteOpt.py')
+	mte_optimizer_tool_filename = os.path.join(mte_optimizer_path, 'MTEOpt.exe')
+	text_morpher_output_filename = os.path.join(temp_path, 'mteOptBoFText-morpher-output.txt')
+	with open(text_input_filename, 'w') as out:
 		conn = sqlite3.connect(db)
 		conn.text_factory = str
 		cur = conn.cursor()
@@ -281,12 +271,14 @@ if execute_mteoptimizer:
 			text = text.replace('{04}', '\n')
 			text = clean_text(text)
 			out.write(text + '\n')
-	#os.system("mteOpt.py -s \"./temp/mteOptBoFText-input.txt\" -d \"./temp/mteOptBoFText-output.txt\" -m 3 -M 12 -l 255 -o 768")
-	# MORPHER MTE OPTIMIZER
-	command = "MTEOpt.exe 3 10 \"./temp/mteOptBoFText-input.txt\" \"./temp/mteOptBoFText-morpher-output.txt\" 255"
-	os.system("wine " + command)
-	with open(urlparse.urljoin('./temp/', 'mteOptBoFText-morpher-output.txt'), 'rU') as f1:
-		with open(urlparse.urljoin('./temp/', 'mteOptBoFText-output.txt'), 'w') as f2:
+	#command = 'python %s -s "%s" -d "%s" -m 3 -M 12 -l 255 -o 768' % (mte_optimizer_tool_filename, text_input_filename, text_output_filename)
+	command = '%s 3 10 "%s" "%s" 255' % (mte_optimizer_tool_filename, text_input_filename, text_morpher_output_filename)
+	if sys.platform != 'win32':
+		os.system("wine " + command)
+	else:
+		os.system(command)
+	with open(text_morpher_output_filename, 'rU') as f1:
+		with open(text_output_filename, 'w') as f2:
 			for i, e in enumerate(f1):
 				e = e.replace('\n', '').replace('\r', '')
 				e = e.split('\t')
@@ -296,35 +288,34 @@ if execute_mteoptimizer:
 				line = "%s=%s" % (b, e[1][1:-1])
 				f2.write(line + '\n')
 	# TABLE OPTIMIZATION
-	with open(tablename3, 'rU') as f:
+	with open(table3_file, 'rU') as f:
 		table3content = f.read()
-		with open(urlparse.urljoin('./temp/', 'mteOptBoFText-output.txt'), 'rU') as f2:
+		with open(text_output_filename, 'rU') as f2:
 			mteOpt = f2.read()
-			with open(tablename2, 'w') as f3:
+			with open(table2_file, 'w') as f3:
 				f3.write('\n' + table3content)
 				f3.write('\n' + mteOpt)
 	## DUMP
 	values = []
 	length = 0
-	with open(urlparse.urljoin('./temp/', 'mteOptBoFText-output.txt'), 'rb') as f:
+	with open(text_output_filename, 'rb') as f:
 		for line in f:
 			parts = line.partition('=')
-			value1 = parts[0]
 			value2 = parts[2]
 			if value2:
 				value2 = value2.replace('\n', '').replace('\r', '')
 				values.append(value2)
 				length += len(value2)
 	# INSERTER
-	with open(filename2, 'r+b') as f:
+	with open(dest_file, 'r+b') as f:
 		f.seek(DICT1_BLOCK_START)
 		for i, value in enumerate(values):
-			t_value = table.decode(value, dict_resolver=False) + chr(0x03)
+			t_value = table1.decode(value, dict_resolver=False) + chr(0x03)
 			if f.tell() + len(t_value) > (DICT1_BLOCK_LIMIT + 1):
 				sys.exit('CRITICAL ERROR! MTE INSERTED: %d - TOTAL: %d!' % (i, len(values)))
 			f.write(t_value)
 	# REPOINTER
-	with open(filename2, 'r+b') as f:
+	with open(dest_file, 'r+b') as f:
 		f.seek(DICT1_POINTER_BLOCK_START)
 		length = 0
 		for i, value in enumerate(values):
@@ -333,3 +324,40 @@ if execute_mteoptimizer:
 			if f.tell() > (DICT1_POINTER_BLOCK_LIMIT + 1):
 				sys.exit('CRITICAL ERROR! MTE REPOINTER!')
 			length += (len(value) + 1)
+
+import argparse
+parser = argparse.ArgumentParser()
+subparsers = parser.add_subparsers()
+a_parser = subparsers.add_parser('dump', help='Execute DUMP')
+a_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+a_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+a_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+a_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+a_parser.set_defaults(func=bof_dumper)
+b_parser = subparsers.add_parser('insert', help='Execute INSERTER')
+b_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+b_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+b_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+b_parser.add_argument('-u', '--user', action='store', dest='user', help='')
+b_parser.set_defaults(func=bof_inserter)
+c_parser = subparsers.add_parser('mte_finder', help='Execute MTE Finder')
+c_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+c_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+c_parser.set_defaults(func=bof_mte_finder)
+d_parser = subparsers.add_parser('mte_optimizer', help='Execute MTE Optimizer')
+d_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+d_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+d_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+d_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Base original table without')
+d_parser.add_argument('-mop', '--mte_optimizer_path', action='store', dest='mte_optimizer_path', help='MTE Optimizer path')
+d_parser.add_argument('-tp', '--temp_path', action='store', dest='temp_path', help='Temporary path')
+d_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+d_parser.add_argument('-u', '--user', action='store', dest='user', help='')
+d_parser.set_defaults(func=bof_mte_optimizer)
+e_parser = subparsers.add_parser('insert_misc', help='Execute INSERTER')
+e_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+e_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Base table filename')
+e_parser.add_argument('-m1', '--misc1', action='store', dest='misc_file1', help='MISC filename')
+e_parser.set_defaults(func=bof_misc_inserter)
+args = parser.parse_args()
+args.func(args)

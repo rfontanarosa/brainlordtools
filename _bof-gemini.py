@@ -9,21 +9,6 @@ import sys, os, struct, sqlite3
 from _rhtools.utils import hex2dec
 from _rhtools.Table2 import Table
 
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument('--insert', action='store_true', default=False, help='Execute INSERTER')
-parser.add_argument('-d', '--dest',  action='store', dest='dest_file', required=True, help='Destination filename')
-parser.add_argument('-t2', '--table2', action='store', dest='table2', required=True, help='Modified table filename')
-parser.add_argument('-db', '--database',  action='store', dest='database_file', required=True, help='DB filename')
-parser.add_argument('-u', '--user', action='store', dest='user', required=True, help='')
-args = parser.parse_args()
-
-execute_inserter = args.insert
-filename2 = args.dest_file
-tablename2 = args.table2
-db = args.database_file
-user_name = args.user
-
 SNES_HEADER_SIZE = 0x200
 SNES_BANK_SIZE = 0x8000
 
@@ -53,13 +38,17 @@ def bofBlockLimitsResolver(block):
 		blockLimits = (TEXT_BLOCK2_START, TEXT_BLOCK2_LIMIT, POINTER_BLOCK2_START, POINTER_BLOCK2_END, POINTER_BLOCK2_LIMIT)
 	return blockLimits
 
-if execute_inserter:
+def bof_gemini_inserter(args):
 	""" INSERTER """
-	table2 = Table(tablename2)
+	dest_file = args.dest_file
+	table2_file = args.table2
+	db = args.database_file
+	user_name = args.user
+	table2 = Table(table2_file)
 	conn = sqlite3.connect(db)
 	conn.text_factory = str
 	cur = conn.cursor()
-	with open(filename2, 'r+b') as f:
+	with open(dest_file, 'r+b') as f:
 		# BLOCK 1
 		block = 1
 		blockLimits = bofBlockLimitsResolver(block)
@@ -133,3 +122,15 @@ if execute_inserter:
 				f.seek(next_text_address)
 	cur.close()
 	conn.close()
+
+import argparse
+parser = argparse.ArgumentParser()
+subparsers = parser.add_subparsers()
+b_parser = subparsers.add_parser('insert', help='Execute INSERTER')
+b_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+b_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+b_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+b_parser.add_argument('-u', '--user', action='store', dest='user', help='')
+b_parser.set_defaults(func=bof_gemini_inserter)
+args = parser.parse_args()
+args.func(args)
