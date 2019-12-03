@@ -6,8 +6,8 @@ __email__ = "robertofontanarosa@gmail.com"
 
 import sys, os, struct, sqlite3
 
-from _rhtools.utils import hex2dec
-from _rhtools.Table2 import Table
+from rhtools.utils import hex2dec
+from rhtools.Table import Table
 
 SNES_HEADER_SIZE = 0x200
 SNES_BANK_SIZE = 0x8000

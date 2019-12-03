@@ -1,4 +1,4 @@
-set RESOURCE_PATH=./resources/bof
+set RESOURCE_PATH=../resources/bof
 
 set USER=clomax
 
@@ -14,8 +14,8 @@ set TABLE3="%RESOURCE_PATH%/tables/Breath of Fire (U) [!].base.tbl"
 set MTE_OPTIMIZER_PATH="%RESOURCE_PATH%/../.."
 set TEMP_PATH="%RESOURCE_PATH%/../../temp"
 
-REM python _bof.py mte_optimizer -d "%DESTINATION%" -t1 "%TABLE1%" -t2 "%TABLE2%" -t3 "%TABLE3%" -tp "%TEMP_PATH%" -mop "%MTE_OPTIMIZER_PATH%" -db "%DB%" -u "%USER%"
-REM python _bof-gemini.py insert -d "%DESTINATION%" -t2 "%TABLE2%" -db "%DB%" -u "%USER%"
-REM python _bof.py insert_misc -d "%DESTINATION%" -m1 "%MISC%" -t3 "%TABLE3%"
+REM python ../brainlordtools/bof.py mte_optimizer -d "%DESTINATION%" -t1 "%TABLE1%" -t2 "%TABLE2%" -t3 "%TABLE3%" -tp "%TEMP_PATH%" -mop "%MTE_OPTIMIZER_PATH%" -db "%DB%" -u "%USER%"
+REM python ../brainlordtools/bof-gemini.py insert -d "%DESTINATION%" -t2 "%TABLE2%" -db "%DB%" -u "%USER%"
+REM python ../brainlordtools/bof.py insert_misc -d "%DESTINATION%" -m1 "%MISC%" -t3 "%TABLE3%"
 
 pause

@@ -6,11 +6,11 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, struct, sqlite3, urlparse, csv
+import sys, os, struct, sqlite3, csv
 from collections import OrderedDict
 
-from _rhtools.utils import *
-from _rhtools.Table2 import Table
+from rhtools.utils import crc32, byte2int, hex2dec, clean_text, int2hex, clean_text
+from rhtools.Table import Table
 
 SNES_HEADER_SIZE = 0x200
 SNES_BANK_SIZE = 0x8000
