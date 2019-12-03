@@ -4,11 +4,11 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, struct, sqlite3
-from collections import OrderedDict
+import sys, os, sqlite3
 
-db = 'soe/db/soe.sqlite'
-dump_path = 'soe/dump/'
+resources_path = '../resources/soe'
+dump_path = os.path.join(resources_path, 'dump')
+db = os.path.join(resources_path, 'db/soe.sqlite')
 user_name = 'clomax'
 
 fullpath = os.path.join(dump_path, 'text.txt')

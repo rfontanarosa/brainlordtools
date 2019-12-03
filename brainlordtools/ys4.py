@@ -210,6 +210,7 @@ def ys4_dumper(args):
 		conn.close()
 
 def ys4_inserter(args):
+	""" INSERTER """
 	dest_file = args.dest_file
 	table2_file = args.table2
 	db = args.database_file
@@ -325,12 +326,12 @@ def ys4_inserter(args):
 	conn.close()
 
 def ys4_mte_finder(args):
+	""" MTE FINDER """
 	source_file = args.source_file
 	table1_file = args.table1
 	if crc32(source_file) != CRC32:
 		sys.exit('SOURCE ROM CHECKSUM FAILED!')
 	table1 = Table(table1_file)
-	""" MTE FINDER """
 	with open(source_file, 'rb') as f:
 		# MTE POINTERS 1
 		mte_pointers = []
