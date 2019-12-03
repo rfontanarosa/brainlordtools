@@ -1,5 +1,4 @@
 import sys, os, re
-from collections import OrderedDict
 
 import argparse
 parser = argparse.ArgumentParser()

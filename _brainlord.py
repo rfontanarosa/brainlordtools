@@ -7,32 +7,8 @@ __email__ = "robertofontanarosa@gmail.com"
 import sys, os, struct, sqlite3
 from collections import OrderedDict
 
-from _rhtools.utils import *
+from _rhtools.utils import crc32, byte2int, int2hex, hex2dec
 from _rhtools.Table2 import Table
-
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument('--crc32check', action='store_true', default=False, help='Execute CRC32CHECK')
-parser.add_argument('--dump', action='store_true', default=False, help='Execute DUMP')
-parser.add_argument('--insert', action='store_true', default=False, help='Execute INSERTER')
-parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-parser.add_argument('-d', '--dest',  action='store', dest='dest_file', required=True, help='Destination filename')
-parser.add_argument('-t1', '--table1', action='store', dest='table1', required=True, help='Original table filename')
-parser.add_argument('-t2', '--table2', action='store', dest='table2', required=True, help='Modified table filename')
-parser.add_argument('-db', '--database',  action='store', dest='database_file', required=True, help='DB filename')
-parser.add_argument('-u', '--user', action='store', dest='user', required=True, help='')
-args = parser.parse_args()
-
-execute_crc32check = args.crc32check
-execute_dump = args.dump
-execute_inserter = args.insert
-filename = args.source_file
-filename2 = args.dest_file
-tablename = args.table1
-tablename2 = args.table2
-db = args.database_file
-user_name = args.user
-dump_path = 'brainlord/dump/'
 
 SNES_HEADER_SIZE = 0x200
 SNES_BANK_SIZE = 0x8000
@@ -51,24 +27,21 @@ POINTER_BLOCK1_END = 0x50267
 POINTER_BLOCK2_START = 0x6046e
 POINTER_BLOCK2_END = 0x60593
 
-table = Table(tablename)
-table2 = Table(tablename2)
-
-if execute_crc32check:
-	""" CHECKSUM (CRC32) """
-	if crc32(filename) != CRC32:
-		sys.exit('ROM CHECKSUM: FAIL')
-	else:
-		print('ROM CHECKSUM: OK')
-
-if execute_dump:
+def brainlord_dumper(args):
 	""" DUMP """
+	source_file = args.source_file
+	table1_file = args.table1
+	dump_path = args.dump_path
+	db = args.database_file
+	if crc32(source_file) != CRC32:
+		sys.exit('SOURCE ROM CHECKSUM FAILED!')
+	table1 = Table(table1_file)
 	conn = sqlite3.connect(db)
 	conn.text_factory = str
 	cur = conn.cursor()
 	id = 1
 	#DUMP (TXTs + SQLITE3)
-	with open(filename, 'rb') as f:
+	with open(source_file, 'rb') as f:
 		# POINTERS 1
 		pointers1 = OrderedDict()
 		f.seek(POINTER_BLOCK1_START)
@@ -91,7 +64,7 @@ if execute_dump:
 			f.seek(pointer)
 			text = b''
 			byte = b'1'
-			while not byte2int(byte) == table.getNewline():
+			while not byte2int(byte) == table1.getNewline():
 				if byte2int(byte) == 0xf6:
 					text += f.read(1)
 				if byte2int(byte) == 0xfd or byte2int(byte) == 0xfe:
@@ -112,7 +85,7 @@ if execute_dump:
 						text += bytes
 				byte = f.read(1)
 				text += byte
-			text_encoded = table.encode(text)
+			text_encoded = table1.encode(text)
 			text_binary = sqlite3.Binary(text)
 			text_address = int2hex(pointer)
 			text_length = len(text_binary)
@@ -131,7 +104,7 @@ if execute_dump:
 			f.seek(pointer)
 			text = b''
 			byte = b'1'
-			while not byte2int(byte) == table.getNewline():
+			while not byte2int(byte) == table1.getNewline():
 				if byte2int(byte) == 0xf6:
 					text += f.read(1)
 				if byte2int(byte) == 0xfd or byte2int(byte) == 0xfe:
@@ -152,7 +125,7 @@ if execute_dump:
 						text += bytes
 				byte = f.read(1)
 				text += byte
-			text_encoded = table.encode(text)
+			text_encoded = table1.encode(text)
 			text_binary = sqlite3.Binary(text)
 			text_address = int2hex(pointer)
 			text_length = len(text_binary)
@@ -171,7 +144,7 @@ if execute_dump:
 			f.seek(pointer)
 			text = b''
 			byte = b'1'
-			while not byte2int(byte) == table.getNewline():
+			while not byte2int(byte) == table1.getNewline():
 				if byte2int(byte) == 0xf6:
 					text += f.read(1)
 				if byte2int(byte) == 0xfd or byte2int(byte) == 0xfe:
@@ -191,7 +164,7 @@ if execute_dump:
 					text += bytes
 				byte = f.read(1)
 				text += byte
-			text_encoded = table.encode(text)
+			text_encoded = table1.encode(text)
 			text_binary = sqlite3.Binary(text)
 			text_address = int2hex(pointer)
 			text_length = len(text_binary)
@@ -210,7 +183,7 @@ if execute_dump:
 			f.seek(pointer)
 			text = b''
 			byte = b'1'
-			while not byte2int(byte) == table.getNewline():
+			while not byte2int(byte) == table1.getNewline():
 				if byte2int(byte) == 0xf6:
 					text += f.read(1)
 				if byte2int(byte) == 0xfd or byte2int(byte) == 0xfe:
@@ -230,7 +203,7 @@ if execute_dump:
 					text += bytes
 				byte = f.read(1)
 				text += byte
-			text_encoded = table.encode(text)
+			text_encoded = table1.encode(text)
 			text_binary = sqlite3.Binary(text)
 			text_address = int2hex(pointer)
 			text_length = len(text_binary)
@@ -244,12 +217,19 @@ if execute_dump:
 	conn.commit()
 	conn.close()
 
-if execute_inserter:
+def brainlord_inserter(args):
 	""" INSERTER """
+	dest_file = args.dest_file
+	table1_file = args.table1
+	table2_file = args.table2
+	db = args.database_file
+	user_name = args.user
+	table1 = Table(table1_file)
+	table2 = Table(table2_file)
 	conn = sqlite3.connect(db)
 	conn.text_factory = str
 	cur = conn.cursor()
-	with open(filename2, 'r+b') as f:
+	with open(dest_file, 'r+b') as f:
 		# TEXT
 		cur.execute("SELECT text, new_text, text_encoded, id, new_text2, address, pointer_address, size, block FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s' AND trans.status = 2) AS t2 ON t1.id=t2.id_text" % (user_name))
 		for row in cur:
@@ -260,10 +240,7 @@ if execute_inserter:
 			address = row[5]
 			size = row[7]
 			block = row[8]
-			if (new_text):
-				text = new_text
-			else:
-				text = original_text
+			text = new_text if new_text else original_text
 			decoded_text = table2.decode(text)
 			if len(decoded_text) > size:
 				sys.exit('CRITICAL ERROR! ID %d - BLOCK %d - TEXT_LIMIT! %s > %s' % (id, block, len(decoded_text), size))
@@ -272,3 +249,22 @@ if execute_inserter:
 			#f.write(decoded_text)
 	cur.close()
 	conn.close()
+
+import argparse
+parser = argparse.ArgumentParser()
+subparsers = parser.add_subparsers()
+a_parser = subparsers.add_parser('dump', help='Execute DUMP')
+a_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+a_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+a_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+a_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+a_parser.set_defaults(func=brainlord_dumper)
+b_parser = subparsers.add_parser('insert', help='Execute INSERTER')
+b_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+b_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+b_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+b_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+b_parser.add_argument('-u', '--user', action='store', dest='user', help='')
+b_parser.set_defaults(func=brainlord_inserter)
+args = parser.parse_args()
+args.func(args)

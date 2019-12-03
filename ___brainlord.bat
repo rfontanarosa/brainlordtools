@@ -1,10 +1,14 @@
-set USER="clomax"
-set DB="brainlord/db/brainlord.db"
-set SOURCE="brainlord/roms/Brain Lord (U) [!].smc"
-set DESTINATION="brainlord/roms/Brain Lord (I) [!].smc"
-set TABLE1="brainlord/tables/Brain Lord (U) [!].tbl"
-set TABLE2="brainlord/tables/Brain Lord (U) [!].tbl"
+set RESOURCE_PATH=./resources/brainlord
 
-python _brainlord.py --crc32check --dump -u %USER% -db %DB% -s %SOURCE% -d %DESTINATION% -t1 %TABLE1% -t2 %TABLE2%
+set USER=clomax
+set DUMP_PATH=%RESOURCE_PATH%/dump
+set DB=%RESOURCE_PATH%/db/brainlord.db
+set SOURCE="%RESOURCE_PATH%/roms/Brain Lord (U) [!].smc"
+set DESTINATION="%RESOURCE_PATH%/roms/Brain Lord (I) [!].smc"
+set TABLE1="%RESOURCE_PATH%/tables/Brain Lord (U) [!].tbl"
+set TABLE2="%RESOURCE_PATH%/tables/Brain Lord (U) [!].tbl"
+
+python _brainlord.py dump -s %SOURCE% -t1 %TABLE1% -dp %DUMP_PATH% -db %DB%
+REM python _brainlord.py insert -d %DESTINATION% -t1 %TABLE1% -t2 %TABLE2% -db %DB% -u %USER%
 
 pause
