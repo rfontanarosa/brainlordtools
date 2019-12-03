@@ -268,10 +268,7 @@ def ys4_inserter(args):
 			original_text = row[2]
 			new_text = row[4]
 			new_pretext = row[9]
-			if (new_text):
-				text = new_pretext + new_text
-			else:
-				text = original_pretext + original_text
+			text = new_pretext + new_text if new_text else original_pretext + original_text
 			decoded_text = table2.decode(text)
 			new_text_address = f.tell()
 			f.seek(new_text_address)
@@ -302,10 +299,7 @@ def ys4_inserter(args):
 			original_text = row[2]
 			new_text = row[4]
 			new_pretext = row[9]
-			if (new_text):
-				text = new_pretext + new_text
-			else:
-				text = original_pretext + original_text
+			text = new_pretext + new_text if new_text else original_pretext + original_text
 			decoded_text = table2.decode(text, dict_resolver=False)
 			new_text_address = f.tell()
 			if (next_text_address + len(decoded_text)) > (ITEM_BLOCK_LIMIT + 1) and next_text_address < PLACES_BLOCK_START:
@@ -367,11 +361,16 @@ def ys4_mte_optimizer(args):
 	table1_file = args.table1
 	table2_file = args.table2
 	table3_file = args.table3
+	mte_optimizer_path = args.mte_optimizer_path
+	temp_path = args.temp_path
 	db = args.database_file
 	user_name = args.user
 	table1 = Table(table1_file)
 	# DICTIONARY OPTIMIZATION
-	with open(os.path.join('./temp/', 'mteOptYs4Text-input.txt'), 'w') as out:
+	text_input_filename = os.path.join(temp_path, 'mteOptYs4Text-input.txt')
+	text_output_filename = os.path.join(temp_path, 'mteOptYs4Text-output.txt')
+	mte_optimizer_tool_filename = os.path.join(mte_optimizer_path, 'mteOpt.py')
+	with open(text_input_filename, 'w') as out:
 		conn = sqlite3.connect(db)
 		conn.text_factory = str
 		cur = conn.cursor()
@@ -379,18 +378,16 @@ def ys4_mte_optimizer(args):
 		for row in cur:
 			new_text = row[1]
 			original_text = row[0]
-			if (new_text):
-				text = new_text
-			else:
-				text = original_text
+			text = new_text if new_text else original_text
 			text = text.replace('{fe}', '\n')
 			text = clean_text(text)
 			out.write(text + '\n')
-	os.system("python mteOpt.py -s \"./temp/mteOptYs4Text-input.txt\" -d \"./temp/mteOptYs4Text-output.txt\" -m 3 -M 8 -l 1080 -o 53248")
+	command = 'python %s -s "%s" -d "%s" -m 3 -M 8 -l 1080 -o 53248' % (mte_optimizer_tool_filename, text_input_filename, text_output_filename)
+	os.system(command)
 	# OPTIMIZED TABLE
 	with open(table3_file, 'rU') as f:
 		table3content = f.read()
-		with open(os.path.join('./temp/', 'mteOptYs4Text-output.txt'), 'rU') as f2:
+		with open(text_output_filename, 'rU') as f2:
 			mteOpt = f2.read()
 			with open(table2_file, 'w') as f3:
 				f3.write('\n' + table3content)
@@ -398,10 +395,9 @@ def ys4_mte_optimizer(args):
 	##
 	values = []
 	length = 0
-	with open(os.path.join('./temp/', 'mteOptYs4Text-output.txt'), 'rb') as f:
+	with open(text_output_filename, 'rb') as f:
 		for line in f:
 			parts = line.partition('=')
-			value1 = parts[0]
 			value2 = parts[2]
 			if value2:
 				value2 = value2.replace('\n', '').replace('\r', '')
@@ -450,6 +446,8 @@ d_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required
 d_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
 d_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
 d_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Base original table without')
+d_parser.add_argument('-mop', '--mte_optimizer_path', action='store', dest='mte_optimizer_path', help='MTE Optimizer path')
+d_parser.add_argument('-tp', '--temp_path', action='store', dest='temp_path', help='Temporary path')
 d_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
 d_parser.add_argument('-u', '--user', action='store', dest='user', help='')
 d_parser.set_defaults(func=ys4_mte_optimizer)
