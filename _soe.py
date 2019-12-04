@@ -9,27 +9,8 @@ __email__ = "robertofontanarosa@gmail.com"
 import sys, os, struct, shutil, csv
 from collections import OrderedDict
 
-from _rhtools.utils import *
+from _rhtools.utils import crc32, byte2int, int2byte, int2hex, string_address2int_address
 from _rhtools.Table2 import Table
-
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument('--crc32check', action='store_true', default=False, help='Execute CRC32CHECK')
-parser.add_argument('--dump', action='store_true', default=False, help='Execute DUMP')
-parser.add_argument('--insert', action='store_true', default=False, help='Execute INSERTER')
-parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-parser.add_argument('-d', '--dest',  action='store', dest='dest_file', required=True, help='Destination filename')
-parser.add_argument('-t1', '--table1', action='store', dest='table1', required=True, help='Original table filename')
-args = parser.parse_args()
-
-execute_crc32check = args.crc32check
-execute_dump = args.dump
-execute_inserter = args.insert
-filename = args.source_file
-filename2 = args.dest_file
-tablename = args.table1
-dump_path = './resources/soe/dump'
-translation_path = misc_path = './resources/soe'
 
 CRC32 = 'A5C0045E'
 
@@ -53,8 +34,6 @@ TEXT_BLOCK['rare_item_names'] = (0x47397, 0x473D3)
 TEXT_BLOCK['rare_item_descriptions'] = (0x473D4, 0x473DD)
 TEXT_BLOCK['charm_descriptions'] = (0x473DE, 0x47712)
 
-table = Table(tablename)
-
 def read_text(f, end_byte=0x00):
     text = b''
     byte = b'1'
@@ -74,7 +53,7 @@ def decode_text(text):
     text = text.replace(u'È', '{1D}')
     return text
 
-def write_text(f, offset, text, end_byte=0x00, limit=None):
+def write_text(f, offset, text, table, end_byte=0x00, limit=None):
     f.seek(offset)
     text = decode_text(text)
     decoded_text = table.decode(text, mte_resolver=False, dict_resolver=False)
@@ -84,7 +63,7 @@ def write_text(f, offset, text, end_byte=0x00, limit=None):
         raise Exception()
     return f.tell()
 
-def dump_block(f):
+def dump_block(f, table, dump_path):
     for block_name, block_limits in TEXT_BLOCK.iteritems():
         filename = os.path.join(dump_path, block_name + '.csv')
         with open(filename, 'wb+') as csv_file:
@@ -260,7 +239,7 @@ def get_translated_texts(filename):
             translated_texts[text_address] = trans
     return translated_texts
 
-def repoint_misc(filename, f, next_text_address=0x360000):
+def repoint_misc(filename, f, table, next_text_address=0x360000):
     with open(filename, 'rb') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         for row in csv_reader:
@@ -302,7 +281,7 @@ def repoint_misc(filename, f, next_text_address=0x360000):
                             f.write(new_pointer)
                     trans = row.get('trans2') or row.get('trans1') or row.get('text')
                     trans = trans.decode('utf8')
-                    next_text_address = write_text(f, next_text_address, trans)
+                    next_text_address = write_text(f, next_text_address, trans, table)
 
 def repoint(f, pointers, new_pointers, offset=0x40000):
     for p_value, p_addresses in pointers.iteritems():
@@ -325,14 +304,28 @@ def repoint_npc_enemy_names(f, pointers, new_pointers, offset=0x340000):
                 f.write(struct.pack('H', p_new_value - offset))
                 f.write(int2byte(int(0xf4)))
 
-if execute_dump:
+def soe_dumper(args):
+    source_file = args.source_file
+    table1_file = args.table1
+    dump_path = args.dump_path
+    if crc32(source_file) != CRC32:
+        sys.exit('SOURCE ROM CHECKSUM FAILED!')
+    table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
-    with open(filename, 'rb') as f:
-        dump_block(f)
+    with open(source_file, 'rb') as f:
+        dump_block(f, table, dump_path)
 
-if execute_inserter:
-    with open(filename, 'rb') as f0:
+def soe_inserter(args):
+    source_file = args.source_file
+    dest_file = args.dest_file
+    table1_file = args.table1
+    translation_path = args.translation_path
+    misc_file1 = args.misc_file1
+    if crc32(source_file) != CRC32:
+        sys.exit('SOURCE ROM CHECKSUM FAILED!')
+    table = Table(table1_file)
+    with open(source_file, 'rb') as f0:
         pointers00 = get_currency_names_pointers(f0)
         pointers0 = get_ring_pointers(f0)
         pointers1 = get_alchemy_names_pointers(f0)
@@ -348,7 +341,7 @@ if execute_inserter:
         pointers11 = get_rare_items_pointers(f0)
         pointers12 = get_rare_item_descriptions_pointers(f0)
         pointers13 = get_npc_enemy_names_pointers(f0)
-    with open(filename2, 'r+b') as f1:
+    with open(dest_file, 'r+b') as f1:
         translated_blocks = OrderedDict()
         for block_name, block_limits in TEXT_BLOCK.iteritems():
             translation_file = os.path.join(translation_path, block_name + '.csv')
@@ -360,9 +353,9 @@ if execute_inserter:
             for t_address, t_value in translated_texts.iteritems():
                 new_pointers[t_address] = t_new_address
                 if block_name not in ('npc_enemy_names1', 'npc_enemy_names2'):
-                    t_new_address = write_text(f1, t_new_address, t_value, limit=0x47712)
+                    t_new_address = write_text(f1, t_new_address, t_value, table, limit=0x47712)
                 else:
-                    t_new_address = write_text(f1, t_new_address, 'X', limit=0x47712)
+                    t_new_address = write_text(f1, t_new_address, 'X', table, limit=0x47712)
         # repointing
         for curr_pointers in (pointers00, pointers0, pointers1, pointers2, pointers3, pointers4, pointers5, pointers6, pointers7, pointers8, pointers9, pointers10, pointers11, pointers12):
             repoint(f1, curr_pointers, new_pointers)
@@ -373,9 +366,26 @@ if execute_inserter:
             if block_name in ('npc_enemy_names1', 'npc_enemy_names2'):
                 for t_address, t_value in translated_texts.iteritems():
                     new_pointers[t_address] = t_new_address
-                    t_new_address = write_text(f1, t_new_address, t_value)
+                    t_new_address = write_text(f1, t_new_address, t_value, table)
         # repointing npc/enemies
         repoint_npc_enemy_names(f1, pointers13, new_pointers)
         # misc
-        misc_file = os.path.join(misc_path, 'misc.csv')
-        repoint_misc(misc_file, f1)
+        repoint_misc(misc_file1, f1, table)
+
+import argparse
+parser = argparse.ArgumentParser()
+subparsers = parser.add_subparsers()
+a_parser = subparsers.add_parser('dump', help='Execute DUMP')
+a_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+a_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+a_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+a_parser.set_defaults(func=soe_dumper)
+b_parser = subparsers.add_parser('insert', help='Execute INSERTER')
+b_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+b_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+b_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+b_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+b_parser.add_argument('-m1', '--misc1', action='store', dest='misc_file1', help='MISC filename')
+b_parser.set_defaults(func=soe_inserter)
+args = parser.parse_args()
+args.func(args)
