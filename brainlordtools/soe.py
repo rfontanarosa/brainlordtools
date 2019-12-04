@@ -9,8 +9,8 @@ __email__ = "robertofontanarosa@gmail.com"
 import sys, os, struct, shutil, csv
 from collections import OrderedDict
 
-from _rhtools.utils import crc32, byte2int, int2byte, int2hex, string_address2int_address
-from _rhtools.Table2 import Table
+from rhtools.utils import crc32, byte2int, int2byte, int2hex, string_address2int_address
+from rhtools.Table import Table
 
 CRC32 = 'A5C0045E'
 
