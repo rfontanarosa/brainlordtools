@@ -13,22 +13,47 @@ user_name = 'clomax'
 
 fullpath = os.path.join(dump_path, 'sd3.txt')
 fullpathIta = os.path.join(dump_path, 'sd3-ita.txt')
+fullpathMagno = os.path.join(dump_path, 'sd3-magno.txt')
 """
 fullpath = os.path.join(dump_path, 'sd3OLD.txt')
 fullpathIta = os.path.join(dump_path, 'sd3OLD-ita.txt')
 """
+
+def convertToMagno(text):
+	text = text.replace('\n', '<JUMP>\n')
+	text = text.replace('<OPEN>', '<OPEN>\n')
+	#
+	text = text.replace('<BOX>', '<58>')
+	text = text.replace('<LINE>', '<5E>')
+	#
+	text = text.replace('<WHITE>', '<+B.>')
+	text = text.replace('<YELLOW>', '<+J.>')
+	#
+	text = text.replace('<DURAN>', '<19><F8><00>')
+	text = text.replace('<KEVIN>', '<19><F8><01>')
+	text = text.replace('<HAWK>', '<19><F8><02>')
+	text = text.replace('<ANGELA>', '<19><F8><03>')
+	text = text.replace('<CARLIE>', '<19><F8><04>')
+	text = text.replace('<LISE>', '<19><F8><05>')
+	#
+	text = text.replace('<CHAR 2>', '<19><02>')
+	#
+	text = text.replace('<PAGE><JUMP>', '<PAUSE>')
+	text = text.replace('<END><JUMP>', '<END><00>')
+	return text
 
 conn = sqlite3.connect(db)
 conn.text_factory = str
 cur = conn.cursor()
 with open(fullpath, 'rb') as f:
 	id = 1
+	block = 0
 	id2 = ''
 	text_encoded = ''
 	for line in f:
 		if line == '\n':
 			text_length = len(text_encoded)
-			block = id2.partition(':')[2]
+			#block = id2.partition(':')[2]
 			cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, ?, ?)', (id, '', text_encoded, '', '', text_length, block, id2))
 			id += 1
 			text_encoded = ''
@@ -51,29 +76,32 @@ conn.close()
 
 if os.path.isfile(fullpathIta):
 	os.remove(fullpathIta)
+if os.path.isfile(fullpathMagno):
+	os.remove(fullpathMagno)
 
 conn = sqlite3.connect(db)
 conn.text_factory = str
 cur = conn.cursor()
-with open(fullpathIta, 'ab') as f:
+with open(fullpathIta, 'ab') as f1, open(fullpathMagno, 'ab') as f2:
 	cur.execute("SELECT text, new_text, text_encoded, id, new_text2, id2 FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s' AND trans.status = 2) AS t2 ON t1.id=t2.id_text ORDER BY t1.id" % user_name)
 	for row in cur:
 		id2 = row[5]
 		id = row[3]
 		original_text = row[2]
 		new_text = row[4]
-		if new_text:
-			text = new_text
-		else:
-			text = original_text
-		f.write(id2 + '\n')
-		f.write(text)
-		f.write('\n')
+		text = new_text if new_text else original_text
+		f1.write(id2 + '\n')
+		f1.write(text)
+		f1.write('\n')
 		"""
 		f.write('[Sentence $%s]\n' % (id2))
 		f.write(text)
 		f.write('[/Sentence]\n\n')
 		"""
+		text = convertToMagno(text)
+		f2.write(id2 + '\n')
+		f2.write(text)
+		f2.write('\n')
 cur.close()
 conn.commit()
 conn.close()
