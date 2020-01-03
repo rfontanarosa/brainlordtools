@@ -20,14 +20,20 @@ fullpathIta = os.path.join(dump_path, 'sd3OLD-ita.txt')
 """
 
 def convertToMagno(text):
+	#
 	text = text.replace('\n', '<JUMP>\n')
 	text = text.replace('<OPEN>', '<OPEN>\n')
 	#
-	text = text.replace('<BOX>', '<58>')
-	text = text.replace('<LINE>', '<5E>')
+	text = text.replace('<CHAR 0>', '<19><00>')
+	text = text.replace('<CHAR 1>', '<19><01>')
+	text = text.replace('<CHAR 2>', '<19><02>')
+	text = text.replace('<CHAR 3>', '<19><03>')
 	#
 	text = text.replace('<WHITE>', '<+B.>')
 	text = text.replace('<YELLOW>', '<+J.>')
+	text = text.replace('<MONO WHITE>', '<+B_>')
+	text = text.replace('<MONO YELLOW>', '<+J_>')
+	text = text.replace('<MONO NARROW WHITE>', '<+b_>')
 	#
 	text = text.replace('<DURAN>', '<19><F8><00>')
 	text = text.replace('<KEVIN>', '<19><F8><01>')
@@ -36,8 +42,12 @@ def convertToMagno(text):
 	text = text.replace('<CARLIE>', '<19><F8><04>')
 	text = text.replace('<LISE>', '<19><F8><05>')
 	#
-	text = text.replace('<CHAR 2>', '<19><02>')
+	text = text.replace('<ITEM 509>', '<1B><F5><09>')
 	#
+	text = text.replace('<PAD 11>', '<TAB 0B>')
+	#
+	text = text.replace('<BOX>', '<58>')
+	text = text.replace('<LINE>', '<5E>')
 	text = text.replace('<PAGE><JUMP>', '<PAUSE>')
 	text = text.replace('<END><JUMP>', '<END><00>')
 	return text
