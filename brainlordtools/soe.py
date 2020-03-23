@@ -34,6 +34,11 @@ TEXT_BLOCK['rare_item_names'] = (0x47397, 0x473D3)
 TEXT_BLOCK['rare_item_descriptions'] = (0x473D4, 0x473DD)
 TEXT_BLOCK['charm_descriptions'] = (0x473DE, 0x47712)
 
+FONT1_BLOCK = (0x40002, 0x40C01) #24bit - 3byte
+FONT1_VWF_TABLE = (0x40C02, 0x40C81) #127
+FONT2_BLOCK = (0x40C84, 0x41883) #24bit - 3byte
+FONT2_VWF_TABLE = (0x41884, 0x41903) #127
+
 def read_text(f, end_byte=0x00):
     text = b''
     byte = b'1'
@@ -76,6 +81,22 @@ def dump_block(f, table, dump_path):
                 text_encoded = table.encode(text)
                 fields = [int2hex(text_address), text_encoded]
                 csv_writer.writerow(fields)
+
+def dump_gfx(f, start, end, dump_path, filename):
+    f.seek(start)
+    block_size = end - start
+    block = f.read(block_size)
+    with open(os.path.join(dump_path, filename), 'wb') as gfx_file:
+        gfx_file.write(block)
+
+def insert_gfx(f, start, end, translation_path, filename):
+    with open(os.path.join(translation_path, filename), 'rb') as f1:
+        block = f1.read()
+        if len(block) == end - start:
+            f.seek(start)
+            f.write(block)
+        else:
+            raise Exception('GFX file - Different size')
 
 def get_currency_names_pointers(f, block_limits=(0xf8704, 0xf870f)):
     pointers = OrderedDict()
@@ -372,6 +393,60 @@ def soe_inserter(args):
         # misc
         repoint_misc(misc_file1, f1, table)
 
+def soe_gfx_dumper(args):
+    source_file = args.source_file
+    dump_path = args.dump_path
+    if crc32(source_file) != CRC32:
+        sys.exit('SOURCE ROM CHECKSUM FAILED!')
+    shutil.rmtree(dump_path, ignore_errors=True)
+    os.mkdir(dump_path)
+    with open(source_file, 'rb') as f:
+        dump_gfx(f, FONT1_BLOCK[0], FONT1_BLOCK[1] - (16 * 8 * 3), dump_path, 'gfx_font1.bin')
+        dump_gfx(f, FONT1_VWF_TABLE[0], FONT1_VWF_TABLE[1] - 16, dump_path, 'gfx_vwf1.bin')
+        dump_gfx(f, FONT2_BLOCK[0], FONT2_BLOCK[1] - (16 * 8 * 3), dump_path, 'gfx_font2.bin')
+        dump_gfx(f, FONT2_VWF_TABLE[0], FONT2_VWF_TABLE[1] - 16, dump_path, 'gfx_vwf2.bin')
+        dump_gfx(f, FONT1_BLOCK[0], FONT1_BLOCK[0] + (16 * 8 * 3), dump_path, 'gfx_exp_font1.bin')
+        dump_gfx(f, FONT1_VWF_TABLE[0], FONT1_VWF_TABLE[0] + 16, dump_path, 'gfx_exp_vwf1.bin')
+        dump_gfx(f, FONT2_BLOCK[0], FONT2_BLOCK[0] + (16 * 8 * 3), dump_path, 'gfx_exp_font2.bin')
+        dump_gfx(f, FONT2_VWF_TABLE[0], FONT2_VWF_TABLE[0] + 16, dump_path, 'gfx_exp_vwf2.bin')
+
+def soe_gfx_inserter(args):
+    dest_file = args.dest_file
+    translation_path = args.translation_path
+    with open(dest_file, 'r+b') as f:
+        f.seek(0xC9ED8)
+        f.write(int2byte(0x10))
+        f.seek(0xCA54F)
+        f.write(int2byte(0x10))
+        f.seek(0xCA5A4)
+        f.write(int2byte(0x10))
+        f.seek(0xCA92A)
+        f.write(int2byte(0x10))
+        f.seek(0xCB9B8)
+        f.write(int2byte(0x10))
+        f.seek(0xCB9FD)
+        f.write(int2byte(0x10))
+        f.seek(0xCBB21)
+        f.write(int2byte(0x10))
+        f.seek(0xCC951)
+        f.write(int2byte(0x10))
+        #
+        f.seek(0xC9E8B)
+        f.write(int2byte(0xa9))
+        f.write(int2byte(0x71))
+        f.seek(0xCA492)
+        f.write(int2byte(0xa9))
+        f.write(int2byte(0x71))
+        #
+        insert_gfx(f, FONT1_BLOCK[0] + (16 * 8 * 3), FONT1_BLOCK[1], translation_path, 'gfx_font1.bin')
+        insert_gfx(f, FONT1_VWF_TABLE[0] + 16, FONT1_VWF_TABLE[1], translation_path, 'gfx_vwf1.bin')
+        insert_gfx(f, FONT2_BLOCK[0] + (16 * 8 * 3), FONT2_BLOCK[1], translation_path, 'gfx_font2.bin')
+        insert_gfx(f, FONT2_VWF_TABLE[0] + 16, FONT2_VWF_TABLE[1], translation_path, 'gfx_vwf2.bin')
+        insert_gfx(f, FONT1_BLOCK[0], FONT1_BLOCK[0] + (16 * 8 * 3), translation_path, 'gfx_exp_font1.bin')
+        insert_gfx(f, FONT1_VWF_TABLE[0], FONT1_VWF_TABLE[0] + 16, translation_path, 'gfx_exp_vwf1.bin')
+        insert_gfx(f, FONT2_BLOCK[0], FONT2_BLOCK[0] + (16 * 8 * 3), translation_path, 'gfx_exp_font2.bin')
+        insert_gfx(f, FONT2_VWF_TABLE[0], FONT2_VWF_TABLE[0] + 16, translation_path, 'gfx_exp_vwf2.bin')
+
 import argparse
 parser = argparse.ArgumentParser()
 subparsers = parser.add_subparsers()
@@ -387,5 +462,13 @@ b_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Or
 b_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
 b_parser.add_argument('-m1', '--misc1', action='store', dest='misc_file1', help='MISC filename')
 b_parser.set_defaults(func=soe_inserter)
+c_parser = subparsers.add_parser('dump_gfx', help='Execute GFX DUMP')
+c_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+c_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+c_parser.set_defaults(func=soe_gfx_dumper)
+d_parser = subparsers.add_parser('insert_gfx', help='Execute GFX INSERTER')
+d_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+d_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+d_parser.set_defaults(func=soe_gfx_inserter)
 args = parser.parse_args()
 args.func(args)
