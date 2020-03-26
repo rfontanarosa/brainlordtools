@@ -39,9 +39,8 @@ class Table():
                     if '=' in line:
                         parts = line.partition('=')
                         part_key = parts[0]
-                        part_value = parts[2]
+                        part_value = parts[2].replace('\r', '').replace('\n', '')
                         if part_value:
-                            part_value = part_value.replace('\r', '').replace('\r', '')
                             if len(part_key) == 4:
                                 key = hex2dec(part_key[:2])
                                 subkey = hex2dec(part_key[2:])
