@@ -6,10 +6,10 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, struct, shutil, csv
+import sys, os, struct, sqlite3, shutil, csv
 from collections import OrderedDict
 
-from rhtools.utils import crc32, byte2int, int2byte, int2hex, string_address2int_address
+from rhtools.utils import crc32, byte2int, int2byte, int2hex
 from rhtools.Table import Table
 
 CRC32 = 'AC443D87'
@@ -28,17 +28,6 @@ TEXT_BLOCK['misc'] = (0x67104, 0x67768)
 
 FONT1_BLOCK = (0x74000, 0x78000)
 FONT2_BLOCK = (0x80000, 0x82000)
-
-"""
-2316 Items1
-240e Items2
-2a36 Items3
-2b7ad HP
-2b7d8 Power
-79c98 Guard
-141219 Free
-1412d3 Free
-"""
 
 def read_text(f, end_byte=0xf7):
     text = b''
@@ -238,47 +227,66 @@ def brainlord_text_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
     dump_path = args.dump_path
+    db = args.database_file
     if crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
+    conn = sqlite3.connect(db)
+    conn.text_factory = str
+    cur = conn.cursor()
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        """
-        from rhtools.HexByteConversion import ByteToHex
-        f.seek(0x174f6a)
-        text = read_text(f)
-        print ByteToHex(text)
-        text_encoded = table.encode(text, mte_resolver=False, dict_resolver=False)
-        print text_encoded
-        text_decoded = decoded_text = table.decode(text_encoded, mte_resolver=False, dict_resolver=False)
-        print ByteToHex(text_decoded)
-        print text == text_decoded
-        sys.exit()
-        """
         f.seek(TEXT_BLOCK1_START)
-        id = 0
+        id = 1
         while f.tell() < TEXT_BLOCK1_END:
             text_address = f.tell()
             text = read_text(f)
-            text_encoded = table.encode(text, mte_resolver=True, dict_resolver=False, cmd_list=[(0xf6, 1), (0xfb, 5), (0xfc, 5), (0xfd, 2), (0xfe, 2)])
+            text_encoded = table.encode(text, mte_resolver=True, dict_resolver=False, cmd_list=[(0xf6, 1), (0xfb, 5), (0xfc, 5), (0xfd, 2), (0xfe, 2), (0xff, 3)])
+            # dump - db
+            text_binary = sqlite3.Binary(text)
+            text_length = len(text_binary)
+            cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, 1)', (id, buffer(text_binary), text_encoded, text_address, '', text_length))
+            # dump - txt
             filename = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(3), text_address))
             with open(filename, 'w') as out:
                 out.write(text_encoded)
             id += 1
+    cur.close()
+    conn.commit()
+    conn.close()
 
 def brainlord_text_inserter(args):
     source_file = args.source_file
     dest_file = args.dest_file
     table1_file = args.table1
     translation_path = args.translation_path
+    db = args.database_file
+    user_name = args.user
     if crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
-    #
+    conn = sqlite3.connect(db)
+    conn.text_factory = str
+    cur = conn.cursor()
+    # find pointers
+    NEW_TEXT_BLOCK1_START = NEW_TEXT_BLOCK1_END = 0x190000
+    new_pointers = OrderedDict()
     with open(dest_file, 'r+b') as fw:
-        new_pointers = OrderedDict()
-        fw.seek(0x190000)
+        fw.seek(NEW_TEXT_BLOCK1_START)
+        # db
+        cur.execute("SELECT text, new_text, text_encoded, id, new_text2, address, pointer_address, size FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s' AND trans.status = 2) AS t2 ON t1.id=t2.id_text WHERE t1.block = %d" % (user_name, 1))
+        for row in cur:
+            address = row[5]
+            new_pointers[int(address)] = fw.tell()
+            original_text = row[2]
+            new_text = row[4]
+            text = new_text if new_text else original_text
+            decoded_text = table.decode(text, mte_resolver=True, dict_resolver=False)
+            fw.write(decoded_text)
+            fw.write(int2byte(0xf7))
+        # txt
+        """
         filenames = os.listdir(translation_path)
         for filename in filenames:
             id, address = filename.replace('.txt', '').split(' - ')
@@ -289,12 +297,27 @@ def brainlord_text_inserter(args):
                 decoded_text = table.decode(text, mte_resolver=True, dict_resolver=False)
                 fw.write(decoded_text)
                 fw.write(int2byte(0xf7))
-    #
+        """
+        NEW_TEXT_BLOCK1_END = fw.tell()
+    # pointer block
     with open(dest_file, 'r+b') as fw:
         fw.seek(POINTER_BLOCK1_START)
         while (fw.tell() < POINTER_BLOCK1_END):
             repoint_text(fw, fw.tell(), new_pointers)
         repoint_text(fw, 0x54a13, new_pointers)
+    # text block
+    with open(dest_file, 'r+b') as fw:
+        fw.seek(NEW_TEXT_BLOCK1_START)
+        while (fw.tell() < NEW_TEXT_BLOCK1_END):
+            byte = fw.read(1)
+            if byte2int(byte) in (0xfc, 0xfd):
+                fw.read(2)
+                repoint_text(fw, fw.tell(), new_pointers)
+            elif byte2int(byte) == 0xff:
+                repoint_text(fw, fw.tell(), new_pointers)
+    cur.close()
+    conn.commit()
+    conn.close()
 
 def repoint_text(fw, offset, new_pointers):
     fw.seek(offset)
@@ -331,7 +354,6 @@ a_parser = subparsers.add_parser('dump_misc', help='Execute MISC DUMP')
 a_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 a_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
 a_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-a_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
 a_parser.set_defaults(func=brainlord_misc_dumper)
 b_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
 b_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
@@ -358,6 +380,8 @@ f_parser.add_argument('-s', '--source', action='store', dest='source_file', requ
 f_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 f_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
 f_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+f_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+f_parser.add_argument('-u', '--user', action='store', dest='user', help='')
 f_parser.set_defaults(func=brainlord_text_inserter)
 z_parser = subparsers.add_parser('expand', help='Execute EXPANDER')
 z_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
