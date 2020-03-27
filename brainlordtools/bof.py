@@ -92,7 +92,7 @@ def bof_dumper(args):
 			pointer_addresses = ';'.join(str(int2hex(x)) for x in paddresses)
 			f.seek(taddress)
 			text = read_text(f, end_byte=table1.getNewline())
-			text_encoded = table1.encode(text, cmd_list=[0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c])
+			text_encoded = table1.encode(text, cmd_list=[(0x07, 1), (0x08, 1), (0x09, 1), (0x0a, 1), (0x0b, 1), (0x0c, 1)])
 			# DUMP - DB
 			text_binary = sqlite3.Binary(text)
 			text_address = int2hex(taddress)
@@ -118,7 +118,7 @@ def bof_dumper(args):
 			pointer_addresses = ';'.join(str(int2hex(x)) for x in paddresses)
 			f.seek(taddress)
 			text = read_text(f, end_byte=table1.getNewline())
-			text_encoded = table1.encode(text, cmd_list=[0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c])
+			text_encoded = table1.encode(text, cmd_list=[(0x07, 1), (0x08, 1), (0x09, 1), (0x0a, 1), (0x0b, 1), (0x0c, 1)])
 			# DUMP - DB
 			text_binary = sqlite3.Binary(text)
 			text_address = int2hex(taddress)

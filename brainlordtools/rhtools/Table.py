@@ -103,11 +103,14 @@ class Table():
                 elif self.isBreakline(key):
                     decoded += '\n'
                 else:
-                    if key in cmd_list:
-                        bytes = byte + iter.next()[1]
-                        subkey = byte2int(bytes[1])
-                        decoded += self.PATTERN_SEPARATED_BYTE % bytes[0].encode('hex_codec')
-                        decoded += self.PATTERN_SEPARATED_BYTE % bytes[1].encode('hex_codec')
+                    cmd_keys = list(map(lambda x: x[0], cmd_list))
+                    if key in cmd_keys:
+                        decoded += self.PATTERN_SEPARATED_BYTE % byte.encode('hex_codec')
+                        cmd_index = cmd_keys.index(key)
+                        bytes_to_read = cmd_list[cmd_index][1]
+                        for k in range(bytes_to_read):
+                            cmd_byte = iter.next()[1]
+                            decoded += self.PATTERN_SEPARATED_BYTE % cmd_byte.encode('hex_codec')
                     elif dict_resolver and key in self._dict:
                         bytes = byte + iter.next()[1]
                         subkey = byte2int(bytes[1])
