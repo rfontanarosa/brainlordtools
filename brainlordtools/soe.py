@@ -68,7 +68,7 @@ def write_text(f, offset, text, table, end_byte=0x00, limit=None):
         raise Exception()
     return f.tell()
 
-def dump_block(f, table, dump_path):
+def dump_blocks(f, table, dump_path):
     for block_name, block_limits in TEXT_BLOCK.iteritems():
         filename = os.path.join(dump_path, block_name + '.csv')
         with open(filename, 'wb+') as csv_file:
@@ -335,7 +335,7 @@ def soe_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_block(f, table, dump_path)
+        dump_blocks(f, table, dump_path)
 
 def soe_inserter(args):
     source_file = args.source_file
