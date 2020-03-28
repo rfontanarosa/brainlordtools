@@ -56,6 +56,10 @@ def write_text(f, offset, text, table, end_byte=0xf7, limit=None):
         raise Exception()
     return f.tell()
 
+def write_byte(fw, offset, byte):
+    fw.seek(offset)
+    fw.write(byte)
+
 def dump_blocks(f, table, dump_path):
     filename = os.path.join(dump_path, 'misc1.csv')
     with open(filename, 'wb+') as csv_file:
@@ -121,7 +125,7 @@ def repoint_misc(f, pointers, new_pointers):
     for p_value, p_addresses in pointers.iteritems():
         p_new_value = new_pointers.get(p_value)
         if not p_new_value:
-            print('Misc not found! ' + int2hex(p_value))
+            print('MISC - Value: ' + int2hex(p_value))
         else:
             for p_address in p_addresses:
                 f.seek(p_address)
@@ -328,7 +332,7 @@ def brainlord_text_inserter(args):
         fw.seek(NEW_TEXT_BLOCK1_START)
         while (fw.tell() < NEW_TEXT_BLOCK1_END):
             byte = fw.read(1)
-            if byte == '\xfc':
+            if byte in ('\xfb', '\xfc'):
                 fw.read(2)
                 repoint_text(fw, fw.tell(), new_pointers)
             elif byte == '\xff':
@@ -341,13 +345,37 @@ def brainlord_text_inserter(args):
     # sparse pointers
     with open(dest_file, 'r+b') as fw:
         repoint_text(fw, 0x54a13, new_pointers)
+        repoint_text(fw, 0x54bc5, new_pointers)
         repoint_text(fw, 0x54ba9, new_pointers)
         repoint_text(fw, 0x54bb0, new_pointers)
         repoint_text(fw, 0x54bd3, new_pointers)
+        repoint_text(fw, 0x54c27, new_pointers)
+    # choices pointers
+    with open(dest_file, 'r+b') as fw:
+        repoint_choice(fw, 0x21cb9, new_pointers)
+        repoint_choice(fw, 0x21daf, new_pointers)
+        repoint_choice(fw, 0x21e05, new_pointers)
+        repoint_choice(fw, 0x21e57, new_pointers)
+        repoint_choice(fw, 0x21eb6, new_pointers)
+        repoint_choice(fw, 0x21ed7, new_pointers)
 
     cur.close()
     conn.commit()
     conn.close()
+
+def repoint_choice(fw, offset, new_pointers):
+    fw.seek(offset)
+    pointer = fw.read(2)
+    unpacked = struct.unpack('i', pointer + '\xd7\x00')[0] - 0xc00000
+    new_pointer = new_pointers.get(unpacked)
+    if new_pointer:
+        fw.seek(-2, os.SEEK_CUR)
+        packed = struct.pack('i', new_pointer + 0xc00000)
+        fw.write(packed[:-2])
+        fw.seek(6, os.SEEK_CUR)
+        fw.write('\xd9')
+    else:
+        print('CHOICE - Offset: ' + int2hex(offset) + ' Value: ' + int2hex(unpacked))
 
 def repoint_text(fw, offset, new_pointers):
     fw.seek(offset)
@@ -364,7 +392,7 @@ def repoint_text(fw, offset, new_pointers):
             packed = struct.pack('i', fw.tell() + 3 + 0xc00000)
             fw.write(packed[:-1])
         else:
-            print('Offset: ' + int2hex(offset) + ' Value: ' + int2hex(unpacked))
+            print('TEXT - Offset: ' + int2hex(offset) + ' Value: ' + int2hex(unpacked))
 
 def item_pointers_finder(fw, start, end):
     pointers = []
