@@ -16,12 +16,17 @@ CRC32 = 'AC443D87'
 
 TEXT_BLOCK1_START = 0x170000
 TEXT_BLOCK1_END = 0x17fac9
-TEXT_BLOCK1_LIMIT = 0x17ffff
+#TEXT_BLOCK1_LIMIT = 0x17ffff
+
+TEXT_BLOCK2_START = 0x8dec1
+TEXT_BLOCK2_END = 0x8f9ed
+#TEXT_BLOCK2_LIMIT = 0x903ff
 
 POINTER_BLOCK1_START = 0x50013
 POINTER_BLOCK1_END = 0x50267
-POINTER_BLOCK2_START = 0x6046e
-POINTER_BLOCK2_END = 0x60593
+
+ITEM_POINTERS_START = 0x18a02
+ITEM_POINTERS_END = 0x19388
 
 TEXT_BLOCK = OrderedDict()
 TEXT_BLOCK['misc'] = (0x67104, 0x67768)
@@ -78,8 +83,6 @@ def dump_blocks(f, table, dump_path):
 def dump_gfx(f, start, end, dump_path, filename):
     f.seek(start)
     block_size = end - start
-    print block_size
-    print block_size / 16
     block = f.read(block_size)
     with open(os.path.join(dump_path, filename), 'wb') as gfx_file:
         gfx_file.write(block)
@@ -118,7 +121,7 @@ def repoint_misc(f, pointers, new_pointers):
     for p_value, p_addresses in pointers.iteritems():
         p_new_value = new_pointers.get(p_value)
         if not p_new_value:
-            print('NOT FOUND 1')
+            print('Misc not found! ' + int2hex(p_value))
         else:
             for p_address in p_addresses:
                 f.seek(p_address)
@@ -237,9 +240,23 @@ def brainlord_text_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        f.seek(TEXT_BLOCK1_START)
         id = 1
+        f.seek(TEXT_BLOCK1_START)
         while f.tell() < TEXT_BLOCK1_END:
+            text_address = f.tell()
+            text = read_text(f)
+            text_encoded = table.encode(text, mte_resolver=True, dict_resolver=False, cmd_list=[(0xf6, 1), (0xfb, 5), (0xfc, 5), (0xfd, 2), (0xfe, 2), (0xff, 3)])
+            # dump - db
+            text_binary = sqlite3.Binary(text)
+            text_length = len(text_binary)
+            cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, 1)', (id, buffer(text_binary), text_encoded, text_address, '', text_length))
+            # dump - txt
+            filename = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(3), text_address))
+            with open(filename, 'w') as out:
+                out.write(text_encoded)
+            id += 1
+        f.seek(TEXT_BLOCK2_START)
+        while f.tell() < TEXT_BLOCK2_END:
             text_address = f.tell()
             text = read_text(f)
             text_encoded = table.encode(text, mte_resolver=True, dict_resolver=False, cmd_list=[(0xf6, 1), (0xfb, 5), (0xfc, 5), (0xfd, 2), (0xfe, 2), (0xff, 3)])
@@ -299,22 +316,32 @@ def brainlord_text_inserter(args):
                 fw.write(int2byte(0xf7))
         """
         NEW_TEXT_BLOCK1_END = fw.tell()
-    # pointer block
+
+    # pointer block 1
     with open(dest_file, 'r+b') as fw:
         fw.seek(POINTER_BLOCK1_START)
         while (fw.tell() < POINTER_BLOCK1_END):
             repoint_text(fw, fw.tell(), new_pointers)
-        repoint_text(fw, 0x54a13, new_pointers)
-    # text block
+    # text block pointers
     with open(dest_file, 'r+b') as fw:
         fw.seek(NEW_TEXT_BLOCK1_START)
         while (fw.tell() < NEW_TEXT_BLOCK1_END):
             byte = fw.read(1)
-            if byte2int(byte) in (0xfc, 0xfd):
+            if byte == '\xfc':
                 fw.read(2)
                 repoint_text(fw, fw.tell(), new_pointers)
-            elif byte2int(byte) == 0xff:
-                repoint_text(fw, fw.tell(), new_pointers)
+    # item block pointers
+    with open(dest_file, 'r+b') as fw:
+        pointers = item_pointers_finder(fw, ITEM_POINTERS_START, ITEM_POINTERS_END)
+        for pointer in pointers:
+            repoint_text(fw, pointer, new_pointers)
+    # sparse pointers
+    with open(dest_file, 'r+b') as fw:
+        repoint_text(fw, 0x54a13, new_pointers)
+        repoint_text(fw, 0x54ba9, new_pointers)
+        repoint_text(fw, 0x54bb0, new_pointers)
+        repoint_text(fw, 0x54bd3, new_pointers)
+
     cur.close()
     conn.commit()
     conn.close()
@@ -325,11 +352,22 @@ def repoint_text(fw, offset, new_pointers):
     unpacked = struct.unpack('i', pointer + '\x00')[0] - 0xc00000
     new_pointer = new_pointers.get(unpacked)
     if new_pointer:
-        fw.seek(-3, 1)
+        fw.seek(-3, os.SEEK_CUR)
         packed = struct.pack('i', new_pointer + 0xc00000)
         fw.write(packed[:-1])
     else:
-        print int2hex(unpacked)
+        print('Offset: ' + int2hex(offset) + ' Value: ' + int2hex(unpacked))
+
+def item_pointers_finder(fw, start, end):
+    pointers = []
+    fw.seek(start)
+    while (fw.tell() < end):
+        byte = fw.read(1)
+        if byte == '\xc8':
+            fw.seek(-3, os.SEEK_CUR)
+            pointers.append(fw.tell())
+            fw.seek(3, os.SEEK_CUR)
+    return pointers
 
 def brainlord_expander(args):
     source_file = args.source_file
