@@ -176,8 +176,9 @@ def brainlord_misc_inserter(args):
         p_b20 = get_pointers(f0, 0x295d, 0x295d + (3 * 3), 3) #Use, Copy, Dis.
         p_b21 = get_pointers(f0, 0x22f6, 0x22f6 + (3 * 4), 3) #LV, Power, Ex,  ^
         p_b22 = get_pointers(f0, 0x1ddbc, 0x1ddbc + (3 * 11), 3) #Warp, Escape, Flag, Items, Level, Slow, Time, Set, Task, Sound, Memory
+        p_b23 = get_pointers(f0, 0x2c92f, 0x2c92f + (3 * 2), 3) #Yes, No
         """
-        for text_offset in (pointers27):
+        for text_offset in (p_b23):
             f0.seek(text_offset)
             text = read_text(f0)
             decoded_text = table.encode(text, mte_resolver=True, dict_resolver=False)
@@ -205,7 +206,7 @@ def brainlord_misc_inserter(args):
             new_pointers[t_address] = t_new_address
             t_new_address = write_text(f1, t_new_address, t_value, table)
         # repointing
-        for curr_pointers in (p_b1, p_b2, p_b3, p_b4, p_b5, p_b6, p_b7, p_b8, p_b9, p_b10, p_b11, p_b12, p_b13, p_b14, p_b15, p_b16, p_b17, p_b18, p_b19, p_b20, p_b21, p_b22):
+        for curr_pointers in (p_b1, p_b2, p_b3, p_b4, p_b5, p_b6, p_b7, p_b8, p_b9, p_b10, p_b11, p_b12, p_b13, p_b14, p_b15, p_b16, p_b17, p_b18, p_b19, p_b20, p_b21, p_b22, p_b23):
             repoint_misc(f1, curr_pointers, new_pointers)
 
 def brainlord_gfx_dumper(args):
@@ -330,6 +331,8 @@ def brainlord_text_inserter(args):
             if byte == '\xfc':
                 fw.read(2)
                 repoint_text(fw, fw.tell(), new_pointers)
+            elif byte == '\xff':
+                repoint_text(fw, fw.tell(), new_pointers)
     # item block pointers
     with open(dest_file, 'r+b') as fw:
         pointers = item_pointers_finder(fw, ITEM_POINTERS_START, ITEM_POINTERS_END)
@@ -356,7 +359,12 @@ def repoint_text(fw, offset, new_pointers):
         packed = struct.pack('i', new_pointer + 0xc00000)
         fw.write(packed[:-1])
     else:
-        print('Offset: ' + int2hex(offset) + ' Value: ' + int2hex(unpacked))
+        if unpacked == 0x173419:
+            fw.seek(-3, os.SEEK_CUR)
+            packed = struct.pack('i', fw.tell() + 3 + 0xc00000)
+            fw.write(packed[:-1])
+        else:
+            print('Offset: ' + int2hex(offset) + ' Value: ' + int2hex(unpacked))
 
 def item_pointers_finder(fw, start, end):
     pointers = []
