@@ -22,6 +22,9 @@ TEXT_BLOCK2_START = 0x8dec1
 TEXT_BLOCK2_END = 0x8f9ed
 #TEXT_BLOCK2_LIMIT = 0x903ff
 
+TEXT_BLOCK3_START = 0x66e85
+TEXT_BLOCK3_END = 0x67100
+
 POINTER_BLOCK1_START = 0x50013
 POINTER_BLOCK1_END = 0x50267
 
@@ -268,7 +271,21 @@ def brainlord_text_dumper(args):
             # dump - db
             text_binary = sqlite3.Binary(text)
             text_length = len(text_binary)
-            cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, 1)', (id, buffer(text_binary), text_encoded, text_address, '', text_length))
+            cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, 2)', (id, buffer(text_binary), text_encoded, text_address, '', text_length))
+            # dump - txt
+            filename = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(3), text_address))
+            with open(filename, 'w') as out:
+                out.write(text_encoded)
+            id += 1
+        f.seek(TEXT_BLOCK3_START)
+        while f.tell() < TEXT_BLOCK3_END:
+            text_address = f.tell()
+            text = read_text(f)
+            text_encoded = table.encode(text, mte_resolver=True, dict_resolver=False, cmd_list=[(0xf6, 1), (0xfb, 5), (0xfc, 5), (0xfd, 2), (0xfe, 2), (0xff, 3)])
+            # dump - db
+            text_binary = sqlite3.Binary(text)
+            text_length = len(text_binary)
+            cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, 3)', (id, buffer(text_binary), text_encoded, text_address, '', text_length))
             # dump - txt
             filename = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(3), text_address))
             with open(filename, 'w') as out:
@@ -297,7 +314,7 @@ def brainlord_text_inserter(args):
     with open(dest_file, 'r+b') as fw:
         fw.seek(NEW_TEXT_BLOCK1_START)
         # db
-        cur.execute("SELECT text, new_text, text_encoded, id, new_text2, address, pointer_address, size FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s' AND trans.status = 2) AS t2 ON t1.id=t2.id_text WHERE t1.block = %d" % (user_name, 1))
+        cur.execute("SELECT text, new_text, text_encoded, id, new_text2, address, pointer_address, size FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s' AND trans.status = 2) AS t2 ON t1.id=t2.id_text WHERE t1.block IN (1, 2, 3)" % (user_name))
         for row in cur:
             address = row[5]
             new_pointers[int(address)] = fw.tell()
@@ -344,12 +361,37 @@ def brainlord_text_inserter(args):
             repoint_text(fw, pointer, new_pointers)
     # sparse pointers
     with open(dest_file, 'r+b') as fw:
+        repoint_text(fw, 0x5145f, new_pointers)
+        repoint_text(fw, 0x51ada, new_pointers)
+        repoint_text(fw, 0x51ae1, new_pointers)
+        repoint_text(fw, 0x51c31, new_pointers)
+        repoint_text(fw, 0x51c38, new_pointers)
         repoint_text(fw, 0x54a13, new_pointers)
+        repoint_text(fw, 0x54a91, new_pointers)
+        repoint_text(fw, 0x54af3, new_pointers)
         repoint_text(fw, 0x54bc5, new_pointers)
         repoint_text(fw, 0x54ba9, new_pointers)
         repoint_text(fw, 0x54bb0, new_pointers)
         repoint_text(fw, 0x54bd3, new_pointers)
         repoint_text(fw, 0x54c27, new_pointers)
+    #
+    with open(dest_file, 'r+b') as fw:
+        fw.seek(0xf86)
+        """
+        while (fw.tell() < 0xf8e):
+            repoint_text(fw, fw.tell(), new_pointers)
+        fw.seek(0xf92)
+        while (fw.tell() < 0xf97):
+            repoint_text(fw, fw.tell(), new_pointers)
+        fw.seek(0xf9e)
+        """
+        while (fw.tell() < 0xfee):
+            repoint_text(fw, fw.tell(), new_pointers)
+    # misc text
+    with open(dest_file, 'r+b') as fw:
+        repoint_misc_text(fw, 0x2cc0, new_pointers)
+        repoint_misc_text(fw, 0x24c55, new_pointers)
+        repoint_misc_text(fw, 0x24d3a, new_pointers)
     # choices pointers
     with open(dest_file, 'r+b') as fw:
         repoint_choice(fw, 0x21cb9, new_pointers)
@@ -358,10 +400,25 @@ def brainlord_text_inserter(args):
         repoint_choice(fw, 0x21e57, new_pointers)
         repoint_choice(fw, 0x21eb6, new_pointers)
         repoint_choice(fw, 0x21ed7, new_pointers)
+        repoint_choice(fw, 0x143902, new_pointers)
 
     cur.close()
     conn.commit()
     conn.close()
+
+def repoint_misc_text(fw, offset, new_pointers):
+    fw.seek(offset)
+    pointer = fw.read(2)
+    unpacked = struct.unpack('i', pointer + '\xc6\x00')[0] - 0xc00000
+    new_pointer = new_pointers.get(unpacked)
+    if new_pointer:
+        fw.seek(-2, os.SEEK_CUR)
+        packed = struct.pack('i', new_pointer + 0xc00000)
+        fw.write(packed[:-2])
+        fw.seek(6, os.SEEK_CUR)
+        fw.write(packed[2])
+    else:
+        print('CHOICE - Offset: ' + int2hex(offset) + ' Value: ' + int2hex(unpacked))
 
 def repoint_choice(fw, offset, new_pointers):
     fw.seek(offset)
@@ -373,7 +430,7 @@ def repoint_choice(fw, offset, new_pointers):
         packed = struct.pack('i', new_pointer + 0xc00000)
         fw.write(packed[:-2])
         fw.seek(6, os.SEEK_CUR)
-        fw.write('\xd9')
+        fw.write(packed[2])
     else:
         print('CHOICE - Offset: ' + int2hex(offset) + ' Value: ' + int2hex(unpacked))
 
