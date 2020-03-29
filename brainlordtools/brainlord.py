@@ -362,11 +362,27 @@ def brainlord_text_inserter(args):
     # sparse pointers
     with open(dest_file, 'r+b') as fw:
         repoint_text(fw, 0x5145f, new_pointers)
+        repoint_text(fw, 0x518e2, new_pointers)
+        repoint_text(fw, 0x51a94, new_pointers)
         repoint_text(fw, 0x51ada, new_pointers)
         repoint_text(fw, 0x51ae1, new_pointers)
-        repoint_text(fw, 0x51c31, new_pointers)
-        repoint_text(fw, 0x51c38, new_pointers)
+        repoint_text(fw, 0x51ae8, new_pointers)
+        fw.seek(0x51c31)
+        while (fw.tell() < 0x51c64):
+            repoint_text(fw, fw.tell(), new_pointers)
+            fw.seek(4, os.SEEK_CUR)
+        repoint_text(fw, 0x51de3, new_pointers)
+        repoint_text(fw, 0x51dea, new_pointers)
+        repoint_text(fw, 0x51df1, new_pointers)
+        repoint_text(fw, 0x51df8, new_pointers)
+        repoint_text(fw, 0x51e5a, new_pointers)
+        repoint_text(fw, 0x51e61, new_pointers)
+        repoint_text(fw, 0x51e68, new_pointers)
+        repoint_text(fw, 0x51e6f, new_pointers)
+        repoint_text(fw, 0x51e76, new_pointers)
         repoint_text(fw, 0x54a13, new_pointers)
+        repoint_text(fw, 0x54a36, new_pointers)
+        repoint_text(fw, 0x54a3d, new_pointers)
         repoint_text(fw, 0x54a91, new_pointers)
         repoint_text(fw, 0x54af3, new_pointers)
         repoint_text(fw, 0x54bc5, new_pointers)
@@ -377,53 +393,39 @@ def brainlord_text_inserter(args):
     #
     with open(dest_file, 'r+b') as fw:
         fw.seek(0xf86)
-        """
-        while (fw.tell() < 0xf8e):
-            repoint_text(fw, fw.tell(), new_pointers)
-        fw.seek(0xf92)
-        while (fw.tell() < 0xf97):
-            repoint_text(fw, fw.tell(), new_pointers)
-        fw.seek(0xf9e)
-        """
         while (fw.tell() < 0xfee):
             repoint_text(fw, fw.tell(), new_pointers)
-    # misc text
+    # two bytes pointers
     with open(dest_file, 'r+b') as fw:
-        repoint_misc_text(fw, 0x2cc0, new_pointers)
-        repoint_misc_text(fw, 0x24c55, new_pointers)
-        repoint_misc_text(fw, 0x24d3a, new_pointers)
-    # choices pointers
-    with open(dest_file, 'r+b') as fw:
-        repoint_choice(fw, 0x21cb9, new_pointers)
-        repoint_choice(fw, 0x21daf, new_pointers)
-        repoint_choice(fw, 0x21e05, new_pointers)
-        repoint_choice(fw, 0x21e57, new_pointers)
-        repoint_choice(fw, 0x21eb6, new_pointers)
-        repoint_choice(fw, 0x21ed7, new_pointers)
-        repoint_choice(fw, 0x143902, new_pointers)
+        repoint_two_bytes_pointers(fw, 0x2cc0, new_pointers, '\xc6')
+        repoint_two_bytes_pointers(fw, 0xa137, new_pointers, '\xc6')
+        repoint_two_bytes_pointers(fw, 0x221e8, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x223c3, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x22a5f, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x23406, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x234ec, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x23a2c, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x24c55, new_pointers, '\xc6')
+        repoint_two_bytes_pointers(fw, 0x24d3a, new_pointers, '\xc6')
+        repoint_two_bytes_pointers(fw, 0x21cb9, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x21daf, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x21e05, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x21e57, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x21eb6, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x21ed7, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x222de, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x22f23, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x6f06e, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x143902, new_pointers, '\xd7')
 
     cur.close()
     conn.commit()
     conn.close()
 
-def repoint_misc_text(fw, offset, new_pointers):
+def repoint_two_bytes_pointers(fw, offset, new_pointers, third_byte):
     fw.seek(offset)
     pointer = fw.read(2)
-    unpacked = struct.unpack('i', pointer + '\xc6\x00')[0] - 0xc00000
-    new_pointer = new_pointers.get(unpacked)
-    if new_pointer:
-        fw.seek(-2, os.SEEK_CUR)
-        packed = struct.pack('i', new_pointer + 0xc00000)
-        fw.write(packed[:-2])
-        fw.seek(6, os.SEEK_CUR)
-        fw.write(packed[2])
-    else:
-        print('CHOICE - Offset: ' + int2hex(offset) + ' Value: ' + int2hex(unpacked))
-
-def repoint_choice(fw, offset, new_pointers):
-    fw.seek(offset)
-    pointer = fw.read(2)
-    unpacked = struct.unpack('i', pointer + '\xd7\x00')[0] - 0xc00000
+    unpacked = struct.unpack('i', pointer + third_byte + '\x00')[0] - 0xc00000
     new_pointer = new_pointers.get(unpacked)
     if new_pointer:
         fw.seek(-2, os.SEEK_CUR)
