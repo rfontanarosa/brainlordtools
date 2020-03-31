@@ -26,7 +26,7 @@ TEXT_BLOCK3_START = 0x66e85
 TEXT_BLOCK3_END = 0x67100
 
 POINTER_BLOCK1_START = 0x50013
-POINTER_BLOCK1_END = 0x50267
+POINTER_BLOCK1_END = 0x50285
 
 ITEM_POINTERS_START = 0x18a02
 ITEM_POINTERS_END = 0x19388
@@ -184,6 +184,7 @@ def brainlord_misc_inserter(args):
         p_b21 = get_pointers(f0, 0x22f6, 0x22f6 + (3 * 4), 3) #LV, Power, Ex,  ^
         p_b22 = get_pointers(f0, 0x1ddbc, 0x1ddbc + (3 * 11), 3) #Warp, Escape, Flag, Items, Level, Slow, Time, Set, Task, Sound, Memory
         p_b23 = get_pointers(f0, 0x2c92f, 0x2c92f + (3 * 2), 3) #Yes, No
+        p_b24 = get_pointers(f0, 0x2516b, 0x2516b + (3 * 1), 3) #The end
         """
         for text_offset in (p_b23):
             f0.seek(text_offset)
@@ -213,7 +214,7 @@ def brainlord_misc_inserter(args):
             new_pointers[t_address] = t_new_address
             t_new_address = write_text(f1, t_new_address, t_value, table)
         # repointing
-        for curr_pointers in (p_b1, p_b2, p_b3, p_b4, p_b5, p_b6, p_b7, p_b8, p_b9, p_b10, p_b11, p_b12, p_b13, p_b14, p_b15, p_b16, p_b17, p_b18, p_b19, p_b20, p_b21, p_b22, p_b23):
+        for curr_pointers in (p_b1, p_b2, p_b3, p_b4, p_b5, p_b6, p_b7, p_b8, p_b9, p_b10, p_b11, p_b12, p_b13, p_b14, p_b15, p_b16, p_b17, p_b18, p_b19, p_b20, p_b21, p_b22, p_b23, p_b24):
             repoint_misc(f1, curr_pointers, new_pointers)
 
 def brainlord_gfx_dumper(args):
@@ -363,14 +364,27 @@ def brainlord_text_inserter(args):
     with open(dest_file, 'r+b') as fw:
         repoint_text(fw, 0x5145f, new_pointers)
         repoint_text(fw, 0x518e2, new_pointers)
+        repoint_text(fw, 0x519c9, new_pointers)
         repoint_text(fw, 0x51a94, new_pointers)
         repoint_text(fw, 0x51ada, new_pointers)
         repoint_text(fw, 0x51ae1, new_pointers)
         repoint_text(fw, 0x51ae8, new_pointers)
+        #
+        """
+        repoint_text(fw, 0x51c31, new_pointers)
+        repoint_text(fw, 0x51c38, new_pointers)
+        repoint_text(fw, 0x51c3f, new_pointers)
+        repoint_text(fw, 0x51c46, new_pointers)
+        repoint_text(fw, 0x51c4d, new_pointers)
+        repoint_text(fw, 0x51c54, new_pointers)
+        repoint_text(fw, 0x51c5b, new_pointers)
+        repoint_text(fw, 0x51c62, new_pointers)
+        """
         fw.seek(0x51c31)
         while (fw.tell() < 0x51c64):
             repoint_text(fw, fw.tell(), new_pointers)
             fw.seek(4, os.SEEK_CUR)
+        #
         repoint_text(fw, 0x51de3, new_pointers)
         repoint_text(fw, 0x51dea, new_pointers)
         repoint_text(fw, 0x51df1, new_pointers)
@@ -380,6 +394,33 @@ def brainlord_text_inserter(args):
         repoint_text(fw, 0x51e68, new_pointers)
         repoint_text(fw, 0x51e6f, new_pointers)
         repoint_text(fw, 0x51e76, new_pointers)
+        #
+        repoint_text(fw, 0x52767, new_pointers)
+        repoint_text(fw, 0x5276e, new_pointers)
+        repoint_text(fw, 0x52775, new_pointers)
+        repoint_text(fw, 0x5277c, new_pointers)
+        #
+        repoint_text(fw, 0x528a9, new_pointers)
+        repoint_text(fw, 0x528b0, new_pointers)
+
+        #
+        repoint_text(fw, 0x52989, new_pointers)
+        repoint_text(fw, 0x52990, new_pointers)
+        repoint_text(fw, 0x52997, new_pointers)
+        repoint_text(fw, 0x5299e, new_pointers)
+        repoint_text(fw, 0x529a5, new_pointers)
+        repoint_text(fw, 0x52aa8, new_pointers)
+        repoint_text(fw, 0x52aaf, new_pointers)
+        repoint_text(fw, 0x52ab6, new_pointers)
+        repoint_text(fw, 0x52abd, new_pointers)
+        repoint_text(fw, 0x52ac4, new_pointers)
+        repoint_text(fw, 0x52acb, new_pointers)
+        repoint_text(fw, 0x52ad2, new_pointers)
+        #
+        repoint_text(fw, 0x53624, new_pointers)
+        repoint_text(fw, 0x5362b, new_pointers)
+        repoint_text(fw, 0x53632, new_pointers)
+        #
         repoint_text(fw, 0x54a13, new_pointers)
         repoint_text(fw, 0x54a36, new_pointers)
         repoint_text(fw, 0x54a3d, new_pointers)
@@ -397,16 +438,21 @@ def brainlord_text_inserter(args):
             repoint_text(fw, fw.tell(), new_pointers)
     # two bytes pointers
     with open(dest_file, 'r+b') as fw:
+        repoint_two_bytes_pointers(fw, 0x2990, new_pointers, '\xc6')
         repoint_two_bytes_pointers(fw, 0x2cc0, new_pointers, '\xc6')
         repoint_two_bytes_pointers(fw, 0xa137, new_pointers, '\xc6')
         repoint_two_bytes_pointers(fw, 0x221e8, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x2234c, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x223c3, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x22a5f, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x23406, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x234ec, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x23a2c, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x2435c, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x24518, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x24c55, new_pointers, '\xc6')
         repoint_two_bytes_pointers(fw, 0x24d3a, new_pointers, '\xc6')
+        repoint_two_bytes_pointers(fw, 0x248fc, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x21cb9, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x21daf, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x21e05, new_pointers, '\xd7')
@@ -414,7 +460,9 @@ def brainlord_text_inserter(args):
         repoint_two_bytes_pointers(fw, 0x21eb6, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x21ed7, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x222de, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x22ca9, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x22f23, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x24442, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x6f06e, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x143902, new_pointers, '\xd7')
 
@@ -434,7 +482,7 @@ def repoint_two_bytes_pointers(fw, offset, new_pointers, third_byte):
         fw.seek(6, os.SEEK_CUR)
         fw.write(packed[2])
     else:
-        print('CHOICE - Offset: ' + int2hex(offset) + ' Value: ' + int2hex(unpacked))
+        print('CHOICE - Pointer offset: ' + int2hex(offset) + ' Text offset: ' + int2hex(unpacked))
 
 def repoint_text(fw, offset, new_pointers):
     fw.seek(offset)
@@ -451,7 +499,7 @@ def repoint_text(fw, offset, new_pointers):
             packed = struct.pack('i', fw.tell() + 3 + 0xc00000)
             fw.write(packed[:-1])
         else:
-            print('TEXT - Offset: ' + int2hex(offset) + ' Value: ' + int2hex(unpacked))
+            print('TEXT - Pointer offset: ' + int2hex(offset) + ' Text offset: ' + int2hex(unpacked))
 
 def item_pointers_finder(fw, start, end):
     pointers = []
