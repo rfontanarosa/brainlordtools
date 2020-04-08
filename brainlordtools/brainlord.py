@@ -25,6 +25,9 @@ TEXT_BLOCK2_END = 0x8f9ed
 TEXT_BLOCK3_START = 0x66e85
 TEXT_BLOCK3_END = 0x67100
 
+TEXT_BLOCK4_START = 0x120000
+TEXT_BLOCK4_END = 0x1202f7
+
 POINTER_BLOCK1_START = 0x50013
 POINTER_BLOCK1_END = 0x50285
 
@@ -292,6 +295,20 @@ def brainlord_text_dumper(args):
             with open(filename, 'w') as out:
                 out.write(text_encoded)
             id += 1
+        f.seek(TEXT_BLOCK4_START)
+        while f.tell() < TEXT_BLOCK4_END:
+            text_address = f.tell()
+            text = read_text(f)
+            text_encoded = table.encode(text, mte_resolver=True, dict_resolver=False, cmd_list=[(0xf6, 1), (0xfb, 5), (0xfc, 5), (0xfd, 2), (0xfe, 2), (0xff, 3)])
+            # dump - db
+            text_binary = sqlite3.Binary(text)
+            text_length = len(text_binary)
+            cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, 4)', (id, buffer(text_binary), text_encoded, text_address, '', text_length))
+            # dump - txt
+            filename = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(3), text_address))
+            with open(filename, 'w') as out:
+                out.write(text_encoded)
+            id += 1
     cur.close()
     conn.commit()
     conn.close()
@@ -362,6 +379,8 @@ def brainlord_text_inserter(args):
             repoint_text(fw, pointer, new_pointers)
     # sparse pointers
     with open(dest_file, 'r+b') as fw:
+        repoint_text(fw, 0x434c2, new_pointers)
+        #
         repoint_text(fw, 0x5145f, new_pointers)
         repoint_text(fw, 0x518e2, new_pointers)
         repoint_text(fw, 0x519c9, new_pointers)
@@ -420,9 +439,18 @@ def brainlord_text_inserter(args):
         repoint_text(fw, 0x52acb, new_pointers)
         repoint_text(fw, 0x52ad2, new_pointers)
         #
+        repoint_text(fw, 0x52bb9, new_pointers)
+        #
         repoint_text(fw, 0x53624, new_pointers)
         repoint_text(fw, 0x5362b, new_pointers)
         repoint_text(fw, 0x53632, new_pointers)
+        repoint_text(fw, 0x53639, new_pointers)
+        repoint_text(fw, 0x53640, new_pointers)
+        repoint_text(fw, 0x53647, new_pointers)
+        repoint_text(fw, 0x5364e, new_pointers)
+        repoint_text(fw, 0x53655, new_pointers)
+        repoint_text(fw, 0x5365c, new_pointers)
+        repoint_text(fw, 0x53663, new_pointers)
         #
         repoint_text(fw, 0x54a13, new_pointers)
         repoint_text(fw, 0x54a36, new_pointers)
@@ -474,6 +502,8 @@ def brainlord_text_inserter(args):
         repoint_text(fw, 0x552e8, new_pointers)
         repoint_text(fw, 0x552ef, new_pointers)
         repoint_text(fw, 0x552f6, new_pointers)
+        #
+        repoint_text(fw, 0x55534, new_pointers)
     #
     with open(dest_file, 'r+b') as fw:
         fw.seek(0xf86)
@@ -484,6 +514,7 @@ def brainlord_text_inserter(args):
         repoint_two_bytes_pointers(fw, 0x2990, new_pointers, '\xc6')
         repoint_two_bytes_pointers(fw, 0x2cc0, new_pointers, '\xc6')
         repoint_two_bytes_pointers(fw, 0xa137, new_pointers, '\xc6')
+        repoint_two_bytes_pointers(fw, 0x21daf, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x221e8, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x2234c, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x223c3, new_pointers, '\xd7')
@@ -492,7 +523,9 @@ def brainlord_text_inserter(args):
         repoint_two_bytes_pointers(fw, 0x234ec, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x23a2c, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x2435c, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x244da, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x24518, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x24c17, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x24c55, new_pointers, '\xc6')
         repoint_two_bytes_pointers(fw, 0x24d3a, new_pointers, '\xc6')
         repoint_two_bytes_pointers(fw, 0x248fc, new_pointers, '\xd7')
