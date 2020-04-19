@@ -22,7 +22,12 @@ fullpathIta = os.path.join(dump_path, 'sd3OLD-ita.txt')
 def convertToMagno(text):
 	#
 	text = text.replace('\n', '<JUMP>\n')
-	text = text.replace('<OPEN>', '<OPEN>\n')
+	#
+	text = text.replace('<END><JUMP>\n<END>', '<END><END>')
+	text = text.replace('<END><JUMP>\n<OPEN>', '<END><OPEN>\n')
+	text = text.replace('<BOX><OPEN>', '<58><OPEN>\n')
+	text = text.replace('<BOX><PAGE><JUMP>\n', '<58><PAUSE>\n')
+	text = text.replace('<LINE><OPEN>', '<5E><OPEN>\n')
 	#
 	text = text.replace('<CHAR 0>', '<19><00>')
 	text = text.replace('<CHAR 1>', '<19><01>')
@@ -42,14 +47,38 @@ def convertToMagno(text):
 	text = text.replace('<CARLIE>', '<19><F8><04>')
 	text = text.replace('<LISE>', '<19><F8><05>')
 	#
+	text = text.replace('<PAD 1>', '<TAB 01>')
+	text = text.replace('<PAD 2>', '<TAB 02>')
+	text = text.replace('<PAD 3>', '<TAB 03>')
+	text = text.replace('<PAD 4>', '<TAB 04>')
+	text = text.replace('<PAD 5>', '<TAB 05>')
+	text = text.replace('<PAD 6>', '<TAB 06>')
+	text = text.replace('<PAD 7>', '<TAB 07>')
+	text = text.replace('<PAD 8>', '<TAB 08>')
+	text = text.replace('<PAD 9>', '<TAB 09>')
+	text = text.replace('<PAD 10>', '<TAB 0A>')
+	text = text.replace('<PAD 11>', '<TAB 0B>')
+	text = text.replace('<PAD 12>', '<TAB 0C>')
+	text = text.replace('<PAD 13>', '<TAB 0D>')
+	text = text.replace('<PAD 14>', '<TAB 0E>')
+	text = text.replace('<PAD 15>', '<TAB 0F>')
+	text = text.replace('<PAD 15>', '<TAB 1C>')
+	text = text.replace('<PAD 26>', '<TAB 1A>')
+	#
+	text = text.replace('<ALT>', '<7B>')
+	text = text.replace('<F1>', '<F1>\n')
+	text = text.replace('<ITEM 500>', '<1B><F5><00>')
+	text = text.replace('<ITEM 501>', '<1B><F5><01>')
+	text = text.replace('<ITEM 502>', '<1B><F5><02>')
+	text = text.replace('<ITEM 503>', '<1B><F5><03>')
+	text = text.replace('<ITEM 50B>', '<1B><F5><0B>')
 	text = text.replace('<ITEM 509>', '<1B><F5><09>')
 	#
-	text = text.replace('<PAD 11>', '<TAB 0B>')
-	#
-	text = text.replace('<BOX>', '<58>')
+	text = text.replace('<OR>', '<14>')
+	text = text.replace('<BOX>', '<58>\n')
 	text = text.replace('<LINE>', '<5E>')
 	text = text.replace('<PAGE><JUMP>', '<PAUSE>')
-	text = text.replace('<END><JUMP>', '<END><00>')
+	text = text.replace('<END><JUMP>', '<END>')
 	return text
 
 conn = sqlite3.connect(db)

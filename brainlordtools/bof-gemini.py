@@ -6,7 +6,7 @@ __email__ = "robertofontanarosa@gmail.com"
 
 import sys, os, struct, sqlite3
 
-from rhtools.utils import hex2dec
+from rhtools.utils import hex2dec, clean_text
 from rhtools.Table import Table
 
 SNES_HEADER_SIZE = 0x200
@@ -123,6 +123,89 @@ def bof_gemini_inserter(args):
 	cur.close()
 	conn.close()
 
+def bof_mte_optimizer(args):
+	""" MTE OPTIMIZER """
+	dest_file = args.dest_file
+	table1_file = args.table1
+	table2_file = args.table2
+	table3_file = args.table3
+	mte_optimizer_path = args.mte_optimizer_path
+	temp_path = args.temp_path
+	db = args.database_file
+	user_name = args.user
+	table1 = Table(table1_file)
+	# DICTIONARY OPTIMIZATION
+	text_input_filename = os.path.join(temp_path, 'mteOptBoFText-input.txt')
+	text_output_filename = os.path.join(temp_path, 'mteOptBofText-output.txt')
+	#mte_optimizer_tool_filename = os.path.join(mte_optimizer_path, 'mteOpt.py')
+	mte_optimizer_tool_filename = os.path.join(mte_optimizer_path, 'MTEOpt.exe')
+	text_morpher_output_filename = os.path.join(temp_path, 'mteOptBoFText-morpher-output.txt')
+	with open(text_input_filename, 'w') as out:
+		conn = sqlite3.connect(db)
+		conn.text_factory = str
+		cur = conn.cursor()
+		cur.execute("SELECT text_encoded, new_text2, address, pointer_address, size FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s' AND trans.status = 2) AS t2 ON t1.id=t2.id_text" % user_name)
+		for row in cur:
+			new_text = row[1]
+			original_text = row[0]
+			text = new_text if new_text else original_text
+			text = text.replace('{04}', '\n')
+			text = clean_text(text)
+			out.write(text + '\n')
+	#command = 'python %s -s "%s" -d "%s" -m 3 -M 12 -l 255 -o 768' % (mte_optimizer_tool_filename, text_input_filename, text_output_filename)
+	command = '%s 3 10 "%s" "%s" 255' % (mte_optimizer_tool_filename, text_input_filename, text_morpher_output_filename)
+	if sys.platform != 'win32':
+		os.system("wine " + command)
+	else:
+		os.system(command)
+	with open(text_morpher_output_filename, 'rU') as f1:
+		with open(text_output_filename, 'w') as f2:
+			for i, e in enumerate(f1):
+				e = e.replace('\n', '').replace('\r', '')
+				e = e.split('\t')
+				n = hex(i + 768).rstrip('L')
+				b = (n + '').replace('0x', '')
+				b = b.zfill(4)
+				line = "%s=%s" % (b, e[1][1:-1])
+				f2.write(line + '\n')
+	# TABLE OPTIMIZATION
+	with open(table3_file, 'rU') as f:
+		table3content = f.read()
+		with open(text_output_filename, 'rU') as f2:
+			mteOpt = f2.read()
+			with open(table2_file, 'w') as f3:
+				f3.write('\n' + table3content)
+				f3.write('\n' + mteOpt)
+	## DUMP
+	values = []
+	length = 0
+	with open(text_output_filename, 'rb') as f:
+		for line in f:
+			parts = line.partition('=')
+			value2 = parts[2]
+			if value2:
+				value2 = value2.replace('\n', '').replace('\r', '')
+				values.append(value2)
+				length += len(value2)
+	# INSERTER
+	with open(dest_file, 'r+b') as f:
+		f.seek(DICT1_BLOCK_START)
+		for i, value in enumerate(values):
+			t_value = table1.decode(value, dict_resolver=False) + chr(0x03)
+			if f.tell() + len(t_value) > (DICT1_BLOCK_LIMIT + 1):
+				sys.exit('CRITICAL ERROR! MTE INSERTED: %d - TOTAL: %d!' % (i, len(values)))
+			f.write(t_value)
+	# REPOINTER
+	with open(dest_file, 'r+b') as f:
+		f.seek(DICT1_POINTER_BLOCK_START)
+		length = 0
+		for i, value in enumerate(values):
+			p_value = struct.pack('H', DICT1_BLOCK_START + length - DICT1_POINTER_BLOCK_START)
+			f.write(p_value)
+			if f.tell() > (DICT1_POINTER_BLOCK_LIMIT + 1):
+				sys.exit('CRITICAL ERROR! MTE REPOINTER!')
+			length += (len(value) + 1)
+
 import argparse
 parser = argparse.ArgumentParser()
 subparsers = parser.add_subparsers()
@@ -132,5 +215,15 @@ b_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Mo
 b_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
 b_parser.add_argument('-u', '--user', action='store', dest='user', help='')
 b_parser.set_defaults(func=bof_gemini_inserter)
+d_parser = subparsers.add_parser('mte_optimizer', help='Execute MTE Optimizer')
+d_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+d_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+d_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+d_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Base original table without')
+d_parser.add_argument('-mop', '--mte_optimizer_path', action='store', dest='mte_optimizer_path', help='MTE Optimizer path')
+d_parser.add_argument('-tp', '--temp_path', action='store', dest='temp_path', help='Temporary path')
+d_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+d_parser.add_argument('-u', '--user', action='store', dest='user', help='')
+d_parser.set_defaults(func=bof_mte_optimizer)
 args = parser.parse_args()
 args.func(args)
