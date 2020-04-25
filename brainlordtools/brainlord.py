@@ -116,6 +116,12 @@ def get_pointers(f, start, end, step):
         pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
+def get_pointer_value(f, start, step, third_byte_index=2):
+    f.seek(start)
+    pointer = f.read(step)
+    p_value = struct.unpack('i', pointer[:2] + pointer[third_byte_index] + '\x00')[0] - 0xc00000
+    return p_value
+
 def get_translated_texts(filename):
     translated_texts = OrderedDict()
     with open(filename, 'rb') as csv_file:
@@ -131,12 +137,25 @@ def repoint_misc(f, pointers, new_pointers):
     for p_value, p_addresses in pointers.iteritems():
         p_new_value = new_pointers.get(p_value)
         if not p_new_value:
-            print('MISC - Value: ' + int2hex(p_value))
+            print('MISC - Text offset: ' + int2hex(p_value))
         else:
             for p_address in p_addresses:
                 f.seek(p_address)
                 packed = struct.pack('i', p_new_value + 0xc00000)
                 f.write(packed[:-1])
+
+def repoint_misc1(f, pointers, new_pointers):
+    for p_value, p_addresses in pointers.iteritems():
+        p_new_value = new_pointers.get(p_value)
+        if not p_new_value:
+            print('MISC - Text offset: ' + int2hex(p_value))
+        else:
+            for p_address in p_addresses:
+                f.seek(p_address)
+                packed = struct.pack('i', p_new_value + 0xc00000)
+                f.write(packed[:-2])
+                f.seek(5, os.SEEK_CUR)
+                f.write(packed[2])
 
 def brainlord_misc_dumper(args):
     source_file = args.source_file
@@ -159,11 +178,13 @@ def brainlord_misc_inserter(args):
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     with open(source_file, 'rb') as f0:
+        # misc1
         p_a1 = get_pointers(f0, 0x18a0f, 0x18a0f + (40 * 13), 13)
         p_a2 = get_pointers(f0, 0x18c17, 0x18c17 + (64 * 10), 10)
         p_a3 = get_pointers(f0, 0x18e97, 0x18e97 + (41 * 13), 13)
         p_a4 = get_pointers(f0, 0x1909f, 0x1909f + (81 * 10), 10)
         p_a5 = get_pointers(f0, 0x193c9, 0x193d5 + (30 * 12), 12)
+        # misc2
         p_b1 = get_pointers(f0, 0x16f54, 0x16f54 + (16 * 18), 18) #Remeer... Jima
         p_b2 = get_pointers(f0, 0x17210, 0x17210 + (16 * 7), 7) #Ason...
         p_b3 = get_pointers(f0, 0x65b7e, 0x65b7e + (65 * 6), 6) #Arcs...
@@ -188,14 +209,21 @@ def brainlord_misc_inserter(args):
         p_b22 = get_pointers(f0, 0x1ddbc, 0x1ddbc + (3 * 11), 3) #Warp, Escape, Flag, Items, Level, Slow, Time, Set, Task, Sound, Memory
         p_b23 = get_pointers(f0, 0x2c92f, 0x2c92f + (3 * 2), 3) #Yes, No
         p_b24 = get_pointers(f0, 0x2516b, 0x2516b + (3 * 1), 3) #The end
-        """
-        for text_offset in (p_b23):
-            f0.seek(text_offset)
-            text = read_text(f0)
-            decoded_text = table.encode(text, mte_resolver=True, dict_resolver=False)
-            print int2hex(text_offset)
-            print decoded_text
-        """
+        # misc2
+        pointer_offsets = []
+        pointer_offsets.append(0x2316) # Items
+        pointer_offsets.append(0x240e) # Items
+        pointer_offsets.append(0x2a36) # Items
+        pointer_offsets.append(0x2b74d) # Poison
+        pointer_offsets.append(0x2b7ad) # HP
+        pointer_offsets.append(0x2b7d8) # Power
+        pointer_offsets.append(0x2b803) # Guard
+        pointer_offsets.append(0x141219) # Free
+        pointer_offsets.append(0x1412d3) # Free
+        pointers = OrderedDict()
+        for p_offset in pointer_offsets:
+            p_value = get_pointer_value(f0, p_offset, 8, 7)
+            pointers.setdefault(p_value, []).append(p_offset)
     with open(dest_file, 'r+b') as f1:
         """ misc1.csv """
         translation_file = os.path.join(translation_path, 'misc1.csv')
@@ -219,6 +247,8 @@ def brainlord_misc_inserter(args):
         # repointing
         for curr_pointers in (p_b1, p_b2, p_b3, p_b4, p_b5, p_b6, p_b7, p_b8, p_b9, p_b10, p_b11, p_b12, p_b13, p_b14, p_b15, p_b16, p_b17, p_b18, p_b19, p_b20, p_b21, p_b22, p_b23, p_b24):
             repoint_misc(f1, curr_pointers, new_pointers)
+        # repointing
+        repoint_misc1(f1, pointers, new_pointers)
 
 def brainlord_gfx_dumper(args):
     source_file = args.source_file
@@ -332,7 +362,8 @@ def brainlord_text_inserter(args):
     with open(dest_file, 'r+b') as fw:
         fw.seek(NEW_TEXT_BLOCK1_START)
         # db
-        cur.execute("SELECT text, new_text, text_encoded, id, new_text2, address, pointer_address, size FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s' AND trans.status = 2) AS t2 ON t1.id=t2.id_text WHERE t1.block IN (1, 2, 3)" % (user_name))
+        #cur.execute("SELECT text, new_text, text_encoded, id, new_text2, address, pointer_address, size FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s' AND trans.status = 2) AS t2 ON t1.id=t2.id_text WHERE t1.block IN (1, 2, 3, 4)" % (user_name))
+        cur.execute("SELECT text, new_text, text_encoded, id, new_text2, address, size, t2.author, t2.date FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.status = 2) AS t2 ON t1.id=t2.id_text WHERE t1.block IN (1, 2, 3, 4) GROUP BY id HAVING MAX(t2.date)")
         for row in cur:
             address = row[5]
             new_pointers[int(address)] = fw.tell()
@@ -379,7 +410,6 @@ def brainlord_text_inserter(args):
             repoint_text(fw, pointer, new_pointers)
     # sparse pointers
     with open(dest_file, 'r+b') as fw:
-        #repoint_text(fw, 0x19390, new_pointers)
         #
         repoint_text(fw, 0x434c2, new_pointers)
         #
@@ -391,20 +421,24 @@ def brainlord_text_inserter(args):
         repoint_text(fw, 0x51ae1, new_pointers)
         repoint_text(fw, 0x51ae8, new_pointers)
         #
-        """
-        repoint_text(fw, 0x51c31, new_pointers)
-        repoint_text(fw, 0x51c38, new_pointers)
-        repoint_text(fw, 0x51c3f, new_pointers)
-        repoint_text(fw, 0x51c46, new_pointers)
-        repoint_text(fw, 0x51c4d, new_pointers)
-        repoint_text(fw, 0x51c54, new_pointers)
-        repoint_text(fw, 0x51c5b, new_pointers)
-        repoint_text(fw, 0x51c62, new_pointers)
-        """
         fw.seek(0x51c31)
         while (fw.tell() < 0x51c64):
             repoint_text(fw, fw.tell(), new_pointers)
             fw.seek(4, os.SEEK_CUR)
+        #
+        fw.seek(0x18ea1)
+        while (fw.tell() < 0x18f9a):
+            repoint_text(fw, fw.tell(), new_pointers)
+            fw.seek(10, os.SEEK_CUR)
+        #
+        fw.seek(0x19390)
+        while (fw.tell() < 0x193ce):
+            repoint_text(fw, fw.tell(), new_pointers)
+            fw.seek(7, os.SEEK_CUR)
+        fw.seek(0x193d8)
+        while (fw.tell() < 0x19536):
+            repoint_text(fw, fw.tell(), new_pointers)
+            fw.seek(9, os.SEEK_CUR)
         #
         repoint_text(fw, 0x51de3, new_pointers)
         repoint_text(fw, 0x51dea, new_pointers)
