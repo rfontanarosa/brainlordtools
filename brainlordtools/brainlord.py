@@ -28,6 +28,15 @@ TEXT_BLOCK3_END = 0x67100
 TEXT_BLOCK4_START = 0x120000
 TEXT_BLOCK4_END = 0x1202f7
 
+TEXT_BLOCK5_START = 0x6776e
+TEXT_BLOCK5_END = 0x6789f
+
+TEXT_BLOCK6_START = 0x665cb
+TEXT_BLOCK6_END = 0x669c5
+
+TEXT_BLOCK7_START = 0x669f7
+TEXT_BLOCK7_END = 0x66e77
+
 POINTER_BLOCK1_START = 0x50013
 POINTER_BLOCK1_END = 0x50285
 
@@ -215,6 +224,7 @@ def brainlord_misc_inserter(args):
         pointer_offsets.append(0x240e) # Items
         pointer_offsets.append(0x2a36) # Items
         pointer_offsets.append(0x2b74d) # Poison
+        pointer_offsets.append(0x2b782) # Paralysis
         pointer_offsets.append(0x2b7ad) # HP
         pointer_offsets.append(0x2b7d8) # Power
         pointer_offsets.append(0x2b803) # Guard
@@ -339,6 +349,48 @@ def brainlord_text_dumper(args):
             with open(filename, 'w') as out:
                 out.write(text_encoded)
             id += 1
+        f.seek(TEXT_BLOCK5_START)
+        while f.tell() < TEXT_BLOCK5_END:
+            text_address = f.tell()
+            text = read_text(f)
+            text_encoded = table.encode(text, mte_resolver=True, dict_resolver=False, cmd_list=[(0xf6, 1), (0xfb, 5), (0xfc, 5), (0xfd, 2), (0xfe, 2), (0xff, 3)])
+            # dump - db
+            text_binary = sqlite3.Binary(text)
+            text_length = len(text_binary)
+            cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, 5)', (id, buffer(text_binary), text_encoded, text_address, '', text_length))
+            # dump - txt
+            filename = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(3), text_address))
+            with open(filename, 'w') as out:
+                out.write(text_encoded)
+            id += 1
+        f.seek(TEXT_BLOCK6_START)
+        while f.tell() < TEXT_BLOCK6_END:
+            text_address = f.tell()
+            text = read_text(f)
+            text_encoded = table.encode(text, mte_resolver=True, dict_resolver=False, cmd_list=[(0xf6, 1), (0xfb, 5), (0xfc, 5), (0xfd, 2), (0xfe, 2), (0xff, 3)])
+            # dump - db
+            text_binary = sqlite3.Binary(text)
+            text_length = len(text_binary)
+            cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, 6)', (id, buffer(text_binary), text_encoded, text_address, '', text_length))
+            # dump - txt
+            filename = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(3), text_address))
+            with open(filename, 'w') as out:
+                out.write(text_encoded)
+            id += 1
+        f.seek(TEXT_BLOCK7_START)
+        while f.tell() < TEXT_BLOCK7_END:
+            text_address = f.tell()
+            text = read_text(f)
+            text_encoded = table.encode(text, mte_resolver=True, dict_resolver=False, cmd_list=[(0xf6, 1), (0xfb, 5), (0xfc, 5), (0xfd, 2), (0xfe, 2), (0xff, 3)])
+            # dump - db
+            text_binary = sqlite3.Binary(text)
+            text_length = len(text_binary)
+            cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, 7)', (id, buffer(text_binary), text_encoded, text_address, '', text_length))
+            # dump - txt
+            filename = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(3), text_address))
+            with open(filename, 'w') as out:
+                out.write(text_encoded)
+            id += 1
     cur.close()
     conn.commit()
     conn.close()
@@ -362,8 +414,8 @@ def brainlord_text_inserter(args):
     with open(dest_file, 'r+b') as fw:
         fw.seek(NEW_TEXT_BLOCK1_START)
         # db
-        #cur.execute("SELECT text, new_text, text_encoded, id, new_text2, address, pointer_address, size FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s' AND trans.status = 2) AS t2 ON t1.id=t2.id_text WHERE t1.block IN (1, 2, 3, 4)" % (user_name))
-        cur.execute("SELECT text, new_text, text_encoded, id, new_text2, address, size, t2.author, t2.date FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.status = 2) AS t2 ON t1.id=t2.id_text WHERE t1.block IN (1, 2, 3, 4) GROUP BY id HAVING MAX(t2.date)")
+        #cur.execute("SELECT text, new_text, text_encoded, id, new_text2, address, pointer_address, size FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s' AND trans.status = 2) AS t2 ON t1.id=t2.id_text WHERE t1.block IN (1, 2, 3, 4, 5, 6, 7)" % (user_name))
+        cur.execute("SELECT text, new_text, text_encoded, id, new_text2, address, size, t2.author, t2.date FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.status = 2) AS t2 ON t1.id=t2.id_text WHERE t1.block IN (1, 2, 3, 4, 5, 6, 7) GROUP BY id HAVING MAX(t2.date)")
         for row in cur:
             address = row[5]
             new_pointers[int(address)] = fw.tell()
@@ -703,7 +755,7 @@ def item_pointers_finder(fw, start, end):
     fw.seek(start)
     while (fw.tell() < end):
         byte = fw.read(1)
-        if byte == '\xc8':
+        if byte in ('\xc6', '\xc8'):
             fw.seek(-3, os.SEEK_CUR)
             pointers.append(fw.tell())
             fw.seek(3, os.SEEK_CUR)
