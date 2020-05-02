@@ -95,6 +95,7 @@ class Table():
     def encode(self, text, mte_resolver=True, dict_resolver=True, cmd_list=[]):
         decoded = b''
         if (text):
+            cmd_keys = list(map(lambda x: x[0], cmd_list))
             iter = enumerate(text)
             for i, byte in iter:
                 key = byte2int(byte)
@@ -103,7 +104,6 @@ class Table():
                 elif self.isBreakline(key):
                     decoded += '\n'
                 else:
-                    cmd_keys = list(map(lambda x: x[0], cmd_list))
                     if key in cmd_keys:
                         decoded += self.PATTERN_SEPARATED_BYTE % byte.encode('hex_codec')
                         cmd_index = cmd_keys.index(key)
