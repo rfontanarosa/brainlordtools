@@ -278,6 +278,23 @@ def brainlord_gfx_inserter(args):
         insert_gfx(f, FONT1_BLOCK[0], FONT1_BLOCK[1], translation_path, 'gfx_font1.bin')
         insert_gfx(f, FONT2_BLOCK[0], FONT2_BLOCK[1], translation_path, 'gfx_font2.bin')
 
+def brainlord_bank_dumper(f, dump_path, table, id, bank, cur, start=0x0, end=0x0):
+    f.seek(start)
+    while f.tell() < end:
+        text_address = f.tell()
+        text = read_text(f)
+        text_encoded = table.encode(text, mte_resolver=True, dict_resolver=False, cmd_list=[(0xf6, 1), (0xfb, 5), (0xfc, 5), (0xfd, 2), (0xfe, 2), (0xff, 3)])
+        # dump - db
+        text_binary = sqlite3.Binary(text)
+        text_length = len(text_binary)
+        cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, ?)', (id, buffer(text_binary), text_encoded, text_address, '', text_length, bank))
+        # dump - txt
+        filename = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(3), text_address))
+        with open(filename, 'w') as out:
+            out.write(text_encoded)
+        id += 1
+    return id
+
 def brainlord_text_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
@@ -293,104 +310,13 @@ def brainlord_text_dumper(args):
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
         id = 1
-        f.seek(TEXT_BLOCK1_START)
-        while f.tell() < TEXT_BLOCK1_END:
-            text_address = f.tell()
-            text = read_text(f)
-            text_encoded = table.encode(text, mte_resolver=True, dict_resolver=False, cmd_list=[(0xf6, 1), (0xfb, 5), (0xfc, 5), (0xfd, 2), (0xfe, 2), (0xff, 3)])
-            # dump - db
-            text_binary = sqlite3.Binary(text)
-            text_length = len(text_binary)
-            cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, 1)', (id, buffer(text_binary), text_encoded, text_address, '', text_length))
-            # dump - txt
-            filename = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(3), text_address))
-            with open(filename, 'w') as out:
-                out.write(text_encoded)
-            id += 1
-        f.seek(TEXT_BLOCK2_START)
-        while f.tell() < TEXT_BLOCK2_END:
-            text_address = f.tell()
-            text = read_text(f)
-            text_encoded = table.encode(text, mte_resolver=True, dict_resolver=False, cmd_list=[(0xf6, 1), (0xfb, 5), (0xfc, 5), (0xfd, 2), (0xfe, 2), (0xff, 3)])
-            # dump - db
-            text_binary = sqlite3.Binary(text)
-            text_length = len(text_binary)
-            cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, 2)', (id, buffer(text_binary), text_encoded, text_address, '', text_length))
-            # dump - txt
-            filename = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(3), text_address))
-            with open(filename, 'w') as out:
-                out.write(text_encoded)
-            id += 1
-        f.seek(TEXT_BLOCK3_START)
-        while f.tell() < TEXT_BLOCK3_END:
-            text_address = f.tell()
-            text = read_text(f)
-            text_encoded = table.encode(text, mte_resolver=True, dict_resolver=False, cmd_list=[(0xf6, 1), (0xfb, 5), (0xfc, 5), (0xfd, 2), (0xfe, 2), (0xff, 3)])
-            # dump - db
-            text_binary = sqlite3.Binary(text)
-            text_length = len(text_binary)
-            cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, 3)', (id, buffer(text_binary), text_encoded, text_address, '', text_length))
-            # dump - txt
-            filename = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(3), text_address))
-            with open(filename, 'w') as out:
-                out.write(text_encoded)
-            id += 1
-        f.seek(TEXT_BLOCK4_START)
-        while f.tell() < TEXT_BLOCK4_END:
-            text_address = f.tell()
-            text = read_text(f)
-            text_encoded = table.encode(text, mte_resolver=True, dict_resolver=False, cmd_list=[(0xf6, 1), (0xfb, 5), (0xfc, 5), (0xfd, 2), (0xfe, 2), (0xff, 3)])
-            # dump - db
-            text_binary = sqlite3.Binary(text)
-            text_length = len(text_binary)
-            cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, 4)', (id, buffer(text_binary), text_encoded, text_address, '', text_length))
-            # dump - txt
-            filename = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(3), text_address))
-            with open(filename, 'w') as out:
-                out.write(text_encoded)
-            id += 1
-        f.seek(TEXT_BLOCK5_START)
-        while f.tell() < TEXT_BLOCK5_END:
-            text_address = f.tell()
-            text = read_text(f)
-            text_encoded = table.encode(text, mte_resolver=True, dict_resolver=False, cmd_list=[(0xf6, 1), (0xfb, 5), (0xfc, 5), (0xfd, 2), (0xfe, 2), (0xff, 3)])
-            # dump - db
-            text_binary = sqlite3.Binary(text)
-            text_length = len(text_binary)
-            cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, 5)', (id, buffer(text_binary), text_encoded, text_address, '', text_length))
-            # dump - txt
-            filename = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(3), text_address))
-            with open(filename, 'w') as out:
-                out.write(text_encoded)
-            id += 1
-        f.seek(TEXT_BLOCK6_START)
-        while f.tell() < TEXT_BLOCK6_END:
-            text_address = f.tell()
-            text = read_text(f)
-            text_encoded = table.encode(text, mte_resolver=True, dict_resolver=False, cmd_list=[(0xf6, 1), (0xfb, 5), (0xfc, 5), (0xfd, 2), (0xfe, 2), (0xff, 3)])
-            # dump - db
-            text_binary = sqlite3.Binary(text)
-            text_length = len(text_binary)
-            cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, 6)', (id, buffer(text_binary), text_encoded, text_address, '', text_length))
-            # dump - txt
-            filename = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(3), text_address))
-            with open(filename, 'w') as out:
-                out.write(text_encoded)
-            id += 1
-        f.seek(TEXT_BLOCK7_START)
-        while f.tell() < TEXT_BLOCK7_END:
-            text_address = f.tell()
-            text = read_text(f)
-            text_encoded = table.encode(text, mte_resolver=True, dict_resolver=False, cmd_list=[(0xf6, 1), (0xfb, 5), (0xfc, 5), (0xfd, 2), (0xfe, 2), (0xff, 3)])
-            # dump - db
-            text_binary = sqlite3.Binary(text)
-            text_length = len(text_binary)
-            cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, 7)', (id, buffer(text_binary), text_encoded, text_address, '', text_length))
-            # dump - txt
-            filename = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(3), text_address))
-            with open(filename, 'w') as out:
-                out.write(text_encoded)
-            id += 1
+        id = brainlord_bank_dumper(f, dump_path, table, id, 1, cur, TEXT_BLOCK1_START, TEXT_BLOCK1_END)
+        id = brainlord_bank_dumper(f, dump_path, table, id, 2, cur, TEXT_BLOCK2_START, TEXT_BLOCK2_END)
+        id = brainlord_bank_dumper(f, dump_path, table, id, 3, cur, TEXT_BLOCK3_START, TEXT_BLOCK3_END)
+        id = brainlord_bank_dumper(f, dump_path, table, id, 4, cur, TEXT_BLOCK4_START, TEXT_BLOCK4_END)
+        id = brainlord_bank_dumper(f, dump_path, table, id, 5, cur, TEXT_BLOCK5_START, TEXT_BLOCK5_END)
+        id = brainlord_bank_dumper(f, dump_path, table, id, 6, cur, TEXT_BLOCK6_START, TEXT_BLOCK6_END)
+        id = brainlord_bank_dumper(f, dump_path, table, id, 7, cur, TEXT_BLOCK7_START, TEXT_BLOCK7_END)
     cur.close()
     conn.commit()
     conn.close()
@@ -582,6 +508,7 @@ def brainlord_text_inserter(args):
         repoint_text(fw, 0x54a36, new_pointers)
         repoint_text(fw, 0x54a3d, new_pointers)
         repoint_text(fw, 0x54a91, new_pointers)
+        repoint_text(fw, 0x54ab4, new_pointers)
         repoint_text(fw, 0x54af3, new_pointers)
         #
         repoint_text(fw, 0x54b47, new_pointers)
@@ -632,7 +559,7 @@ def brainlord_text_inserter(args):
         repoint_text(fw, 0x553c1, new_pointers)
         repoint_text(fw, 0x553c8, new_pointers)
         repoint_text(fw, 0x553cf, new_pointers)
-        repoint_text(fw, 0x553d5, new_pointers)
+        repoint_text(fw, 0x553d6, new_pointers)
         repoint_text(fw, 0x553dd, new_pointers)
         repoint_text(fw, 0x553e4, new_pointers)
         repoint_text(fw, 0x553eb, new_pointers)
@@ -641,7 +568,6 @@ def brainlord_text_inserter(args):
         repoint_text(fw, 0x55400, new_pointers)
         repoint_text(fw, 0x55407, new_pointers)
         repoint_text(fw, 0x5540e, new_pointers)
-        repoint_text(fw, 0x55407, new_pointers)
         repoint_text(fw, 0x55415, new_pointers)
         repoint_text(fw, 0x5541c, new_pointers)
         repoint_text(fw, 0x55423, new_pointers)
@@ -685,6 +611,8 @@ def brainlord_text_inserter(args):
         repoint_two_bytes_pointers(fw, 0x23a2c, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x23c59, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x23c7a, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x23e7c, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x23fb9, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x2435c, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x244da, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x24518, new_pointers, '\xd7')
