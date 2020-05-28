@@ -92,10 +92,21 @@ def dump_blocks(f, table, dump_path):
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(['text_address', 'text', 'trans'])
         f.seek(0x12030d)
-        while f.tell() < 0x1208ac:
+        while f.tell() < 0x120824:
             text_address = f.tell()
             text = read_text(f)
             text_encoded = table.encode(text, mte_resolver=True, dict_resolver=False)
+            fields = [int2hex(text_address), text_encoded]
+            csv_writer.writerow(fields)
+    filename = os.path.join(dump_path, 'misc3.csv')
+    with open(filename, 'wb+') as csv_file:
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow(['text_address', 'text', 'trans'])
+        f.seek(0x120825)
+        while f.tell() < 0x1208ac:
+            text_address = f.tell()
+            text = read_text(f)
+            text_encoded = table.encode(text, mte_resolver=False, dict_resolver=False)
             fields = [int2hex(text_address), text_encoded]
             csv_writer.writerow(fields)
 
@@ -182,10 +193,12 @@ def brainlord_misc_inserter(args):
     source_file = args.source_file
     dest_file = args.dest_file
     table1_file = args.table1
+    table2_file = args.table2
     translation_path = args.translation_path
     if crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
+    table2 = Table(table2_file)
     with open(source_file, 'rb') as f0:
         # misc1
         p_a1 = get_pointers(f0, 0x18a0f, 0x18a0f + (40 * 13), 13)
@@ -218,8 +231,10 @@ def brainlord_misc_inserter(args):
         p_b22 = get_pointers(f0, 0x1ddbc, 0x1ddbc + (3 * 11), 3) #Warp, Escape, Flag, Items, Level, Slow, Time, Set, Task, Sound, Memory
         p_b23 = get_pointers(f0, 0x2c92f, 0x2c92f + (3 * 2), 3) #Yes, No
         p_b24 = get_pointers(f0, 0x2516b, 0x2516b + (3 * 1), 3) #The end
+        p_b25 = get_pointers(f0, 0x2563e, 0x2563e + 3, 3) #Quit
         # misc2
         pointer_offsets = []
+        pointer_offsets.append(0x16b5) # Magic
         pointer_offsets.append(0x2316) # Items
         pointer_offsets.append(0x240e) # Items
         pointer_offsets.append(0x2a36) # Items
@@ -230,10 +245,13 @@ def brainlord_misc_inserter(args):
         pointer_offsets.append(0x2b803) # Guard
         pointer_offsets.append(0x141219) # Free
         pointer_offsets.append(0x1412d3) # Free
-        pointers = OrderedDict()
+        pointers1 = OrderedDict()
         for p_offset in pointer_offsets:
             p_value = get_pointer_value(f0, p_offset, 8, 7)
-            pointers.setdefault(p_value, []).append(p_offset)
+            pointers1.setdefault(p_value, []).append(p_offset)
+        # misc3
+        pointers2 = get_pointers(f0, 0x6051f, 0x6051f + (3 * 38), 3) #DTE
+
     with open(dest_file, 'r+b') as f1:
         """ misc1.csv """
         translation_file = os.path.join(translation_path, 'misc1.csv')
@@ -255,10 +273,20 @@ def brainlord_misc_inserter(args):
             new_pointers[t_address] = t_new_address
             t_new_address = write_text(f1, t_new_address, t_value, table)
         # repointing
-        for curr_pointers in (p_b1, p_b2, p_b3, p_b4, p_b5, p_b6, p_b7, p_b8, p_b9, p_b10, p_b11, p_b12, p_b13, p_b14, p_b15, p_b16, p_b17, p_b18, p_b19, p_b20, p_b21, p_b22, p_b23, p_b24):
+        for curr_pointers in (p_b1, p_b2, p_b3, p_b4, p_b5, p_b6, p_b7, p_b8, p_b9, p_b10, p_b11, p_b12, p_b13, p_b14, p_b15, p_b16, p_b17, p_b18, p_b19, p_b20, p_b21, p_b22, p_b23, p_b24, p_b25):
             repoint_misc(f1, curr_pointers, new_pointers)
         # repointing
-        repoint_misc1(f1, pointers, new_pointers)
+        repoint_misc1(f1, pointers1, new_pointers)
+        """ misc3.csv """
+        translation_file = os.path.join(translation_path, 'misc3.csv')
+        translated_texts = get_translated_texts(translation_file)
+        new_pointers = OrderedDict()
+        t_new_address = 0x184000
+        for t_address, t_value in translated_texts.iteritems():
+            new_pointers[t_address] = t_new_address
+            t_new_address = write_text(f1, t_new_address, t_value, table2)
+        #repointing
+        repoint_misc(f1, pointers2, new_pointers)
 
 def brainlord_gfx_dumper(args):
     source_file = args.source_file
@@ -324,13 +352,13 @@ def brainlord_text_dumper(args):
 def brainlord_text_inserter(args):
     source_file = args.source_file
     dest_file = args.dest_file
-    table1_file = args.table1
+    table2_file = args.table2
     translation_path = args.translation_path
     db = args.database_file
     user_name = args.user
     if crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
-    table = Table(table1_file)
+    table = Table(table2_file)
     conn = sqlite3.connect(db)
     conn.text_factory = str
     cur = conn.cursor()
@@ -344,11 +372,13 @@ def brainlord_text_inserter(args):
         cur.execute("SELECT text, new_text, text_encoded, id, new_text2, address, size, t2.author, t2.date FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.status = 2) AS t2 ON t1.id=t2.id_text WHERE t1.block IN (1, 2, 3, 4, 5, 6, 7) GROUP BY id HAVING MAX(t2.date)")
         for row in cur:
             address = row[5]
-            new_pointers[int(address)] = fw.tell()
             original_text = row[2]
             new_text = row[4]
             text = new_text if new_text else original_text
             decoded_text = table.decode(text, mte_resolver=True, dict_resolver=False)
+            if fw.tell() < 0x1a0000 and fw.tell() + len(decoded_text) > 0x19ffff:
+                fw.seek(0x1a0000)
+            new_pointers[int(address)] = fw.tell()
             fw.write(decoded_text)
             fw.write(int2byte(0xf7))
         # txt
@@ -365,7 +395,6 @@ def brainlord_text_inserter(args):
                 fw.write(int2byte(0xf7))
         """
         NEW_TEXT_BLOCK1_END = fw.tell()
-
     # pointer block 1
     with open(dest_file, 'r+b') as fw:
         fw.seek(POINTER_BLOCK1_START)
@@ -640,6 +669,14 @@ def brainlord_text_inserter(args):
         repoint_two_bytes_pointers(fw, 0x235ce, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x23b32, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x24442, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x251c2, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x251e8, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x25253, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x252a4, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x25664, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x25a6e, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x25bcd, new_pointers, '\xd7')
+        repoint_two_bytes_pointers(fw, 0x25c07, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x6f06e, new_pointers, '\xd7')
         repoint_two_bytes_pointers(fw, 0x14005d, new_pointers, '\xc6')
         repoint_two_bytes_pointers(fw, 0x140140, new_pointers, '\xc6')
@@ -720,6 +757,7 @@ b_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
 b_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 b_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 b_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+b_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
 b_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
 b_parser.set_defaults(func=brainlord_misc_inserter)
 c_parser = subparsers.add_parser('dump_gfx', help='Execute GFX DUMP')
@@ -739,7 +777,7 @@ e_parser.set_defaults(func=brainlord_text_dumper)
 f_parser = subparsers.add_parser('insert_text', help='Execute TEXT INSERTER')
 f_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 f_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-f_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+f_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
 f_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
 f_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
 f_parser.add_argument('-u', '--user', action='store', dest='user', help='')
