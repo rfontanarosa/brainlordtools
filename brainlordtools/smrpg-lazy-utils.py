@@ -15,15 +15,15 @@ user_path = os.path.join(resources_path, userName)
 db = os.path.join(resources_path, 'db/smrpg.db')
 
 dialoguesPath = os.path.join(dump_path, 'dialogues.txt')
-dialoguesItaPath = os.path.join(translation_path, 'dialogues-ita.txt')
+dialoguesItaPath = os.path.join(translation_path, 'dialogues_ITA.txt')
 dialoguesUserPath = os.path.join(user_path, 'dialogues.txt')
 
 battleDialoguesPath = os.path.join(dump_path, 'battleDialogues.txt')
-battleDialoguesItaPath = os.path.join(translation_path, 'battleDialogues-ita.txt')
+battleDialoguesItaPath = os.path.join(translation_path, 'battleDialogues_ITA.txt')
 battleDialoguesUserPath = os.path.join(user_path, 'battleDialogues.txt')
 
 importAll = False
-exportTranslationByUser = False
+exportTranslationByUser = True
 importTranslationByUser = True
 
 if importAll:
@@ -60,21 +60,21 @@ if exportTranslationByUser:
   with open(dialoguesItaPath, 'ab') as f:
     cur.execute("SELECT text, new_text, text_encoded, id, id2 FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s' AND trans.status = 2) AS t2 ON t1.id=t2.id_text WHERE t1.block = 1 ORDER BY t1.id" % userName)
     for row in cur:
-      id = row[3]
+      id2 = row[4]
       original_text = row[2]
-      new_text = row[2]
+      new_text = row[1]
       text = new_text if new_text else original_text
-      f.write('{' + str(id).zfill(4) + '}' + '\t' + text)
+      f.write('{' + id2 + '}' + '\t' + text)
       f.write('\n')
   with open(battleDialoguesItaPath, 'ab') as f:
     cur.execute("SELECT text, new_text, text_encoded, id, id2 FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s' AND trans.status = 2) AS t2 ON t1.id=t2.id_text WHERE t1.block = 2 ORDER BY t1.id" % userName)
     for row in cur:
-      id = row[3]
+      id2 = row[4]
       original_text = row[2]
-      new_text = row[2]
+      new_text = row[1]
       text = new_text if new_text else original_text
-      f.write('{' + str(id).zfill(4) + '}' + '\t' + text)
-      f.write('\r\n')
+      f.write('{' + id2 + '}' + '\t' + text)
+      f.write('\n')
   cur.close()
   conn.commit()
   conn.close()
