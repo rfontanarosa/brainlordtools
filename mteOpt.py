@@ -27,13 +27,18 @@ SMRPG_REGEX_LIST = [
 	re.compile(r'\[.+?\]')
 ]
 
-def cleanFile(filename, filename1, regexList):
-	""" crea un file pulito """
+def cleanFile(filename, filename1, regexList=[], allowDuplicates=True):
+	""" applica a ogni linea del file delle espressioni regolari, rimuove opzionalmente le linee duplicate """
 	with io.open(filename, mode='r', encoding="utf-8") as f, io.open(filename1, mode='w', encoding="utf-8") as f1:
+		linesSeen = set()
 		for line in f.readlines():
 			for regex in regexList:
 				line = regex.sub('', line)
-			f1.write(line)
+			if allowDuplicates:
+				f1.write(line)
+			elif line not in linesSeen:
+				f1.write(line)
+				linesSeen.add(line)
 
 def extractWordsFromFile(filename):
 	""" estrae tutte le parole (sequenze separate da uno spazio) da un file """
@@ -99,7 +104,7 @@ def sortDictByValue(dictionary, reverse=True):
 	""" reversa il dizionario ordinandolo per il peso """
 	return sorted(dictionary.iteritems(), key=lambda(k,v):(v,k), reverse=reverse)
 
-cleanFile(filename, filename1, SMRPG_REGEX_LIST)
+cleanFile(filename, filename1, regexList=SMRPG_REGEX_LIST, allowDuplicates=False)
 words = extractWordsFromFile(filename1)
 ##words = extractLinesFromFile(filename1)
 #print("---------")
