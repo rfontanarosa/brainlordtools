@@ -22,9 +22,10 @@ filename2 = args.dest_file
 offset = args.offset
 
 SMRPG_REGEX_LIST = [
-	re.compile(r'^.{7}'),
-	re.compile(r' {5,}'),
-	re.compile(r'\[.+?\]')
+	(re.compile(r'^.{7}'), ''),
+	(re.compile(r' {5,}'), ''),
+	(re.compile(r'[.]{3,}'), ''),
+	(re.compile(r'\[.+?\]'), '\n')
 ]
 
 def cleanFile(filename, filename1, regexList=[], allowDuplicates=True):
@@ -33,7 +34,7 @@ def cleanFile(filename, filename1, regexList=[], allowDuplicates=True):
 		linesSeen = set()
 		for line in f.readlines():
 			for regex in regexList:
-				line = regex.sub('', line)
+				line = regex[0].sub(regex[1], line)
 			if allowDuplicates:
 				f1.write(line)
 			elif line not in linesSeen:
@@ -66,7 +67,7 @@ def wordRegexFilter(words, regexList):
 	""" ripulisce le parole da caretteri e byte inutili """
 	if words and regexList:
 		for regex in regexList:
-			words = list(map(lambda x: regex.sub('', x), words))
+			words = list(map(lambda x: regex[0].sub(regex[1], x), words))
 		words = list(filter(lambda x: x and x != '', words))
 	return words if words else []
 
