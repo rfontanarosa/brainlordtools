@@ -1,4 +1,6 @@
-import sys, os, re
+# -*- coding: utf-8 -*-
+
+import sys, os, re, io
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -20,7 +22,7 @@ offset = args.offset
 def extractWordsFromFile(filename):
 	""" estrae tutte le parole (sequenze separate da uno spazio) da un file """
 	words = []
-	with open(filename, 'rb') as f:
+	with io.open(filename, mode='r', encoding="utf-8") as f:
 		lines = f.readlines()
 		for line in lines:
 			wordsToAdd = line.replace('\n', '').replace('\r', '').replace("'", " ").split(" ")
@@ -35,7 +37,7 @@ def extractWordsFromFile(filename):
 def extractLinesFromFile(filename):
 	""" estrae tutte le linee da un file """
 	lines = []
-	with open(filename, 'rb') as f:
+	with io.open(filename, mode='r', encoding="utf-8") as f:
 		lines = f.readlines()
 	return lines
 
@@ -103,7 +105,7 @@ weightDictionary = calculateWeight(dictionary)
 weightDictionaryByValue = sortDictByValue(weightDictionary)
 #print weightDictionaryByValue
 #print weightDictionaryByValue[:LIMIT]
-with open(filename2, 'w') as out:
+with io.open(filename2, mode='w', encoding="utf-8") as out:
 	for i, e in enumerate(weightDictionaryByValue[:LIMIT]):
 		n = hex(i + offset).rstrip('L')
 		b = (n + '').replace('0x', '')
