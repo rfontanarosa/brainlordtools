@@ -8,6 +8,7 @@ parser.add_argument('-m', '--min', action='store', dest='min', type=int, require
 parser.add_argument('-M', '--max',  action='store', dest='max', type=int, required=True, help='')
 parser.add_argument('-l', '--limit',  action='store', dest='limit', type=int, required=True, help='')
 parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+parser.add_argument('-c', '--clean', action='store', dest='clean_file', required=True, help='Clean filename')
 parser.add_argument('-d', '--dest',  action='store', dest='dest_file', required=True, help='Destination filename')
 parser.add_argument('-o', '--offset',  action='store', dest='offset', type=int, required=True, help='Starting offset')
 args = parser.parse_args()
@@ -16,8 +17,23 @@ MIN = args.min
 MAX = args.max
 LIMIT = args.limit
 filename = args.source_file
+filename1 = args.clean_file
 filename2 = args.dest_file
 offset = args.offset
+
+SMRPG_REGEX_LIST = [
+	re.compile(r'^.{7}'),
+	re.compile(r' {5,}'),
+	re.compile(r'\[.+?\]')
+]
+
+def cleanFile(filename, filename1, regexList):
+	""" crea un file pulito """
+	with io.open(filename, mode='r', encoding="utf-8") as f, io.open(filename1, mode='w', encoding="utf-8") as f1:
+		for line in f.readlines():
+			for regex in regexList:
+				line = regex.sub('', line)
+			f1.write(line)
 
 def extractWordsFromFile(filename):
 	""" estrae tutte le parole (sequenze separate da uno spazio) da un file """
@@ -41,15 +57,13 @@ def extractLinesFromFile(filename):
 		lines = f.readlines()
 	return lines
 
-def characterFilter(words):
+def wordRegexFilter(words, regexList):
 	""" ripulisce le parole da caretteri e byte inutili """
-	filteredWords = []
-	if words:
-		#regex = re.compile(r'[,;.:!?()\[\]+]+')
-		regex = re.compile(r'[()\[\]+]+')
-		filteredWords = list(map(lambda x: regex.sub('', x), words))
-		filteredWords = list(filter(lambda x: x and x != '', filteredWords))
-	return filteredWords
+	if words and regexList:
+		for regex in regexList:
+			words = list(map(lambda x: regex.sub('', x), words))
+		words = list(filter(lambda x: x and x != '', words))
+	return words if words else []
 
 def syllableCounter(list, min=2, max=3):
 	"""  """
@@ -78,30 +92,27 @@ def wordCounter(words, min=2, max=3):
 	return dictionary
 
 def calculateWeight(dictionary):
-	""" """
-	weightDictionary = {}
-	for key in dictionary:
-		weightDictionary[key] = dictionary[key] * (len(key) - 2)
-	return weightDictionary
+	""" crea un dizionario pesato sulla lunghezza delle parole """
+	return {k: v * (len(k) - 2) for k, v in dictionary.items()}
 
 def sortDictByValue(dictionary, reverse=True):
-	""" """
+	""" reversa il dizionario ordinandolo per il peso """
 	return sorted(dictionary.iteritems(), key=lambda(k,v):(v,k), reverse=reverse)
 
-words = extractWordsFromFile(filename)
-##words = extractLinesFromFile(filename)
-#print "---------"
-#print words
-filteredList = characterFilter(words)
-#print "---------"
-#print filteredList
-dictionary = wordCounter(filteredList, min=MIN, max=MAX)
-##dictionary = syllableCounter(filteredList, min=MIN, max=MAX)
-#print "---------"
-#print dictionary
+cleanFile(filename, filename1, SMRPG_REGEX_LIST)
+words = extractWordsFromFile(filename1)
+##words = extractLinesFromFile(filename1)
+#print("---------")
+filteredWords = wordRegexFilter(words, None)
+#print("---------")
+#print(filteredWords)
+dictionary = wordCounter(filteredWords, min=MIN, max=MAX)
+##dictionary = syllableCounter(filteredWords, min=MIN, max=MAX)
+#print("---------")
+#print(dictionary)
 weightDictionary = calculateWeight(dictionary)
-#print "---------"
-#print weightDictionary
+#print("---------")
+#print(weightDictionary)
 weightDictionaryByValue = sortDictByValue(weightDictionary)
 #print weightDictionaryByValue
 #print weightDictionaryByValue[:LIMIT]
