@@ -17,7 +17,7 @@ parent_parser.add_argument('-g', '--game', choices=['smrpg', 'bof', 'ys4'], help
 parser0 = subparsers.add_parser('print' , parents=[parent_parser], add_help=False)
 parser1 = subparsers.add_parser('table', parents=[parent_parser], add_help=False)
 parser1.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-parser1.add_argument('-o', '--offset', action='store', dest='offset', type=int, default=0, help='Starting offset')
+parser1.add_argument('-o', '--offset', action='store', dest='offset', type=int, help='Starting offset')
 args = parser.parse_args()
 dict_args = vars(args)
 
@@ -87,10 +87,12 @@ def sort_dict_by_value(dictionary, reverse=True):
 def export_table(filename, dictionary, offset):
 	with io.open(filename, mode='w', encoding="utf-8") as out:
 		for i, v in enumerate(dictionary):
-			n = hex(i + offset).rstrip('L')
-			b = (n + '').replace('0x', '')
-			b = b.zfill(4)
-			line = "%s=%s" % (b, v)
+			line = v
+			if offset is not None:
+				n = hex(i + offset).rstrip('L')
+				b = (n + '').replace('0x', '')
+				b = b.zfill(4)
+				line = "%s=%s" % (b, v)
 			out.write(line + '\n')
 
 regex_list = None
