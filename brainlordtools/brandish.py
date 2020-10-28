@@ -4,10 +4,11 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, struct, sqlite3
+import sys, os, struct, sqlite3, shutil
 from collections import OrderedDict
 
 from rhtools.utils import crc32, int2hex
+from rhtools.dump import dump_gfx, insert_gfx
 from rhtools.Table import Table
 
 SNES_HEADER_SIZE = 0x200
@@ -114,6 +115,18 @@ def brandish_inserter(args):
 	cur.close()
 	conn.close()
 
+def brandish_gfx_dumper(args):
+	source_file = args.source_file
+	dump_path = args.dump_path
+	if crc32(source_file) != CRC32:
+		sys.exit('SOURCE ROM CHECKSUM FAILED!')
+	shutil.rmtree(dump_path, ignore_errors=True)
+	os.mkdir(dump_path)
+	with open(source_file, 'rb') as f:
+		dump_gfx(f, 0x20000, 0x21400, dump_path, 'gfx_font.bin')
+		dump_gfx(f, 0x40000, 0x4c000, dump_path, 'gfx_zones_h.bin')
+		dump_gfx(f, 0x13400, 0x13800, dump_path, 'gfx_yes-or-no.bin')
+
 import argparse
 parser = argparse.ArgumentParser()
 subparsers = parser.add_subparsers()
@@ -130,5 +143,9 @@ b_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Mo
 b_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
 b_parser.add_argument('-u', '--user', action='store', dest='user', help='')
 b_parser.set_defaults(func=brandish_inserter)
+c_parser = subparsers.add_parser('dump_gfx', help='Execute GFX DUMP')
+c_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+c_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+c_parser.set_defaults(func=brandish_gfx_dumper)
 args = parser.parse_args()
 args.func(args)

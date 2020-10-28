@@ -10,6 +10,7 @@ import sys, os, struct, shutil, csv
 from collections import OrderedDict
 
 from rhtools.utils import crc32, byte2int, int2byte, int2hex, string_address2int_address
+from rhtools.dump import dump_gfx, insert_gfx
 from rhtools.Table import Table
 
 CRC32 = 'A5C0045E'
@@ -81,22 +82,6 @@ def dump_blocks(f, table, dump_path):
                 text_encoded = table.encode(text)
                 fields = [int2hex(text_address), text_encoded]
                 csv_writer.writerow(fields)
-
-def dump_gfx(f, start, end, dump_path, filename):
-    f.seek(start)
-    block_size = end - start
-    block = f.read(block_size)
-    with open(os.path.join(dump_path, filename), 'wb') as gfx_file:
-        gfx_file.write(block)
-
-def insert_gfx(f, start, end, translation_path, filename):
-    with open(os.path.join(translation_path, filename), 'rb') as f1:
-        block = f1.read()
-        if len(block) == end - start:
-            f.seek(start)
-            f.write(block)
-        else:
-            raise Exception('GFX file - Different size')
 
 def get_currency_names_pointers(f, block_limits=(0xf8704, 0xf870f)):
     pointers = OrderedDict()
