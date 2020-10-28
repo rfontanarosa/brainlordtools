@@ -123,9 +123,17 @@ def brandish_gfx_dumper(args):
 	shutil.rmtree(dump_path, ignore_errors=True)
 	os.mkdir(dump_path)
 	with open(source_file, 'rb') as f:
+		dump_gfx(f, 0x13400, 0x13800, dump_path, 'gfx_yes-or-no.bin')
 		dump_gfx(f, 0x20000, 0x21400, dump_path, 'gfx_font.bin')
 		dump_gfx(f, 0x40000, 0x4c000, dump_path, 'gfx_zones_h.bin')
-		dump_gfx(f, 0x13400, 0x13800, dump_path, 'gfx_yes-or-no.bin')
+
+def brandish_gfx_inserter(args):
+	dest_file = args.dest_file
+	translation_path = args.translation_path
+	with open(dest_file, 'r+b') as f:
+		insert_gfx(f, 0x13400, 0x13800, translation_path, 'gfx_yes-or-no.bin')
+		insert_gfx(f, 0x20000, 0x21400, translation_path, 'gfx_font.bin')
+		insert_gfx(f, 0x40000, 0x4c000, translation_path, 'gfx_zones_h.bin')
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -147,5 +155,9 @@ c_parser = subparsers.add_parser('dump_gfx', help='Execute GFX DUMP')
 c_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 c_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
 c_parser.set_defaults(func=brandish_gfx_dumper)
+d_parser = subparsers.add_parser('insert_gfx', help='Execute GFX INSERTER')
+d_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+d_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+d_parser.set_defaults(func=brandish_gfx_inserter)
 args = parser.parse_args()
 args.func(args)

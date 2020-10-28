@@ -8,8 +8,8 @@ def dump_gfx(f, start, end, dump_path, filename):
 		gfx_file.write(block)
 
 def insert_gfx(f, start, end, translation_path, filename):
-	with open(os.path.join(translation_path, filename), 'rb') as f:
-		block = f.read()
+	with open(os.path.join(translation_path, filename), 'rb') as f1:
+		block = f1.read()
 		if len(block) == end - start:
 			f.seek(start)
 			f.write(block)
