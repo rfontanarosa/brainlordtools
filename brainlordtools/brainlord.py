@@ -10,6 +10,7 @@ import sys, os, struct, sqlite3, shutil, csv
 from collections import OrderedDict
 
 from rhtools.utils import crc32, byte2int, int2byte, int2hex
+from rhtools.dump import read_text, write_text, dump_gfx, insert_gfx
 from rhtools.Table import Table
 
 CRC32 = 'AC443D87'
@@ -49,28 +50,6 @@ TEXT_BLOCK['misc'] = (0x67104, 0x67768)
 FONT1_BLOCK = (0x74000, 0x78000)
 FONT2_BLOCK = (0x80000, 0x82000)
 
-def read_text(f, end_byte=0xf7):
-    text = b''
-    byte = b'1'
-    while not byte2int(byte) == end_byte:
-        byte = f.read(1)
-        if byte2int(byte) != end_byte:
-            text += byte
-    return text
-
-def decode_text(text):
-    return text
-
-def write_text(f, offset, text, table, end_byte=0xf7, limit=None):
-    f.seek(offset)
-    text = decode_text(text)
-    decoded_text = table.decode(text, mte_resolver=False, dict_resolver=False)
-    f.write(decoded_text)
-    f.write(int2byte(end_byte))
-    if limit and f.tell() > limit:
-        raise Exception()
-    return f.tell()
-
 def write_byte(fw, offset, byte):
     fw.seek(offset)
     fw.write(byte)
@@ -83,7 +62,7 @@ def dump_blocks(f, table, dump_path):
         f.seek(0x67104)
         while f.tell() < 0x67768:
             text_address = f.tell()
-            text = read_text(f)
+            text = read_text(f, end_byte=b'\xf7')
             text_encoded = table.encode(text, mte_resolver=True, dict_resolver=False)
             fields = [int2hex(text_address), text_encoded]
             csv_writer.writerow(fields)
@@ -94,7 +73,7 @@ def dump_blocks(f, table, dump_path):
         f.seek(0x12030d)
         while f.tell() < 0x120824:
             text_address = f.tell()
-            text = read_text(f)
+            text = read_text(f, end_byte=b'\xf7')
             text_encoded = table.encode(text, mte_resolver=True, dict_resolver=False)
             fields = [int2hex(text_address), text_encoded]
             csv_writer.writerow(fields)
@@ -105,26 +84,10 @@ def dump_blocks(f, table, dump_path):
         f.seek(0x120825)
         while f.tell() < 0x1208ac:
             text_address = f.tell()
-            text = read_text(f)
+            text = read_text(f, end_byte=b'\xf7')
             text_encoded = table.encode(text, mte_resolver=False, dict_resolver=False)
             fields = [int2hex(text_address), text_encoded]
             csv_writer.writerow(fields)
-
-def dump_gfx(f, start, end, dump_path, filename):
-    f.seek(start)
-    block_size = end - start
-    block = f.read(block_size)
-    with open(os.path.join(dump_path, filename), 'wb') as gfx_file:
-        gfx_file.write(block)
-
-def insert_gfx(f, start, end, translation_path, filename):
-    with open(os.path.join(translation_path, filename), 'rb') as f1:
-        block = f1.read()
-        if len(block) == end - start:
-            f.seek(start)
-            f.write(block)
-        else:
-            raise Exception('GFX file - Different size')
 
 def get_pointers(f, start, end, step):
     pointers = OrderedDict()
@@ -260,7 +223,8 @@ def brainlord_misc_inserter(args):
         t_new_address = 0x180000
         for t_address, t_value in translated_texts.iteritems():
             new_pointers[t_address] = t_new_address
-            t_new_address = write_text(f1, t_new_address, t_value, table)
+            text = table.decode(t_value, mte_resolver=False, dict_resolver=False)
+            t_new_address = write_text(f1, t_new_address, text, end_byte=b'\xf7')
         # repointing
         for curr_pointers in (p_a1, p_a2, p_a3, p_a4, p_a5):
             repoint_misc(f1, curr_pointers, new_pointers)
@@ -271,7 +235,8 @@ def brainlord_misc_inserter(args):
         t_new_address = 0x182000
         for t_address, t_value in translated_texts.iteritems():
             new_pointers[t_address] = t_new_address
-            t_new_address = write_text(f1, t_new_address, t_value, table)
+            text = table.decode(t_value, mte_resolver=False, dict_resolver=False)
+            t_new_address = write_text(f1, t_new_address, text, end_byte=b'\xf7')
         # repointing
         for curr_pointers in (p_b1, p_b2, p_b3, p_b4, p_b5, p_b6, p_b7, p_b8, p_b9, p_b10, p_b11, p_b12, p_b13, p_b14, p_b15, p_b16, p_b17, p_b18, p_b19, p_b20, p_b21, p_b22, p_b23, p_b24, p_b25):
             repoint_misc(f1, curr_pointers, new_pointers)
@@ -284,7 +249,8 @@ def brainlord_misc_inserter(args):
         t_new_address = 0x184000
         for t_address, t_value in translated_texts.iteritems():
             new_pointers[t_address] = t_new_address
-            t_new_address = write_text(f1, t_new_address, t_value, table2)
+            text = table2.decode(t_value, mte_resolver=False, dict_resolver=False)
+            t_new_address = write_text(f1, t_new_address, text, end_byte=b'\xf7')
         #repointing
         repoint_misc(f1, pointers2, new_pointers)
 
@@ -310,7 +276,7 @@ def brainlord_bank_dumper(f, dump_path, table, id, bank, cur, start=0x0, end=0x0
     f.seek(start)
     while f.tell() < end:
         text_address = f.tell()
-        text = read_text(f)
+        text = read_text(f, end_byte=b'\xf7')
         text_encoded = table.encode(text, mte_resolver=True, dict_resolver=False, cmd_list=[(0xf6, 1), (0xfb, 5), (0xfc, 5), (0xfd, 2), (0xfe, 2), (0xff, 3)])
         # dump - db
         text_binary = sqlite3.Binary(text)
@@ -369,7 +335,7 @@ def brainlord_text_inserter(args):
         fw.seek(NEW_TEXT_BLOCK1_START)
         # db
         #cur.execute("SELECT text, new_text, text_encoded, id, new_text2, address, pointer_address, size FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s' AND trans.status = 2) AS t2 ON t1.id=t2.id_text WHERE t1.block IN (1, 2, 3, 4, 5, 6, 7)" % (user_name))
-        cur.execute("SELECT text, new_text, text_encoded, id, new_text2, address, size, t2.author, t2.date FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.status = 2) AS t2 ON t1.id=t2.id_text WHERE t1.block IN (1, 2, 3, 4, 5, 6, 7) GROUP BY id HAVING MAX(t2.date)")
+        cur.execute("SELECT * FROM (SELECT text, new_text, text_encoded, id, new_text2, address, size, t2.author, COALESCE(t2.date, 1) AS date FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE status = 2) AS t2 ON t1.id=t2.id_text WHERE t1.block IN (1, 2, 3, 4, 5, 6, 7)) WHERE 1=1 GROUP BY id HAVING MAX(date)")
         for row in cur:
             address = row[5]
             original_text = row[2]
@@ -389,7 +355,6 @@ def brainlord_text_inserter(args):
             new_pointers[int(address)] = fw.tell()
             with open(os.path.join(translation_path, filename), 'rb') as fr:
                 text = fr.read()
-                text = decode_text(text)
                 decoded_text = table.decode(text, mte_resolver=True, dict_resolver=False)
                 fw.write(decoded_text)
                 fw.write(int2byte(0xf7))
