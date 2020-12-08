@@ -221,7 +221,7 @@ def brainlord_misc_inserter(args):
         translated_texts = get_translated_texts(translation_file)
         new_pointers = OrderedDict()
         t_new_address = 0x180000
-        for t_address, t_value in translated_texts.iteritems():
+        for i, (t_address, t_value) in enumerate(translated_texts.items()):
             new_pointers[t_address] = t_new_address
             text = table.decode(t_value, mte_resolver=False, dict_resolver=False)
             t_new_address = write_text(f1, t_new_address, text, end_byte=b'\xf7')
@@ -233,7 +233,7 @@ def brainlord_misc_inserter(args):
         translated_texts = get_translated_texts(translation_file)
         new_pointers = OrderedDict()
         t_new_address = 0x182000
-        for t_address, t_value in translated_texts.iteritems():
+        for i, (t_address, t_value) in enumerate(translated_texts.items()):
             new_pointers[t_address] = t_new_address
             text = table.decode(t_value, mte_resolver=False, dict_resolver=False)
             t_new_address = write_text(f1, t_new_address, text, end_byte=b'\xf7')
@@ -247,7 +247,7 @@ def brainlord_misc_inserter(args):
         translated_texts = get_translated_texts(translation_file)
         new_pointers = OrderedDict()
         t_new_address = 0x184000
-        for t_address, t_value in translated_texts.iteritems():
+        for i, (t_address, t_value) in enumerate(translated_texts.items()):
             new_pointers[t_address] = t_new_address
             text = table2.decode(t_value, mte_resolver=False, dict_resolver=False)
             t_new_address = write_text(f1, t_new_address, text, end_byte=b'\xf7')
@@ -283,8 +283,9 @@ def brainlord_bank_dumper(f, dump_path, table, id, bank, cur, start=0x0, end=0x0
         text_length = len(text_binary)
         cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, ?)', (id, buffer(text_binary), text_encoded, text_address, '', text_length, bank))
         # dump - txt
-        filename = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(3), text_address))
-        with open(filename, 'w') as out:
+        filename = os.path.join(dump_path, 'dump_eng.txt')
+        # filename = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(3), text_address))
+        with open(filename, 'a+b') as out:
             out.write(text_encoded)
         id += 1
     return id
@@ -300,8 +301,10 @@ def brainlord_text_dumper(args):
     conn = sqlite3.connect(db)
     conn.text_factory = str
     cur = conn.cursor()
-    shutil.rmtree(dump_path, ignore_errors=True)
-    os.mkdir(dump_path)
+    dump_filename = os.path.join(dump_path, 'dump_eng.txt')
+    if os.path.exists(dump_filename):
+        os.remove(dump_filename)
+    #os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
         id = 1
         id = brainlord_bank_dumper(f, dump_path, table, id, 1, cur, TEXT_BLOCK1_START, TEXT_BLOCK1_END)

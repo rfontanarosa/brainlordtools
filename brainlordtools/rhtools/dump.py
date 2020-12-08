@@ -1,14 +1,20 @@
-import os
+import os, sys
 
-def read_text(f, length=None, end_byte=None):
+def read_text(f, offset, length=None, end_byte=None, cmd_list=None):
     text = b''
+    f.seek(offset)
     if length:
         text = f.read(length)
     elif end_byte:
-        byte = b'1'
-        while not byte == end_byte:
+        while True:
             byte = f.read(1)
-            if byte != end_byte:
+            if byte == end_byte:
+                break
+            elif cmd_list and byte in cmd_list.keys():
+                text += byte
+                bytes_to_read = cmd_list.get(byte)
+                text += f.read(bytes_to_read)
+            else:
                 text += byte
     return text
 

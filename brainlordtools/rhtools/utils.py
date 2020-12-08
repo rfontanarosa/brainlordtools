@@ -84,11 +84,6 @@ def crc32(file):
 		prev = zlib.crc32(eachLine, prev)
 	return '%X' % (prev & 0xFFFFFFFF)
 
-def hasHeader(file):
-	import os
-	size = os.path.getsize(file)
-	return size == 512
-
 import unittest
 
 class TestUtils(unittest.TestCase):

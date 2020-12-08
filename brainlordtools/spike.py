@@ -72,7 +72,6 @@ def spike_dumper(args):
 	with open(source_file, 'rb') as f:
 		pointers = OrderedDict()
 		for pointer_block in POINTER_BLOCKS:
-			print pointer_block[1] - pointer_block[0]
 			f.seek(pointer_block[0])
 			while f.tell() < pointer_block[1]:
 				p_offset = f.tell()
@@ -125,7 +124,6 @@ def spike_inserter(args):
 		for row in cur:
 			# INSERTER
 			id = row[3]
-			print id
 			original_text = row[2]
 			new_text = row[4]
 			if (new_text):
