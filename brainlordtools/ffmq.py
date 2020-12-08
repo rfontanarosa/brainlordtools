@@ -3,7 +3,7 @@ from collections import OrderedDict
 
 from rhtools.utils import crc32, int2hex
 from rhtools.dump import read_text, write_text
-from rhtools.Table import Table
+from rhtools3.Table import Table
 
 CRC32 = '2C52C792'
 
@@ -30,50 +30,50 @@ def ffmq_misc_dumper(args):
     with open(source_file, 'rb') as f:
         # Locations
         filename = os.path.join(dump_path, 'locations.csv')
-        with open(filename, 'wb+') as csv_file:
+        with open(filename, 'w+') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             f.seek(0x63ED0)
             while f.tell() < 0x64120:
                 text_address = f.tell()
-                text = read_text(f, length=16)
-                text_encoded = table.encode(text, mte_resolver=False, dict_resolver=False)
+                text = read_text(f, text_address, length=16)
+                text_encoded = table.decode(text, mte_resolver=False, dict_resolver=False)
                 fields = [int2hex(text_address), text_encoded]
                 csv_writer.writerow(fields)
         # Items
         filename = os.path.join(dump_path, 'items.csv')
-        with open(filename, 'wb+') as csv_file:
+        with open(filename, 'w+') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             f.seek(0x64120)
             while f.tell() < 0x64420:
                 text_address = f.tell()
-                text = read_text(f, length=12)
-                text_encoded = table.encode(text, mte_resolver=False, dict_resolver=False)
+                text = read_text(f, text_address, length=12)
+                text_encoded = table.decode(text, mte_resolver=False, dict_resolver=False)
                 fields = [int2hex(text_address), text_encoded]
                 csv_writer.writerow(fields)
         # Enemy Attacks
         filename = os.path.join(dump_path, 'enemy_attacks.csv')
-        with open(filename, 'wb+') as csv_file:
+        with open(filename, 'w+') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             f.seek(0x64420)
             while f.tell() < 0x64BA0:
                 text_address = f.tell()
-                text = read_text(f, length=12)
-                text_encoded = table.encode(text, mte_resolver=False, dict_resolver=False)
+                text = read_text(f, text_address, length=12)
+                text_encoded = table.decode(text, mte_resolver=False, dict_resolver=False)
                 fields = [int2hex(text_address), text_encoded]
                 csv_writer.writerow(fields)
         # Enemy Names
         filename = os.path.join(dump_path, 'enemy_names.csv')
-        with open(filename, 'wb+') as csv_file:
+        with open(filename, 'w+') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             f.seek(0x64BA0)
             while f.tell() < 0x650C0:
                 text_address = f.tell()
-                text = read_text(f, length=16)
-                text_encoded = table.encode(text, mte_resolver=False, dict_resolver=False)
+                text = read_text(f, text_address, length=16)
+                text_encoded = table.decode(text, mte_resolver=False, dict_resolver=False)
                 fields = [int2hex(text_address), text_encoded]
                 csv_writer.writerow(fields)
 
@@ -92,25 +92,25 @@ def ffmq_misc_inserter(args):
         translation_file = os.path.join(translation_path, 'locations.csv')
         translated_texts = get_csv_translated_texts(translation_file)
         for i, (t_address, t_value) in enumerate(translated_texts.items()):
-            text = table.decode(t_value, mte_resolver=False, dict_resolver=False)
+            text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
             write_text(f, t_address, text, length=16)
         # Items
         translation_file = os.path.join(translation_path, 'items.csv')
         translated_texts = get_csv_translated_texts(translation_file)
         for i, (t_address, t_value) in enumerate(translated_texts.items()):
-            text = table.decode(t_value, mte_resolver=False, dict_resolver=False)
+            text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
             write_text(f, t_address, text, length=12)
         # Enemy Attacks
         translation_file = os.path.join(translation_path, 'enemy_attacks.csv')
         translated_texts = get_csv_translated_texts(translation_file)
         for i, (t_address, t_value) in enumerate(translated_texts.items()):
-            text = table.decode(t_value, mte_resolver=False, dict_resolver=False)
+            text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
             write_text(f, t_address, text, length=12)
         # Enemy Names
         translation_file = os.path.join(translation_path, 'enemy_names.csv')
         translated_texts = get_csv_translated_texts(translation_file)
         for i, (t_address, t_value) in enumerate(translated_texts.items()):
-            text = table.decode(t_value, mte_resolver=False, dict_resolver=False)
+            text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
             write_text(f, t_address, text, length=16)
 
 import argparse
