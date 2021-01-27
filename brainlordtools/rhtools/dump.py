@@ -29,6 +29,10 @@ def write_text(f, offset, text, length=None, end_byte=None, limit=None):
         raise Exception()
     return f.tell()
 
+def write_byte(f, offset, byte):
+    f.seek(offset)
+    f.write(byte)
+
 def dump_gfx(f, start, end, path, filename):
     f.seek(start)
     block_size = end - start

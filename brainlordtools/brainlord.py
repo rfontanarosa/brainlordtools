@@ -50,10 +50,6 @@ TEXT_BLOCK['misc'] = (0x67104, 0x67768)
 FONT1_BLOCK = (0x74000, 0x78000)
 FONT2_BLOCK = (0x80000, 0x82000)
 
-def write_byte(fw, offset, byte):
-    fw.seek(offset)
-    fw.write(byte)
-
 def dump_blocks(f, table, dump_path):
     filename = os.path.join(dump_path, 'misc1.csv')
     with open(filename, 'wb+') as csv_file:
