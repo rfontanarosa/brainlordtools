@@ -197,6 +197,7 @@ def brainlord_misc_inserter(args):
         p_b_offsets.append(0x2316) # Items
         p_b_offsets.append(0x240e) # Items
         p_b_offsets.append(0x2a36) # Items
+        p_b_offsets.append(0x21ff2) # Items
         p_b_offsets.append(0x2b74d) # Poison
         p_b_offsets.append(0x2b782) # Paralysis
         p_b_offsets.append(0x2b7ad) # HP
@@ -494,6 +495,10 @@ def brainlord_text_inserter(args):
         repoint_text(fw, 0x54623, new_pointers)
         repoint_text(fw, 0x5462a, new_pointers)
         repoint_text(fw, 0x54693, new_pointers)
+        repoint_text(fw, 0x54757, new_pointers)
+        repoint_text(fw, 0x5475e, new_pointers)
+        repoint_text(fw, 0x547ce, new_pointers)
+        repoint_text(fw, 0x547d5, new_pointers)
         repoint_text(fw, 0x54a13, new_pointers)
         repoint_text(fw, 0x54a36, new_pointers)
         repoint_text(fw, 0x54a3d, new_pointers)
@@ -591,8 +596,19 @@ def brainlord_text_inserter(args):
         repoint_two_bytes_pointers(fw, 0x221e8, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x2234c, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x223c3, new_pointers, b'\xd7')
+        repoint_two_bytes_pointers(fw, 0x225ff, new_pointers, b'\xd7')
+        repoint_two_bytes_pointers(fw, 0x22616, new_pointers, b'\xd7')
+        repoint_two_bytes_pointers(fw, 0x22627, new_pointers, b'\xd7')
+        repoint_two_bytes_pointers(fw, 0x22786, new_pointers, b'\xd7')
+        repoint_two_bytes_pointers(fw, 0x227c0, new_pointers, b'\xd7')
+        repoint_two_bytes_pointers(fw, 0x227d9, new_pointers, b'\xd7')
+        repoint_two_bytes_pointers(fw, 0x22803, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x229a7, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x22a5f, new_pointers, b'\xd7')
+        repoint_two_bytes_pointers(fw, 0x22cec, new_pointers, b'\xd7')
+        repoint_two_bytes_pointers(fw, 0x2313e, new_pointers, b'\xd7')
+        repoint_two_bytes_pointers(fw, 0x23155, new_pointers, b'\xd7')
+        repoint_two_bytes_pointers(fw, 0x23166, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x2332c, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x2334d, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x23406, new_pointers, b'\xd7')
