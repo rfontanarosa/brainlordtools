@@ -34,7 +34,7 @@ TEXT_BLOCK4_END = 0x1202f7
 TEXT_BLOCK5_START = 0x6776e
 TEXT_BLOCK5_END = 0x6789f
 
-TEXT_BLOCK6_START = 0x665cb
+TEXT_BLOCK6_START = 0x6660f
 TEXT_BLOCK6_END = 0x669c5
 
 TEXT_BLOCK7_START = 0x669f7
@@ -497,7 +497,11 @@ def brainlord_text_inserter(args):
         repoint_text(fw, 0x53ecf, new_pointers)
         repoint_text(fw, 0x53ed6, new_pointers)
         #
+        repoint_text(fw, 0x54264, new_pointers)
+        repoint_text(fw, 0x54279, new_pointers)
+        repoint_text(fw, 0x54391, new_pointers)
         repoint_text(fw, 0x54398, new_pointers)
+        repoint_text(fw, 0x5439f, new_pointers)
         repoint_text(fw, 0x543a6, new_pointers)
         repoint_text(fw, 0x54471, new_pointers)
         repoint_text(fw, 0x5461c, new_pointers)
@@ -590,6 +594,8 @@ def brainlord_text_inserter(args):
         repoint_text(fw, 0x55526, new_pointers)
         repoint_text(fw, 0x55534, new_pointers)
         repoint_text(fw, 0x55565, new_pointers)
+        repoint_text(fw, 0x668ed, new_pointers)
+        repoint_text(fw, 0x669f1, new_pointers)
     #
     with open(dest_file, 'r+b') as fw:
         fw.seek(0xf86)
