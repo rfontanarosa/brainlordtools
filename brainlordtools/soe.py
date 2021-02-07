@@ -35,10 +35,26 @@ TEXT_BLOCK['rare_item_names'] = (0x47397, 0x473D3)
 TEXT_BLOCK['rare_item_descriptions'] = (0x473D4, 0x473DD)
 TEXT_BLOCK['charm_descriptions'] = (0x473DE, 0x47712)
 
-FONT1_BLOCK = (0x40002, 0x40C01) #24bit - 3byte
-FONT1_VWF_TABLE = (0x40C02, 0x40C81) #127
-FONT2_BLOCK = (0x40C84, 0x41883) #24bit - 3byte
-FONT2_VWF_TABLE = (0x41884, 0x41903) #127
+POINTER_BLOCK = OrderedDict()
+POINTER_BLOCK['currency_names'] = (0xf8704, 0xf870f, 3)
+POINTER_BLOCK['ring'] = (0xe814c, 0xe8653, 8)
+POINTER_BLOCK['alchemy_names'] = (0x45d09, 0x45d4e, 2)
+POINTER_BLOCK['alchemy_descriptions'] = (0x45d51, 0x45d96, 2)
+POINTER_BLOCK['alchemy_ingredient_names'] = (0x45fc5, 0x4601e, 2)
+POINTER_BLOCK['weapon_descriptions'] = (0x459fa, 0x45a11, 2)
+POINTER_BLOCK['status_weapons'] = (0x438e8, 0x43b04, 36)
+POINTER_BLOCK['status_armors'] = (0x43b06, 0x43c96, 10)
+POINTER_BLOCK['trade_goods'] = (0xcbc00, 0xcbc19, 2)
+POINTER_BLOCK['charm_names'] = (0xcbc1a, 0xcbc35, 2)
+POINTER_BLOCK['charm_descriptions'] = (0xcc3d0, 0xcc3eb, 2)
+POINTER_BLOCK['rare_items'] = (0xcbc36, 0xcbc42, 2)
+POINTER_BLOCK['rare_item_descriptions'] = (0xcc3ec, 0xcc3f7, 2)
+POINTER_BLOCK['npc_enemy_names'] = (0xeb70c, 0xedf84, 74)
+
+FONT1_BLOCK = (0x40002, 0x40C01) # 24bit - 3byte
+FONT1_VWF_TABLE = (0x40C02, 0x40C81) # 127
+FONT2_BLOCK = (0x40C84, 0x41883) # 24bit - 3byte
+FONT2_VWF_TABLE = (0x41884, 0x41903) # 127
 
 def encode_text(text):
     text = text.replace(u'à', '{11}')
@@ -64,155 +80,28 @@ def dump_blocks(f, table, dump_path):
                 fields = [hex(text_address), text_encoded]
                 csv_writer.writerow(fields)
 
-def get_currency_names_pointers(f, block_limits=(0xf8704, 0xf870f)):
+def get_pointers(f, options):
     pointers = OrderedDict()
-    f.seek(block_limits[0])
-    while f.tell() < block_limits[1]:
+    block_start = options[0]
+    block_end = options[1]
+    length = options[2]
+    f.seek(block_start)
+    while f.tell() < block_end:
         p_offset = f.tell()
-        pointer = f.read(3)
-        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
-        pointers.setdefault(p_value, []).append(p_offset)
-    return pointers
-
-def get_ring_pointers(f, block_limits=(0xe814c, 0xe8653)):
-    pointers = OrderedDict()
-    f.seek(block_limits[0])
-    while(f.tell() < block_limits[1]):
-        p_offset = f.tell()
-        pointer = f.read(8)
-        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
-        pointers.setdefault(p_value, []).append(p_offset)
-    return pointers
-
-def get_alchemy_names_pointers(f, block_limits=(0x45d09, 0x45d4e)):
-    pointers = OrderedDict()
-    f.seek(block_limits[0])
-    while(f.tell() < block_limits[1]):
-        p_offset = f.tell()
-        pointer = f.read(2)
-        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
-        pointers.setdefault(p_value, []).append(p_offset)
-    return pointers
-
-def get_alchemy_descriptions_pointers(f, block_limits=(0x45d51, 0x45d96)):
-    pointers = OrderedDict()
-    f.seek(block_limits[0])
-    while(f.tell() < block_limits[1]):
-        p_offset = f.tell()
-        pointer = f.read(2)
-        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
-        pointers.setdefault(p_value, []).append(p_offset)
-    return pointers
-
-def get_alchemy_ingredient_names_pointers(f, block_limits=(0x45fc5, 0x4601e)):
-    pointers = OrderedDict()
-    f.seek(block_limits[0])
-    while(f.tell() < block_limits[1]):
-        p_offset = f.tell()
-        pointer = f.read(2)
+        pointer = f.read(length)
         p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
         pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
 def get_weapon_names_pointers(f):
     pointers = OrderedDict()
-    for start in (0xd8c3e, 0xd8e17, 0xd8fee):
+    for start in (0xd8c3e + 3, 0xd8e17 + 3, 0xd8fee + 3):
         f.seek(start)
         while(f.tell() < start + (112*4)):
-            p_offset = f.tell() +3
+            p_offset = f.tell()
             pointer = f.read(112)
-            p_value = struct.unpack('h', pointer[3:5])[0] + 0x40000
+            p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
             pointers.setdefault(p_value, []).append(p_offset)
-    return pointers
-
-def get_weapon_descriptions_pointers(f, block_limits=(0x459fa, 0x45a11)):
-    pointers = OrderedDict()
-    f.seek(block_limits[0])
-    while(f.tell() < block_limits[1]):
-        p_offset = f.tell()
-        pointer = f.read(2)
-        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
-        pointers.setdefault(p_value, []).append(p_offset)
-    return pointers
-
-def get_status_weapons_pointers(f, block_limits=(0x438e8, 0x43b04)):
-    pointers = OrderedDict()
-    f.seek(block_limits[0])
-    while (f.tell() < block_limits[1]):
-        p_offset = f.tell()
-        pointer = f.read(36)
-        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
-        pointers.setdefault(p_value, []).append(p_offset)
-    return pointers
-
-def get_status_armors_pointers(f, block_limits=(0x43b06, 0x43c96)):
-    pointers = OrderedDict()
-    f.seek(block_limits[0])
-    while (f.tell() < block_limits[1]):
-        p_offset = f.tell()
-        pointer = f.read(10)
-        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
-        pointers.setdefault(p_value, []).append(p_offset)
-    return pointers
-
-def get_trade_goods_pointers(f, block_limits=(0xcbc00, 0xcbc19)):
-    pointers = OrderedDict()
-    f.seek(block_limits[0])
-    while(f.tell() < block_limits[1]):
-        p_offset = f.tell()
-        pointer = f.read(2)
-        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
-        pointers.setdefault(p_value, []).append(p_offset)
-    return pointers
-
-def get_charm_names_pointers(f, block_limits=(0xcbc1a, 0xcbc35)):
-    pointers = OrderedDict()
-    f.seek(block_limits[0])
-    while(f.tell() < block_limits[1]):
-        p_offset = f.tell()
-        pointer = f.read(2)
-        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
-        pointers.setdefault(p_value, []).append(p_offset)
-    return pointers
-
-def get_charm_descriptions_pointers(f, block_limits=(0xcc3d0, 0xcc3eb)):
-    pointers = OrderedDict()
-    f.seek(block_limits[0])
-    while(f.tell() < block_limits[1]):
-        p_offset = f.tell()
-        pointer = f.read(2)
-        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
-        pointers.setdefault(p_value, []).append(p_offset)
-    return pointers
-
-def get_rare_items_pointers(f, block_limits=(0xcbc36, 0xcbc42)):
-    pointers = OrderedDict()
-    f.seek(block_limits[0])
-    while(f.tell() < block_limits[1]):
-        p_offset = f.tell()
-        pointer = f.read(2)
-        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
-        pointers.setdefault(p_value, []).append(p_offset)
-    return pointers
-
-def get_rare_item_descriptions_pointers(f, block_limits=(0xcc3ec, 0xcc3f7)):
-    pointers = OrderedDict()
-    f.seek(block_limits[0])
-    while(f.tell() < block_limits[1]):
-        p_offset = f.tell()
-        pointer = f.read(2)
-        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
-        pointers.setdefault(p_value, []).append(p_offset)
-    return pointers
-
-def get_npc_enemy_names_pointers(f, block_limits=(0xeb70c, 0xedf84)):
-    pointers = OrderedDict()
-    f.seek(block_limits[0])
-    while f.tell() < block_limits[1]:
-        p_offset = f.tell()
-        pointer = f.read(74)
-        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
-        pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
 def get_translated_texts(filename):
@@ -313,21 +202,21 @@ def soe_inserter(args):
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     with open(source_file, 'rb') as f0:
-        pointers00 = get_currency_names_pointers(f0)
-        pointers0 = get_ring_pointers(f0)
-        pointers1 = get_alchemy_names_pointers(f0)
-        pointers2 = get_alchemy_descriptions_pointers(f0)
-        pointers3 = get_alchemy_ingredient_names_pointers(f0)
-        pointers4 = get_weapon_names_pointers(f0)
-        pointers5 = get_weapon_descriptions_pointers(f0)
-        pointers6 = get_status_weapons_pointers(f0)
-        pointers7 = get_status_armors_pointers(f0)
-        pointers8 = get_trade_goods_pointers(f0)
-        pointers9 = get_charm_names_pointers(f0)
-        pointers10 = get_charm_descriptions_pointers(f0)
-        pointers11 = get_rare_items_pointers(f0)
-        pointers12 = get_rare_item_descriptions_pointers(f0)
-        pointers13 = get_npc_enemy_names_pointers(f0)
+        p_currency_names = get_pointers(f0, POINTER_BLOCK['currency_names'])
+        p_ring = get_pointers(f0, POINTER_BLOCK['ring'])
+        p_alchemy_names = get_pointers(f0, POINTER_BLOCK['alchemy_names'])
+        p_alchemy_descriptions = get_pointers(f0, POINTER_BLOCK['alchemy_descriptions'])
+        p_alchemy_ingredient_names = get_pointers(f0, POINTER_BLOCK['alchemy_ingredient_names'])
+        p_weapon_names = get_weapon_names_pointers(f0)
+        p_weapon_descriptions = get_pointers(f0, POINTER_BLOCK['weapon_descriptions'])
+        p_status_weapons = get_pointers(f0, POINTER_BLOCK['status_weapons'])
+        p_status_armors = get_pointers(f0, POINTER_BLOCK['status_armors'])
+        p_trade_goods = get_pointers(f0, POINTER_BLOCK['trade_goods'])
+        p_charm_names = get_pointers(f0, POINTER_BLOCK['charm_names'])
+        p_charm_descriptions = get_pointers(f0, POINTER_BLOCK['charm_descriptions'])
+        p_rare_items = get_pointers(f0, POINTER_BLOCK['rare_items'])
+        p_rare_item_descriptions = get_pointers(f0, POINTER_BLOCK['rare_item_descriptions'])
+        p_npc_enemy_names = get_pointers(f0, POINTER_BLOCK['npc_enemy_names'])
     with open(dest_file, 'r+b') as f1:
         translated_blocks = OrderedDict()
         for i, (block_name, block_limits) in enumerate(TEXT_BLOCK.items()):
@@ -346,8 +235,20 @@ def soe_inserter(args):
                 else:
                     t_new_address = write_text(f1, t_new_address, str.encode('X'), end_byte=b'\x00', limit=0x47712)
         # repointing
-        for curr_pointers in (pointers00, pointers0, pointers1, pointers2, pointers3, pointers4, pointers5, pointers6, pointers7, pointers8, pointers9, pointers10, pointers11, pointers12):
-            repoint(f1, curr_pointers, new_pointers)
+        repoint(f1, p_currency_names, new_pointers)
+        repoint(f1, p_ring, new_pointers)
+        repoint(f1, p_alchemy_names, new_pointers)
+        repoint(f1, p_alchemy_descriptions, new_pointers)
+        repoint(f1, p_alchemy_ingredient_names, new_pointers)
+        repoint(f1, p_weapon_names, new_pointers)
+        repoint(f1, p_weapon_descriptions, new_pointers)
+        repoint(f1, p_status_weapons, new_pointers)
+        repoint(f1, p_status_armors, new_pointers)
+        repoint(f1, p_trade_goods, new_pointers)
+        repoint(f1, p_charm_names, new_pointers)
+        repoint(f1, p_charm_descriptions, new_pointers)
+        repoint(f1, p_rare_items, new_pointers)
+        repoint(f1, p_rare_item_descriptions, new_pointers)
         # npc/enemies new pointers
         new_pointers = OrderedDict()
         t_new_address = 0x340000
@@ -359,7 +260,7 @@ def soe_inserter(args):
                     t_value = table.encode(t_value, mte_resolver=False, dict_resolver=False)
                     t_new_address = write_text(f1, t_new_address, t_value, end_byte=b'\x00')
         # repointing npc/enemies
-        repoint_npc_enemy_names(f1, pointers13, new_pointers)
+        repoint_npc_enemy_names(f1, p_npc_enemy_names, new_pointers)
         # misc
         repoint_misc(misc_file1, f1, table)
 
