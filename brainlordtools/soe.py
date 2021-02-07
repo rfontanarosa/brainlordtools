@@ -9,9 +9,9 @@ __email__ = "robertofontanarosa@gmail.com"
 import sys, os, struct, shutil, csv
 from collections import OrderedDict
 
-from rhtools.utils import crc32, byte2int, int2byte, int2hex, string_address2int_address
-from rhtools.dump import dump_gfx, insert_gfx
-from rhtools.Table import Table
+from rhtools.utils import crc32
+from rhtools.dump import read_text, write_text, dump_gfx, insert_gfx
+from rhtools3.Table import Table
 
 CRC32 = 'A5C0045E'
 
@@ -40,16 +40,7 @@ FONT1_VWF_TABLE = (0x40C02, 0x40C81) #127
 FONT2_BLOCK = (0x40C84, 0x41883) #24bit - 3byte
 FONT2_VWF_TABLE = (0x41884, 0x41903) #127
 
-def read_text(f, end_byte=0x00):
-    text = b''
-    byte = b'1'
-    while not byte2int(byte) == end_byte:
-        byte = f.read(1)
-        if byte2int(byte) != end_byte:
-            text += byte
-    return text
-
-def decode_text(text):
+def encode_text(text):
     text = text.replace(u'à', '{11}')
     text = text.replace(u'è', '{13}')
     text = text.replace(u'é', '{15}')
@@ -59,28 +50,18 @@ def decode_text(text):
     text = text.replace(u'È', '{1D}')
     return text
 
-def write_text(f, offset, text, table, end_byte=0x00, limit=None):
-    f.seek(offset)
-    text = decode_text(text)
-    decoded_text = table.decode(text, mte_resolver=False, dict_resolver=False)
-    f.write(decoded_text)
-    f.write(int2byte(end_byte))
-    if limit and f.tell() > limit:
-        raise Exception()
-    return f.tell()
-
 def dump_blocks(f, table, dump_path):
-    for block_name, block_limits in TEXT_BLOCK.iteritems():
+    for i, (block_name, block_limits) in enumerate(TEXT_BLOCK.items()):
         filename = os.path.join(dump_path, block_name + '.csv')
-        with open(filename, 'wb+') as csv_file:
+        with open(filename, 'w+') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             f.seek(block_limits[0])
             while f.tell() < block_limits[1]:
                 text_address = f.tell()
-                text = read_text(f)
-                text_encoded = table.encode(text)
-                fields = [int2hex(text_address), text_encoded]
+                text = read_text(f, f.tell(), end_byte=b'\x00')
+                text_encoded = table.decode(text)
+                fields = [hex(text_address), text_encoded]
                 csv_writer.writerow(fields)
 
 def get_currency_names_pointers(f, block_limits=(0xf8704, 0xf870f)):
@@ -89,7 +70,7 @@ def get_currency_names_pointers(f, block_limits=(0xf8704, 0xf870f)):
     while f.tell() < block_limits[1]:
         p_offset = f.tell()
         pointer = f.read(3)
-        p_value = string_address2int_address(pointer[:2], switch=True, offset=0x40000)
+        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
         pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
@@ -99,7 +80,7 @@ def get_ring_pointers(f, block_limits=(0xe814c, 0xe8653)):
     while(f.tell() < block_limits[1]):
         p_offset = f.tell()
         pointer = f.read(8)
-        p_value = string_address2int_address(pointer[:2], switch=True, offset=0x40000)
+        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
         pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
@@ -109,7 +90,7 @@ def get_alchemy_names_pointers(f, block_limits=(0x45d09, 0x45d4e)):
     while(f.tell() < block_limits[1]):
         p_offset = f.tell()
         pointer = f.read(2)
-        p_value = string_address2int_address(pointer, switch=True, offset=0x40000)
+        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
         pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
@@ -119,7 +100,7 @@ def get_alchemy_descriptions_pointers(f, block_limits=(0x45d51, 0x45d96)):
     while(f.tell() < block_limits[1]):
         p_offset = f.tell()
         pointer = f.read(2)
-        p_value = string_address2int_address(pointer, switch=True, offset=0x40000)
+        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
         pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
@@ -129,7 +110,7 @@ def get_alchemy_ingredient_names_pointers(f, block_limits=(0x45fc5, 0x4601e)):
     while(f.tell() < block_limits[1]):
         p_offset = f.tell()
         pointer = f.read(2)
-        p_value = string_address2int_address(pointer, switch=True, offset=0x40000)
+        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
         pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
@@ -140,7 +121,7 @@ def get_weapon_names_pointers(f):
         while(f.tell() < start + (112*4)):
             p_offset = f.tell() +3
             pointer = f.read(112)
-            p_value = string_address2int_address(pointer[3:5], switch=True, offset=0x40000)
+            p_value = struct.unpack('h', pointer[3:5])[0] + 0x40000
             pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
@@ -150,7 +131,7 @@ def get_weapon_descriptions_pointers(f, block_limits=(0x459fa, 0x45a11)):
     while(f.tell() < block_limits[1]):
         p_offset = f.tell()
         pointer = f.read(2)
-        p_value = string_address2int_address(pointer, switch=True, offset=0x40000)
+        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
         pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
@@ -160,7 +141,7 @@ def get_status_weapons_pointers(f, block_limits=(0x438e8, 0x43b04)):
     while (f.tell() < block_limits[1]):
         p_offset = f.tell()
         pointer = f.read(36)
-        p_value = string_address2int_address(pointer[:2], switch=True, offset=0x40000)
+        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
         pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
@@ -170,7 +151,7 @@ def get_status_armors_pointers(f, block_limits=(0x43b06, 0x43c96)):
     while (f.tell() < block_limits[1]):
         p_offset = f.tell()
         pointer = f.read(10)
-        p_value = string_address2int_address(pointer[:2], switch=True, offset=0x40000)
+        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
         pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
@@ -180,7 +161,7 @@ def get_trade_goods_pointers(f, block_limits=(0xcbc00, 0xcbc19)):
     while(f.tell() < block_limits[1]):
         p_offset = f.tell()
         pointer = f.read(2)
-        p_value = string_address2int_address(pointer, switch=True, offset=0x40000)
+        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
         pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
@@ -190,7 +171,7 @@ def get_charm_names_pointers(f, block_limits=(0xcbc1a, 0xcbc35)):
     while(f.tell() < block_limits[1]):
         p_offset = f.tell()
         pointer = f.read(2)
-        p_value = string_address2int_address(pointer, switch=True, offset=0x40000)
+        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
         pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
@@ -200,7 +181,7 @@ def get_charm_descriptions_pointers(f, block_limits=(0xcc3d0, 0xcc3eb)):
     while(f.tell() < block_limits[1]):
         p_offset = f.tell()
         pointer = f.read(2)
-        p_value = string_address2int_address(pointer, switch=True, offset=0x40000)
+        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
         pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
@@ -210,7 +191,7 @@ def get_rare_items_pointers(f, block_limits=(0xcbc36, 0xcbc42)):
     while(f.tell() < block_limits[1]):
         p_offset = f.tell()
         pointer = f.read(2)
-        p_value = string_address2int_address(pointer, switch=True, offset=0x40000)
+        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
         pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
@@ -220,7 +201,7 @@ def get_rare_item_descriptions_pointers(f, block_limits=(0xcc3ec, 0xcc3f7)):
     while(f.tell() < block_limits[1]):
         p_offset = f.tell()
         pointer = f.read(2)
-        p_value = string_address2int_address(pointer, switch=True, offset=0x40000)
+        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
         pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
@@ -230,23 +211,22 @@ def get_npc_enemy_names_pointers(f, block_limits=(0xeb70c, 0xedf84)):
     while f.tell() < block_limits[1]:
         p_offset = f.tell()
         pointer = f.read(74)
-        p_value = string_address2int_address(pointer[:2], switch=True, offset=0x40000)
+        p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
         pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
 def get_translated_texts(filename):
     translated_texts = OrderedDict()
-    with open(filename, 'rb') as csv_file:
+    with open(filename, 'r') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         for row in csv_reader:
             trans = row.get('trans') or row.get('text')
-            trans = trans.decode('utf-8')
             text_address = int(row['text_address'], 16)
             translated_texts[text_address] = trans
     return translated_texts
 
 def repoint_misc(filename, f, table, next_text_address=0x360000):
-    with open(filename, 'rb') as csv_file:
+    with open(filename, 'r') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         for row in csv_reader:
             text_address = row.get('text_address')
@@ -262,19 +242,19 @@ def repoint_misc(filename, f, table, next_text_address=0x360000):
                             f.seek(p_address)
                             f.write(new_pointer)
                             f.seek(0xd9f24)
-                            f.write(int2byte(0xf6))
+                            f.write(b'\xf6')
                         elif text_address in ('0xda692', '0xda69b'):
                             new_pointer = struct.pack('H', next_text_address - 0x360000)
                             f.seek(p_address)
                             f.write(new_pointer)
                             f.seek(0xda2bc)
-                            f.write(int2byte(0xf6))
+                            f.write(b'\xf6')
                         elif text_address in ('0xdaf68', '0xdaf71'):
                             new_pointer = struct.pack('H', next_text_address - 0x360000)
                             f.seek(p_address)
                             f.write(new_pointer)
                             f.seek(0xdab67)
-                            f.write(int2byte(0xf6))
+                            f.write(b'\xf6')
                         elif text_address == '0xddef3':
                             new_pointer = struct.pack('H', next_text_address - 0x360000)
                             f.seek(p_address)
@@ -282,15 +262,16 @@ def repoint_misc(filename, f, table, next_text_address=0x360000):
                         else:
                             new_pointer = struct.pack('H', next_text_address - 0x360000)
                             new_pointer += pointer[2:5]
-                            new_pointer += int2byte(0xf6)
+                            new_pointer += b'\xf6'
                             f.seek(p_address)
                             f.write(new_pointer)
                     trans = row.get('trans2') or row.get('trans1') or row.get('text')
-                    trans = trans.decode('utf8')
-                    next_text_address = write_text(f, next_text_address, trans, table)
+                    trans = encode_text(trans)
+                    trans = table.encode(trans, mte_resolver=False, dict_resolver=False)
+                    next_text_address = write_text(f, next_text_address, trans, end_byte=b'\x00')
 
 def repoint(f, pointers, new_pointers, offset=0x40000):
-    for p_value, p_addresses in pointers.iteritems():
+    for i, (p_value, p_addresses) in enumerate(pointers.items()):
         p_new_value = new_pointers.get(p_value)
         if not p_new_value:
             print('NOT FOUND 1')
@@ -300,7 +281,7 @@ def repoint(f, pointers, new_pointers, offset=0x40000):
                 f.write(struct.pack('H', p_new_value - offset))
 
 def repoint_npc_enemy_names(f, pointers, new_pointers, offset=0x340000):
-    for p_value, p_addresses in pointers.iteritems():
+    for i, (p_value, p_addresses) in enumerate(pointers.items()):
         p_new_value = new_pointers.get(p_value)
         if not p_new_value:
             print('NOT FOUND 2')
@@ -308,7 +289,7 @@ def repoint_npc_enemy_names(f, pointers, new_pointers, offset=0x340000):
             for p_address in p_addresses:
                 f.seek(p_address)
                 f.write(struct.pack('H', p_new_value - offset))
-                f.write(int2byte(int(0xf4)))
+                f.write(b'\xf4')
 
 def soe_dumper(args):
     source_file = args.source_file
@@ -349,30 +330,34 @@ def soe_inserter(args):
         pointers13 = get_npc_enemy_names_pointers(f0)
     with open(dest_file, 'r+b') as f1:
         translated_blocks = OrderedDict()
-        for block_name, block_limits in TEXT_BLOCK.iteritems():
+        for i, (block_name, block_limits) in enumerate(TEXT_BLOCK.items()):
             translation_file = os.path.join(translation_path, block_name + '.csv')
             translated_blocks[block_name] = get_translated_texts(translation_file)
         # new pointers
         new_pointers = OrderedDict()
         t_new_address = 0x460ae
-        for block_name, translated_texts in translated_blocks.iteritems():
-            for t_address, t_value in translated_texts.iteritems():
+        for i, (block_name, translated_texts) in enumerate(translated_blocks.items()):
+            for i, (t_address, t_value) in enumerate(translated_texts.items()):
                 new_pointers[t_address] = t_new_address
+                t_value = encode_text(t_value)
+                t_value = table.encode(t_value, mte_resolver=False, dict_resolver=False)
                 if block_name not in ('npc_enemy_names1', 'npc_enemy_names2'):
-                    t_new_address = write_text(f1, t_new_address, t_value, table, limit=0x47712)
+                    t_new_address = write_text(f1, t_new_address, t_value, end_byte=b'\x00', limit=0x47712)
                 else:
-                    t_new_address = write_text(f1, t_new_address, 'X', table, limit=0x47712)
+                    t_new_address = write_text(f1, t_new_address, str.encode('X'), end_byte=b'\x00', limit=0x47712)
         # repointing
         for curr_pointers in (pointers00, pointers0, pointers1, pointers2, pointers3, pointers4, pointers5, pointers6, pointers7, pointers8, pointers9, pointers10, pointers11, pointers12):
             repoint(f1, curr_pointers, new_pointers)
         # npc/enemies new pointers
         new_pointers = OrderedDict()
         t_new_address = 0x340000
-        for block_name, translated_texts in translated_blocks.iteritems():
+        for i, (block_name, translated_texts) in enumerate(translated_blocks.items()):
             if block_name in ('npc_enemy_names1', 'npc_enemy_names2'):
-                for t_address, t_value in translated_texts.iteritems():
+                for i, (t_address, t_value) in enumerate(translated_texts.items()):
                     new_pointers[t_address] = t_new_address
-                    t_new_address = write_text(f1, t_new_address, t_value, table)
+                    t_value = encode_text(t_value)
+                    t_value = table.encode(t_value, mte_resolver=False, dict_resolver=False)
+                    t_new_address = write_text(f1, t_new_address, t_value, end_byte=b'\x00')
         # repointing npc/enemies
         repoint_npc_enemy_names(f1, pointers13, new_pointers)
         # misc
@@ -400,28 +385,28 @@ def soe_gfx_inserter(args):
     translation_path = args.translation_path
     with open(dest_file, 'r+b') as f:
         f.seek(0xC9ED8)
-        f.write(int2byte(0x10))
+        f.write(b'\x10')
         f.seek(0xCA54F)
-        f.write(int2byte(0x10))
+        f.write(b'\x10')
         f.seek(0xCA5A4)
-        f.write(int2byte(0x10))
+        f.write(b'\x10')
         f.seek(0xCA92A)
-        f.write(int2byte(0x10))
+        f.write(b'\x10')
         f.seek(0xCB9B8)
-        f.write(int2byte(0x10))
+        f.write(b'\x10')
         f.seek(0xCB9FD)
-        f.write(int2byte(0x10))
+        f.write(b'\x10')
         f.seek(0xCBB21)
-        f.write(int2byte(0x10))
+        f.write(b'\x10')
         f.seek(0xCC951)
-        f.write(int2byte(0x10))
+        f.write(b'\x10')
         #
         f.seek(0xC9E8B)
-        f.write(int2byte(0xa9))
-        f.write(int2byte(0x71))
+        f.write(b'\xa9')
+        f.write(b'\x71')
         f.seek(0xCA492)
-        f.write(int2byte(0xa9))
-        f.write(int2byte(0x71))
+        f.write(b'\xa9')
+        f.write(b'\x71')
         #
         insert_gfx(f, FONT1_BLOCK[0] + (16 * 8 * 3), FONT1_BLOCK[1], translation_path, 'gfx_font1.bin')
         insert_gfx(f, FONT1_VWF_TABLE[0] + 16, FONT1_VWF_TABLE[1], translation_path, 'gfx_vwf1.bin')
