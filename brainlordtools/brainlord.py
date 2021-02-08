@@ -166,8 +166,6 @@ def brainlord_credits_dumper(args):
             text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
             txt_file.write(text_decoded)
 
-
-
 def brainlord_credits_inserter(args):
     dest_file = args.dest_file
     table3_file = args.table3
@@ -176,10 +174,10 @@ def brainlord_credits_inserter(args):
     translation_file = os.path.join(translation_path, 'credits.txt')
     with open(translation_file, 'r') as f:
         text = f.read()
-        if len(text) < CREDITS_BLOCK_END - CREDITS_BLOCK_START:
-            raise Exception("Invalid credits file lenght!")
+        text_encoded = table.encode(text, mte_resolver=False, dict_resolver=False)
+        if len(text_encoded) != CREDITS_BLOCK_END - CREDITS_BLOCK_START:
+            raise Exception("Invalid credits file lenght! {} - {}".format(len(text_encoded), CREDITS_BLOCK_END - CREDITS_BLOCK_START))
         with open(dest_file, 'r+b') as f1:
-            text_encoded = table.encode(text, mte_resolver=False, dict_resolver=False)
             f1.seek(CREDITS_BLOCK_START)
             f1.write(text_encoded)
 
