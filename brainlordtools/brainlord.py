@@ -40,6 +40,9 @@ TEXT_BLOCK6_END = 0x669c5
 TEXT_BLOCK7_START = 0x669f7
 TEXT_BLOCK7_END = 0x66e77
 
+CREDITS_BLOCK_START = 0x100000
+CREDITS_BLOCK_END = 0x10084f
+
 POINTER_BLOCK1_START = 0x50013
 POINTER_BLOCK1_END = 0x50285
 
@@ -146,6 +149,39 @@ def brainlord_misc_dumper(args):
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
         dump_blocks(f, table, dump_path)
+
+def brainlord_credits_dumper(args):
+    source_file = args.source_file
+    table3_file = args.table3
+    dump_path = args.dump_path
+    if crc32(source_file) != CRC32:
+        sys.exit('SOURCE ROM CHECKSUM FAILED!')
+    table = Table(table3_file)
+    shutil.rmtree(dump_path, ignore_errors=True)
+    os.mkdir(dump_path)
+    with open(source_file, 'rb') as f:
+        filename = os.path.join(dump_path, 'credits.txt')
+        with open(filename, 'w+') as txt_file:
+            text = read_text(f, CREDITS_BLOCK_START, length=CREDITS_BLOCK_END - CREDITS_BLOCK_START)
+            text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
+            txt_file.write(text_decoded)
+
+
+
+def brainlord_credits_inserter(args):
+    dest_file = args.dest_file
+    table3_file = args.table3
+    translation_path = args.translation_path
+    table = Table(table3_file)
+    translation_file = os.path.join(translation_path, 'credits.txt')
+    with open(translation_file, 'r') as f:
+        text = f.read()
+        if len(text) < CREDITS_BLOCK_END - CREDITS_BLOCK_START:
+            raise Exception("Invalid credits file lenght!")
+        with open(dest_file, 'r+b') as f1:
+            text_encoded = table.encode(text, mte_resolver=False, dict_resolver=False)
+            f1.seek(CREDITS_BLOCK_START)
+            f1.write(text_encoded)
 
 def brainlord_misc_inserter(args):
     source_file = args.source_file
@@ -774,5 +810,15 @@ z_parser = subparsers.add_parser('expand', help='Execute EXPANDER')
 z_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 z_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 z_parser.set_defaults(func=brainlord_expander)
+y_parser = subparsers.add_parser('dump_credits', help='Execute CREDITS DUMP')
+y_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+y_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Credits table filename')
+y_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+y_parser.set_defaults(func=brainlord_credits_dumper)
+x_parser = subparsers.add_parser('insert_credits', help='Execute CREDITS INSERTER')
+x_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+x_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Credits table filename')
+x_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+x_parser.set_defaults(func=brainlord_credits_inserter)
 args = parser.parse_args()
 args.func(args)
