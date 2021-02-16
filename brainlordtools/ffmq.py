@@ -1,7 +1,13 @@
-import sys, os, struct, sqlite3, shutil, csv
+__author__ = "Roberto Fontanarosa"
+__license__ = "GPLv2"
+__version__ = ""
+__maintainer__ = "Roberto Fontanarosa"
+__email__ = "robertofontanarosa@gmail.com"
+
+import sys, os, shutil, csv
 from collections import OrderedDict
 
-from rhtools.utils import crc32, int2hex
+from rhtools.utils import crc32
 from rhtools.dump import read_text, write_text
 from rhtools3.Table import Table
 
@@ -37,7 +43,7 @@ def ffmq_misc_dumper(args):
                 text_address = f.tell()
                 text = read_text(f, text_address, length=16)
                 text_encoded = table.decode(text, mte_resolver=False, dict_resolver=False)
-                fields = [int2hex(text_address), text_encoded]
+                fields = [hex(text_address), text_encoded]
                 csv_writer.writerow(fields)
         # Items
         filename = os.path.join(dump_path, 'items.csv')
@@ -49,7 +55,7 @@ def ffmq_misc_dumper(args):
                 text_address = f.tell()
                 text = read_text(f, text_address, length=12)
                 text_encoded = table.decode(text, mte_resolver=False, dict_resolver=False)
-                fields = [int2hex(text_address), text_encoded]
+                fields = [hex(text_address), text_encoded]
                 csv_writer.writerow(fields)
         # Enemy Attacks
         filename = os.path.join(dump_path, 'enemy_attacks.csv')
@@ -61,7 +67,7 @@ def ffmq_misc_dumper(args):
                 text_address = f.tell()
                 text = read_text(f, text_address, length=12)
                 text_encoded = table.decode(text, mte_resolver=False, dict_resolver=False)
-                fields = [int2hex(text_address), text_encoded]
+                fields = [hex(text_address), text_encoded]
                 csv_writer.writerow(fields)
         # Enemy Names
         filename = os.path.join(dump_path, 'enemy_names.csv')
@@ -73,7 +79,7 @@ def ffmq_misc_dumper(args):
                 text_address = f.tell()
                 text = read_text(f, text_address, length=16)
                 text_encoded = table.decode(text, mte_resolver=False, dict_resolver=False)
-                fields = [int2hex(text_address), text_encoded]
+                fields = [hex(text_address), text_encoded]
                 csv_writer.writerow(fields)
 
 def ffmq_misc_inserter(args):
