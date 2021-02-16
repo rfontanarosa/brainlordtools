@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 __author__ = "Roberto Fontanarosa"
 __license__ = "GPLv2"
 __version__ = ""
@@ -10,7 +8,7 @@ import sys, os, struct, sqlite3, shutil, csv
 from collections import OrderedDict
 
 from rhtools.utils import crc32
-from rhtools.dump import read_text, write_text, write_byte, dump_gfx, insert_gfx
+from rhtools.dump import read_text, write_text, dump_gfx, insert_gfx
 from rhtools3.Table import Table
 
 CRC32 = 'AC443D87'
@@ -645,6 +643,7 @@ def brainlord_text_inserter(args):
         repoint_two_bytes_pointers(fw, 0x221e8, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x2234c, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x223c3, new_pointers, b'\xd7')
+        repoint_two_bytes_pointers(fw, 0x2254c, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x225ff, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x22616, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x22627, new_pointers, b'\xd7')
@@ -655,9 +654,11 @@ def brainlord_text_inserter(args):
         repoint_two_bytes_pointers(fw, 0x229a7, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x22a5f, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x22cec, new_pointers, b'\xd7')
+        repoint_two_bytes_pointers(fw, 0x23099, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x2313e, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x23155, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x23166, new_pointers, b'\xd7')
+        repoint_two_bytes_pointers(fw, 0x231d6, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x2332c, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x2334d, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x23406, new_pointers, b'\xd7')
@@ -688,8 +689,10 @@ def brainlord_text_inserter(args):
         repoint_two_bytes_pointers(fw, 0x21eb6, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x21ed7, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x222de, new_pointers, b'\xd7')
+        repoint_two_bytes_pointers(fw, 0x22949, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x22ca9, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x22f23, new_pointers, b'\xd7')
+        repoint_two_bytes_pointers(fw, 0x232ef, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x237e6, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x23946, new_pointers, b'\xd7')
         repoint_two_bytes_pointers(fw, 0x235ce, new_pointers, b'\xd7')
