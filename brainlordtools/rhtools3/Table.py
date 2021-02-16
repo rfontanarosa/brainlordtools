@@ -10,14 +10,14 @@ from collections import OrderedDict
 class Table():
 
     COMMENT_CHAR = ';'
-    NEWLINE_CHAR = '/'
-    BREAKLINE_CHAR = '*'
+    EOS_CHAR = '/'
+    EOL_CHAR = '*'
     PATTERN_SEPARATED_BYTE = '{{{:02x}}}'
 
     def __init__(self, filename):
 
-        self._newline = None
-        self._breakline = None
+        self._eos = None
+        self._eol = None
         self._comments = []
 
         self._table = OrderedDict()
@@ -31,7 +31,7 @@ class Table():
         with open(filename, 'r') as f:
             for line in f:
                 line = line.strip('\n')
-                if line.startswith(Table.COMMENT_CHAR):
+                if line.startswith(Table.COMMENT_CHAR) or line.startswith('//'):
                     self._comments.append(line[1:])
                 else:
                     if '=' in line:
@@ -52,13 +52,13 @@ class Table():
                                     self._mte[key] = part_value
                                 else:
                                     self._table[key] = part_value
-                    # new-line
-                    elif line.startswith(Table.NEWLINE_CHAR):
-                        self._newline = int(line[1:], 16)
+                    # end of string
+                    elif line.startswith(Table.EOS_CHAR):
+                        self._eos = int(line[1:], 16)
                         self._table[int(line[1:], 16)] = '\r'
-                    # break-line
-                    elif line.startswith(Table.BREAKLINE_CHAR):
-                        self._breakline = int(line[1:len(line)], 16)
+                    # end of line
+                    elif line.startswith(Table.EOL_CHAR):
+                        self._eol = int(line[1:len(line)], 16)
                         self._table[int(line[1:len(line)], 16)] = '\n'
             # init reverse
             self._reverse_table = {v: k for k, v in self._table.items()}
@@ -92,17 +92,20 @@ class Table():
                 decoded += self.PATTERN_SEPARATED_BYTE.format(byte)
         return decoded
 
-    def decode(self, text, mte_resolver=True, dict_resolver=True, cmd_list=None):
+    def decode(self, text, mte_resolver=True, dict_resolver=True, eol_resolver=True, cmd_list=None):
         """ decode bytes into string """
         decoded = []
         if text:
             i = 0
             while i < len(text):
                 byte = text[i]
-                if self.isNewline(byte):
+                if self.is_eos(byte):
                     decoded.append(self.PATTERN_SEPARATED_BYTE.format(byte))
-                elif self.isBreakline(byte):
-                    decoded.append('\n')
+                elif self.is_eol(byte):
+                    if eol_resolver:
+                        decoded.append('\n')
+                    else:
+                        decoded.append(self.PATTERN_SEPARATED_BYTE.format(byte))
                 else:
                     if cmd_list and byte in cmd_list.keys():
                         decoded.append(self.PATTERN_SEPARATED_BYTE.format(byte))
@@ -162,17 +165,17 @@ class Table():
                 i += 1
         return encoded
 
-    def isNewline(self, key):
-        return self._newline == key
+    def is_eos(self, key):
+        return self._eos == key
 
-    def isBreakline(self, key):
-        return self._breakline == key
+    def is_eol(self, key):
+        return self._eol == key
 
-    def getNewline(self):
-        return self._newline
+    def get_eos(self):
+        return self._eos
 
-    def getBreakline(self):
-        return self._breakline
+    def get_eol(self):
+        return self._eol
 
-    def getComments(self):
+    def get_comments(self):
         return self._comments
