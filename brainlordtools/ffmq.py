@@ -8,20 +8,10 @@ import sys, os, shutil, csv
 from collections import OrderedDict
 
 from rhtools.utils import crc32
-from rhtools.dump import read_text, write_text
+from rhtools.dump import read_text, write_text, get_csv_translated_texts
 from rhtools3.Table import Table
 
 CRC32 = '2C52C792'
-
-def get_csv_translated_texts(filename):
-    translated_texts = OrderedDict()
-    with open(filename, 'r') as csv_file:
-        csv_reader = csv.DictReader(csv_file)
-        for row in csv_reader:
-            trans = row.get('trans') or row.get('text')
-            text_address = int(row['text_address'], 16)
-            translated_texts[text_address] = trans
-    return translated_texts
 
 def ffmq_misc_dumper(args):
     source_file = args.source_file

@@ -4,11 +4,11 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, struct, sqlite3, shutil
+import sys, os, struct, sqlite3, shutil, csv
 from collections import OrderedDict
 
 from rhtools.utils import crc32
-from rhtools.dump import read_text, dump_gfx, insert_gfx, write_byte
+from rhtools.dump import read_text, write_text, write_byte, dump_binary, insert_binary, get_csv_translated_texts
 from rhtools.Snes import snes2pc_lorom, pc2snes_lorom
 from rhtools3.Table import Table
 
@@ -113,22 +113,22 @@ def neugier_inserter(args):
 def neugier_gfx_dumper(args):
     source_file = args.source_file
     dump_path = args.dump_path
-    # if crc32(source_file) != CRC32:
-    #     sys.exit('SOURCE ROM CHECKSUM FAILED!')
+    if crc32(source_file) != CRC32:
+        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_gfx(f, GFX_NEW_GAME_OFFSETS[0], GFX_NEW_GAME_OFFSETS[1], dump_path, 'gfx_new_game.bin')
-        dump_gfx(f, GFX_FONT_OFFSETS[0], GFX_FONT_OFFSETS[1], dump_path, 'gfx_font.bin')
-        dump_gfx(f, GFX_STATUS_OFFSETS[0], GFX_STATUS_OFFSETS[1], dump_path, 'gfx_status.bin')
+        dump_binary(f, GFX_NEW_GAME_OFFSETS[0], GFX_NEW_GAME_OFFSETS[1], dump_path, 'gfx_new_game.bin')
+        dump_binary(f, GFX_FONT_OFFSETS[0], GFX_FONT_OFFSETS[1], dump_path, 'gfx_font.bin')
+        dump_binary(f, GFX_STATUS_OFFSETS[0], GFX_STATUS_OFFSETS[1], dump_path, 'gfx_status.bin')
 
 def neugier_gfx_inserter(args):
     dest_file = args.dest_file
     translation_path = args.translation_path
     with open(dest_file, 'r+b') as f:
-        insert_gfx(f, GFX_NEW_GAME_OFFSETS[0], GFX_NEW_GAME_OFFSETS[1], translation_path, 'gfx_new_game.bin')
-        insert_gfx(f, GFX_FONT_OFFSETS[0], GFX_FONT_OFFSETS[1], translation_path, 'gfx_font.bin')
-        insert_gfx(f, GFX_STATUS_OFFSETS[0], GFX_STATUS_OFFSETS[1], translation_path, 'gfx_status.bin')
+        insert_binary(f, GFX_NEW_GAME_OFFSETS[0], GFX_NEW_GAME_OFFSETS[1], translation_path, 'gfx_new_game.bin')
+        insert_binary(f, GFX_FONT_OFFSETS[0], GFX_FONT_OFFSETS[1], translation_path, 'gfx_font.bin')
+        insert_binary(f, GFX_STATUS_OFFSETS[0], GFX_STATUS_OFFSETS[1], translation_path, 'gfx_status.bin')
         # VWF
         write_byte(f, 0x110050, b'\x07')
         write_byte(f, 0x110051, b'\x07')

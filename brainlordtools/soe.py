@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 __author__ = "Roberto Fontanarosa"
 __license__ = "GPLv2"
 __version__ = ""
@@ -10,7 +8,7 @@ import sys, os, struct, shutil, csv
 from collections import OrderedDict
 
 from rhtools.utils import crc32
-from rhtools.dump import read_text, write_text, dump_gfx, insert_gfx
+from rhtools.dump import read_text, write_text, dump_binary, insert_binary
 from rhtools3.Table import Table
 
 CRC32 = 'A5C0045E'
@@ -97,7 +95,7 @@ def get_weapon_names_pointers(f):
     pointers = OrderedDict()
     for start in (0xd8c3e + 3, 0xd8e17 + 3, 0xd8fee + 3):
         f.seek(start)
-        while(f.tell() < start + (112*4)):
+        while f.tell() < (start + (112*4)):
             p_offset = f.tell()
             pointer = f.read(112)
             p_value = struct.unpack('h', pointer[:2])[0] + 0x40000
@@ -272,14 +270,14 @@ def soe_gfx_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_gfx(f, FONT1_BLOCK[0], FONT1_BLOCK[1] - (16 * 8 * 3), dump_path, 'gfx_font1.bin')
-        dump_gfx(f, FONT1_VWF_TABLE[0], FONT1_VWF_TABLE[1] - 16, dump_path, 'gfx_vwf1.bin')
-        dump_gfx(f, FONT2_BLOCK[0], FONT2_BLOCK[1] - (16 * 8 * 3), dump_path, 'gfx_font2.bin')
-        dump_gfx(f, FONT2_VWF_TABLE[0], FONT2_VWF_TABLE[1] - 16, dump_path, 'gfx_vwf2.bin')
-        dump_gfx(f, FONT1_BLOCK[0], FONT1_BLOCK[0] + (16 * 8 * 3), dump_path, 'gfx_exp_font1.bin')
-        dump_gfx(f, FONT1_VWF_TABLE[0], FONT1_VWF_TABLE[0] + 16, dump_path, 'gfx_exp_vwf1.bin')
-        dump_gfx(f, FONT2_BLOCK[0], FONT2_BLOCK[0] + (16 * 8 * 3), dump_path, 'gfx_exp_font2.bin')
-        dump_gfx(f, FONT2_VWF_TABLE[0], FONT2_VWF_TABLE[0] + 16, dump_path, 'gfx_exp_vwf2.bin')
+        dump_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1] - (16 * 8 * 3), dump_path, 'gfx_font1.bin')
+        dump_binary(f, FONT1_VWF_TABLE[0], FONT1_VWF_TABLE[1] - 16, dump_path, 'gfx_vwf1.bin')
+        dump_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[1] - (16 * 8 * 3), dump_path, 'gfx_font2.bin')
+        dump_binary(f, FONT2_VWF_TABLE[0], FONT2_VWF_TABLE[1] - 16, dump_path, 'gfx_vwf2.bin')
+        dump_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[0] + (16 * 8 * 3), dump_path, 'gfx_exp_font1.bin')
+        dump_binary(f, FONT1_VWF_TABLE[0], FONT1_VWF_TABLE[0] + 16, dump_path, 'gfx_exp_vwf1.bin')
+        dump_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[0] + (16 * 8 * 3), dump_path, 'gfx_exp_font2.bin')
+        dump_binary(f, FONT2_VWF_TABLE[0], FONT2_VWF_TABLE[0] + 16, dump_path, 'gfx_exp_vwf2.bin')
 
 def soe_gfx_inserter(args):
     dest_file = args.dest_file
@@ -309,14 +307,14 @@ def soe_gfx_inserter(args):
         f.write(b'\xa9')
         f.write(b'\x71')
         #
-        insert_gfx(f, FONT1_BLOCK[0] + (16 * 8 * 3), FONT1_BLOCK[1], translation_path, 'gfx_font1.bin')
-        insert_gfx(f, FONT1_VWF_TABLE[0] + 16, FONT1_VWF_TABLE[1], translation_path, 'gfx_vwf1.bin')
-        insert_gfx(f, FONT2_BLOCK[0] + (16 * 8 * 3), FONT2_BLOCK[1], translation_path, 'gfx_font2.bin')
-        insert_gfx(f, FONT2_VWF_TABLE[0] + 16, FONT2_VWF_TABLE[1], translation_path, 'gfx_vwf2.bin')
-        insert_gfx(f, FONT1_BLOCK[0], FONT1_BLOCK[0] + (16 * 8 * 3), translation_path, 'gfx_exp_font1.bin')
-        insert_gfx(f, FONT1_VWF_TABLE[0], FONT1_VWF_TABLE[0] + 16, translation_path, 'gfx_exp_vwf1.bin')
-        insert_gfx(f, FONT2_BLOCK[0], FONT2_BLOCK[0] + (16 * 8 * 3), translation_path, 'gfx_exp_font2.bin')
-        insert_gfx(f, FONT2_VWF_TABLE[0], FONT2_VWF_TABLE[0] + 16, translation_path, 'gfx_exp_vwf2.bin')
+        insert_binary(f, FONT1_BLOCK[0] + (16 * 8 * 3), FONT1_BLOCK[1], translation_path, 'gfx_font1.bin')
+        insert_binary(f, FONT1_VWF_TABLE[0] + 16, FONT1_VWF_TABLE[1], translation_path, 'gfx_vwf1.bin')
+        insert_binary(f, FONT2_BLOCK[0] + (16 * 8 * 3), FONT2_BLOCK[1], translation_path, 'gfx_font2.bin')
+        insert_binary(f, FONT2_VWF_TABLE[0] + 16, FONT2_VWF_TABLE[1], translation_path, 'gfx_vwf2.bin')
+        insert_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[0] + (16 * 8 * 3), translation_path, 'gfx_exp_font1.bin')
+        insert_binary(f, FONT1_VWF_TABLE[0], FONT1_VWF_TABLE[0] + 16, translation_path, 'gfx_exp_vwf1.bin')
+        insert_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[0] + (16 * 8 * 3), translation_path, 'gfx_exp_font2.bin')
+        insert_binary(f, FONT2_VWF_TABLE[0], FONT2_VWF_TABLE[0] + 16, translation_path, 'gfx_exp_vwf2.bin')
 
 import argparse
 parser = argparse.ArgumentParser()

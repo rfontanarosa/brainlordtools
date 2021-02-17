@@ -1,4 +1,5 @@
-import os, sys
+import os, sys, csv
+from collections import OrderedDict
 
 def read_text(f, offset, length=None, end_byte=None, cmd_list=None):
     text = b''
@@ -33,14 +34,14 @@ def write_byte(f, offset, byte):
     f.seek(offset)
     f.write(byte)
 
-def dump_gfx(f, start, end, path, filename):
+def dump_binary(f, start, end, path, filename):
     f.seek(start)
     block_size = end - start
     block = f.read(block_size)
-    with open(os.path.join(path, filename), 'wb') as gfx_file:
-        gfx_file.write(block)
+    with open(os.path.join(path, filename), 'wb') as out:
+        out.write(block)
 
-def insert_gfx(f, start, end, path, filename):
+def insert_binary(f, start, end, path, filename):
     with open(os.path.join(path, filename), 'rb') as f1:
         block = f1.read()
         if len(block) == end - start:
@@ -48,3 +49,13 @@ def insert_gfx(f, start, end, path, filename):
             f.write(block)
         else:
             raise Exception()
+
+def get_csv_translated_texts(filename):
+    translated_texts = OrderedDict()
+    with open(filename, 'r') as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        for row in csv_reader:
+            trans = row.get('trans') or row.get('text')
+            text_address = int(row['text_address'], 16)
+            translated_texts[text_address] = trans
+    return translated_texts

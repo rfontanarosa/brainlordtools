@@ -8,7 +8,7 @@ import sys, os, struct, sqlite3, shutil, csv
 from collections import OrderedDict
 
 from rhtools.utils import crc32
-from rhtools.dump import read_text, write_text, dump_gfx, insert_gfx
+from rhtools.dump import read_text, write_text, dump_binary, insert_binary
 from rhtools3.Table import Table
 
 CRC32 = 'AC443D87'
@@ -291,15 +291,15 @@ def brainlord_gfx_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_gfx(f, FONT1_BLOCK[0], FONT1_BLOCK[1], dump_path, 'gfx_font1.bin')
-        dump_gfx(f, FONT2_BLOCK[0], FONT2_BLOCK[1], dump_path, 'gfx_font2.bin')
+        dump_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1], dump_path, 'gfx_font1.bin')
+        dump_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[1], dump_path, 'gfx_font2.bin')
 
 def brainlord_gfx_inserter(args):
     dest_file = args.dest_file
     translation_path = args.translation_path
     with open(dest_file, 'r+b') as f:
-        insert_gfx(f, FONT1_BLOCK[0], FONT1_BLOCK[1], translation_path, 'gfx_font1.bin')
-        insert_gfx(f, FONT2_BLOCK[0], FONT2_BLOCK[1], translation_path, 'gfx_font2.bin')
+        insert_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1], translation_path, 'gfx_font1.bin')
+        insert_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[1], translation_path, 'gfx_font2.bin')
 
 def brainlord_bank_dumper(f, dump_path, table, id, bank, cur, start=0x0, end=0x0):
     f.seek(start)
