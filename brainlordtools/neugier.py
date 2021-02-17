@@ -138,6 +138,54 @@ def neugier_gfx_inserter(args):
         write_byte(f, 0x110055, b'\x08')
         write_byte(f, 0x110056, b'\x08')
 
+def neugier_misc_dumper(args):
+    source_file = args.source_file
+    table1_file = args.table1
+    dump_path = args.dump_path
+    if crc32(source_file) != CRC32:
+        sys.exit('SOURCE ROM CHECKSUM FAILED!')
+    table = Table(table1_file)
+    shutil.rmtree(dump_path, ignore_errors=True)
+    os.mkdir(dump_path)
+    with open(source_file, 'rb') as f:
+        # Enemy names
+        filename = os.path.join(dump_path, 'enemy_names.csv')
+        with open(filename, 'w+') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['text_address', 'text', 'trans'])
+            f.seek(0xc06d)
+            while f.tell() < 0xc3e7:
+                text_address = f.tell()
+                text = read_text(f, text_address, end_byte=b'\x40')
+                text_decoded = text.decode("utf-8")
+                fields = [hex(text_address), text_decoded]
+                csv_writer.writerow(fields)
+        # Credits
+        with open(source_file, 'rb') as f:
+            dump_binary(f, 0xd0919, 0xd0f37, dump_path, 'credits.bin')
+
+def neugier_misc_inserter(args):
+    source_file = args.source_file
+    dest_file = args.dest_file
+    table1_file = args.table1
+    table2_file = args.table2
+    translation_path = args.translation_path
+    if crc32(source_file) != CRC32:
+        sys.exit('SOURCE ROM CHECKSUM FAILED!')
+    table = Table(table1_file)
+    table2 = Table(table2_file)
+    with open(dest_file, 'r+b') as f:
+        # Enemy names
+        translation_file = os.path.join(translation_path, 'enemy_names.csv')
+        translated_texts = get_csv_translated_texts(translation_file)
+        for i, (t_address, t_value) in enumerate(translated_texts.items()):
+            text = t_value.encode()
+            if len(text) != 10:
+                sys.exit("{} exceeds".format(t_value))
+            write_text(f, t_address, text, length=10)
+        # Credits
+        insert_binary(f, 0xd0919, 0xd0f37, translation_path, 'credits.bin')
+
 import argparse
 parser = argparse.ArgumentParser()
 subparsers = parser.add_subparsers()
@@ -161,5 +209,17 @@ d_parser = subparsers.add_parser('insert_gfx', help='Execute GFX INSERTER')
 d_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 d_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
 d_parser.set_defaults(func=neugier_gfx_inserter)
+e_parser = subparsers.add_parser('dump_misc', help='Execute MISC DUMP')
+e_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+e_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+e_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+e_parser.set_defaults(func=neugier_misc_dumper)
+f_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
+f_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+f_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+f_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+f_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+f_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+f_parser.set_defaults(func=neugier_misc_inserter)
 args = parser.parse_args()
 args.func(args)
