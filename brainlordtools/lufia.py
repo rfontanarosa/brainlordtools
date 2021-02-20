@@ -76,12 +76,43 @@ def lufia_misc_dumper(args):
                 text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
                 fields = [hex(value), text_decoded]
                 csv_writer.writerow(fields)
-
+        # Magic
+        filename = os.path.join(dump_path, 'magic.csv')
+        with open(filename, 'w+') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['text_address', 'text', 'trans'])
+            pointers = OrderedDict()
+            f.seek(0xfdb00)
+            while f.tell() < 0xfdb6f:
+                pointers[f.tell()] = struct.unpack('H', f.read(2))[0] + 0xfdb00
+            for key, value in pointers.items():
+                f.seek(value)
+                text = f.read(8)
+                text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
+                fields = [hex(value), text_decoded]
+                csv_writer.writerow(fields)
+        # Magic descriptions
+        filename = os.path.join(dump_path, 'magic_descriptions.csv')
+        with open(filename, 'w+') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['text_address', 'text', 'trans'])
+            pointers = OrderedDict()
+            f.seek(0xfdb00)
+            while f.tell() < 0xfdb6f:
+                text_address = struct.unpack('H', f.read(2))[0] + 0xfdb00
+                f1.seek(text_address + 15)
+                pointers[f1.tell()] = struct.unpack('H', f1.read(2))[0] + 0xfdb00
+            for key, value in pointers.items():
+                text = read_text(f, value, end_byte=b'\00')
+                text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
+                fields = [hex(value), text_decoded]
+                print(value)
+                csv_writer.writerow(fields)
 
 import argparse
 parser = argparse.ArgumentParser()
 subparsers = parser.add_subparsers()
-a_parser = subparsers.add_parser('dump', help='Execute DUMP')
+a_parser = subparsers.add_parser('dump_text', help='Execute DUMP')
 a_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 a_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
 a_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
