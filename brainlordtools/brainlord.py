@@ -8,6 +8,7 @@ import sys, os, struct, sqlite3, shutil, csv
 from collections import OrderedDict
 
 from rhtools.utils import crc32
+from rhtools3.db import insert_text, convert_to_binary, select_translation_by_author, select_most_recent_translation
 from rhtools.dump import read_text, write_text, dump_binary, insert_binary
 from rhtools3.Table import Table
 
@@ -89,7 +90,7 @@ def get_pointers(f, start, count, step):
     pointers = OrderedDict()
     end = start + (count * step)
     f.seek(start)
-    while(f.tell() < end):
+    while f.tell() < end:
         p_offset = f.tell()
         pointer = f.read(step)
         p_value = struct.unpack('i', pointer[:3] + b'\x00')[0] - 0xc00000
@@ -140,7 +141,7 @@ def brainlord_misc_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
     dump_path = args.dump_path
-    if crc32(source_file) != CRC32:
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
@@ -152,7 +153,7 @@ def brainlord_credits_dumper(args):
     source_file = args.source_file
     table3_file = args.table3
     dump_path = args.dump_path
-    if crc32(source_file) != CRC32:
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table3_file)
     shutil.rmtree(dump_path, ignore_errors=True)
@@ -185,7 +186,7 @@ def brainlord_misc_inserter(args):
     table1_file = args.table1
     table2_file = args.table2
     translation_path = args.translation_path
-    if crc32(source_file) != CRC32:
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     table2 = Table(table2_file)
@@ -286,7 +287,7 @@ def brainlord_misc_inserter(args):
 def brainlord_gfx_dumper(args):
     source_file = args.source_file
     dump_path = args.dump_path
-    if crc32(source_file) != CRC32:
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
@@ -301,16 +302,14 @@ def brainlord_gfx_inserter(args):
         insert_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1], translation_path, 'gfx_font1.bin')
         insert_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[1], translation_path, 'gfx_font2.bin')
 
-def brainlord_bank_dumper(f, dump_path, table, id, bank, cur, start=0x0, end=0x0):
+def brainlord_bank_dumper(f, dump_path, table, id, block, cur, start=0x0, end=0x0):
     f.seek(start)
     while f.tell() < end:
         text_address = f.tell()
         text = read_text(f, text_address, end_byte=b'\xf7')
         text_decoded = table.decode(text, mte_resolver=True, dict_resolver=False, cmd_list={0xf6: 1, 0xfb: 5, 0xfc: 5, 0xfd: 2, 0xfe: 2, 0xff: 3})
         # dump - db
-        text_binary = sqlite3.Binary(text)
-        text_length = len(text_binary)
-        cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, ?)', (id, text_binary, text_decoded, text_address, '', text_length, bank))
+        insert_text(cur, id, convert_to_binary(text), text_decoded, text_address, '', block, '')
         # dump - txt
         filename = os.path.join(dump_path, 'dump_eng.txt')
         with open(filename, 'a+') as out:
@@ -323,7 +322,7 @@ def brainlord_text_dumper(args):
     table1_file = args.table1
     dump_path = args.dump_path
     db = args.database_file
-    if crc32(source_file) != CRC32:
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     conn = sqlite3.connect(db)
@@ -351,7 +350,7 @@ def brainlord_text_inserter(args):
     translation_path = args.translation_path
     db = args.database_file
     user_name = args.user
-    if crc32(source_file) != CRC32:
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table2_file)
     conn = sqlite3.connect(db)
@@ -363,31 +362,18 @@ def brainlord_text_inserter(args):
     with open(dest_file, 'r+b') as fw:
         fw.seek(NEW_TEXT_BLOCK1_START)
         # db
-        # cur.execute("SELECT text, new_text, text_encoded, id, new_text2, address, pointer_address, size FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s' AND trans.status = 2) AS t2 ON t1.id=t2.id_text WHERE t1.block IN (1, 2, 3, 4, 5, 6, 7)" % (user_name))
-        cur.execute("SELECT * FROM (SELECT text, new_text, text_encoded, id, new_text2, address, size, t2.author, COALESCE(t2.date, 1) AS date FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE status = 2) AS t2 ON t1.id=t2.id_text WHERE t1.block IN (1, 2, 3, 4, 5, 6, 7)) WHERE 1=1 GROUP BY id HAVING MAX(date)")
-        for row in cur:
-            address = row[5]
-            original_text = row[2]
-            new_text = row[4]
-            text = new_text if new_text else original_text
+        rows = select_most_recent_translation(cur, ['1', '2', '3', '4', '5', '6', '7'])
+        for row in rows:
+            address = row[3]
+            text_decoded = row[2]
+            translation = row[5]
+            text = translation if translation else text_decoded
             encoded_text = table.encode(text, mte_resolver=True, dict_resolver=False)
             if fw.tell() < 0x1a0000 and fw.tell() + len(encoded_text) > 0x19ffff:
                 fw.seek(0x1a0000)
             new_pointers[int(address)] = fw.tell()
             fw.write(encoded_text)
             fw.write(b'\xf7')
-        # txt
-        """
-        filenames = os.listdir(translation_path)
-        for filename in filenames:
-            id, address = filename.replace('.txt', '').split(' - ')
-            new_pointers[int(address)] = fw.tell()
-            with open(os.path.join(translation_path, filename), 'rb') as fr:
-                text = fr.read()
-                encoded_text = table.encode(text, mte_resolver=True, dict_resolver=False)
-                fw.write(encoded_text)
-                fw.write(b'\xf7')
-        """
         NEW_TEXT_BLOCK1_END = fw.tell()
     # pointer block 1
     with open(dest_file, 'r+b') as fw:
@@ -763,7 +749,7 @@ def item_pointers_finder(fw, start, end):
 def brainlord_expander(args):
     source_file = args.source_file
     dest_file = args.dest_file
-    if crc32(source_file) != CRC32:
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     shutil.copy(source_file, dest_file)
     with open(dest_file, 'r+b') as f:
@@ -772,54 +758,61 @@ def brainlord_expander(args):
 
 import argparse
 parser = argparse.ArgumentParser()
+parser.add_argument('--no_crc32_check', action='store_true', dest='no_crc32_check', required=False, default=False, help='CRC32 Check')
+parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
-a_parser = subparsers.add_parser('dump_misc', help='Execute MISC DUMP')
-a_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-a_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-a_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-a_parser.set_defaults(func=brainlord_misc_dumper)
-b_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
-b_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-b_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-b_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-b_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
-b_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-b_parser.set_defaults(func=brainlord_misc_inserter)
-c_parser = subparsers.add_parser('dump_gfx', help='Execute GFX DUMP')
-c_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-c_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-c_parser.set_defaults(func=brainlord_gfx_dumper)
-d_parser = subparsers.add_parser('insert_gfx', help='Execute GFX INSERTER')
-d_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-d_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-d_parser.set_defaults(func=brainlord_gfx_inserter)
-e_parser = subparsers.add_parser('dump_text', help='Execute TEXT DUMP')
-e_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-e_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-e_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-e_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
-e_parser.set_defaults(func=brainlord_text_dumper)
-f_parser = subparsers.add_parser('insert_text', help='Execute TEXT INSERTER')
-f_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-f_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-f_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
-f_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-f_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
-f_parser.add_argument('-u', '--user', action='store', dest='user', help='')
-f_parser.set_defaults(func=brainlord_text_inserter)
-z_parser = subparsers.add_parser('expand', help='Execute EXPANDER')
-z_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-z_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-z_parser.set_defaults(func=brainlord_expander)
-y_parser = subparsers.add_parser('dump_credits', help='Execute CREDITS DUMP')
-y_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-y_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Credits table filename')
-y_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-y_parser.set_defaults(func=brainlord_credits_dumper)
-x_parser = subparsers.add_parser('insert_credits', help='Execute CREDITS INSERTER')
-x_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-x_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Credits table filename')
-x_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-x_parser.set_defaults(func=brainlord_credits_inserter)
-args = parser.parse_args()
-args.func(args)
+dump_text_parser = subparsers.add_parser('dump_text', help='Execute TEXT DUMP')
+dump_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+dump_text_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+dump_text_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+dump_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+dump_text_parser.set_defaults(func=brainlord_text_dumper)
+insert_text_parser = subparsers.add_parser('insert_text', help='Execute TEXT INSERTER')
+insert_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+insert_text_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_text_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+insert_text_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+insert_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+insert_text_parser.add_argument('-u', '--user', action='store', dest='user', help='')
+insert_text_parser.set_defaults(func=brainlord_text_inserter)
+dump_gfx_parser = subparsers.add_parser('dump_gfx', help='Execute GFX DUMP')
+dump_gfx_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+dump_gfx_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+dump_gfx_parser.set_defaults(func=brainlord_gfx_dumper)
+insert_gfx_parser = subparsers.add_parser('insert_gfx', help='Execute GFX INSERTER')
+insert_gfx_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_gfx_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+insert_gfx_parser.set_defaults(func=brainlord_gfx_inserter)
+dump_misc_parser = subparsers.add_parser('dump_misc', help='Execute MISC DUMP')
+dump_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+dump_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+dump_misc_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+dump_misc_parser.set_defaults(func=brainlord_misc_dumper)
+insert_misc_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
+insert_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+insert_misc_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+insert_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+insert_misc_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+insert_misc_parser.set_defaults(func=brainlord_misc_inserter)
+expand_parser = subparsers.add_parser('expand', help='Execute EXPANDER')
+expand_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+expand_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+expand_parser.set_defaults(func=brainlord_expander)
+dump_credits_parser = subparsers.add_parser('dump_credits', help='Execute CREDITS DUMP')
+dump_credits_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+dump_credits_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Credits table filename')
+dump_credits_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+dump_credits_parser.set_defaults(func=brainlord_credits_dumper)
+insert_credits_parser = subparsers.add_parser('insert_credits', help='Execute CREDITS INSERTER')
+insert_credits_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_credits_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Credits table filename')
+insert_credits_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+insert_credits_parser.set_defaults(func=brainlord_credits_inserter)
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+    if args.func:
+        args.func(args)
+    else:
+        parser.print_help()
