@@ -77,12 +77,17 @@ def clean_text(text):
 # ROM #
 #######
 
-def crc32(file):
-	import zlib
+import zlib
+
+def crc32(filename):
 	prev = 0
-	for eachLine in open(file, 'rb'):
-		prev = zlib.crc32(eachLine, prev)
+	for line in open(filename, 'rb'):
+		prev = zlib.crc32(line, prev)
 	return '%X' % (prev & 0xFFFFFFFF)
+
+########
+# TEST #
+########
 
 import unittest
 

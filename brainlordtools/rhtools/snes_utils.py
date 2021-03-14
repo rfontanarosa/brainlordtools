@@ -26,11 +26,8 @@ def get_checksum(filename):
         # complement1 = struct.pack('H', complement & 0xFFFF)
     return(checksum)
 
-class SnesHeader():
-    pass
+# class SnesHeader():
+#     pass
 
-if __name__ == '__main__':
-    print(get_checksum('/Users/rfontanarosa/roms/snes/Final Fantasy - Mystic Quest (U) (V1.1).sfc'))
-
-
-
+# if __name__ == '__main__':
+#     print(get_checksum('/Users/rfontanarosa/roms/snes/Final Fantasy - Mystic Quest (U) (V1.1).sfc'))

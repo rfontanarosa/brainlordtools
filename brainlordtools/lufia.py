@@ -10,7 +10,7 @@ from collections import OrderedDict
 from rhtools.utils import crc32
 from rhtools3.db import insert_text, convert_to_binary, select_translation_by_author, select_most_recent_translation
 from rhtools.dump import read_text, write_text, dump_binary, insert_binary
-from rhtools.Snes import snes2pc_lorom, pc2snes_lorom
+from rhtools.snes_utils import snes2pc_lorom, pc2snes_lorom
 from rhtools3.Table import Table
 
 CRC32 = '5E1AA1A6'
