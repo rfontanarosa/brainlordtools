@@ -12,6 +12,12 @@ def pc2snes_lorom(offset):
 def snes2pc_lorom(offset):
     return (int(offset / 2) & 0xFF0000) + (offset & 0xFFFF) - 0x8000
 
+def pc2snes_hirom(offset):
+    return offset + 0xc00000
+
+def snes2pc_hirom(offset):
+    return offset - 0xc00000
+
 def has_smc_header(filename):
     rest = os.stat(filename).st_size % 1024
     return False if rest == 0 else True if rest == 512 else None
