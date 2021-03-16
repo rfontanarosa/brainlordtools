@@ -23,11 +23,14 @@ TEXT_BLOCK1 = (0x60000, 0x6fdde)
 TEXT_BLOCK2 = (0x70000, 0x733c1)
 TEXT_BLOCK3 = (0x741f7, 0x75343)
 
+MISC_BLOCK1 = (0x733c2, 0x741f6)
+MISC_BLOCK2 = (0x75345, 0x7545f)
+
 POINTER_BLOCK = (0x425db, 0x4269b)
 
 FONT1_BLOCK = (0x13722d, 0x13B22d)
 
-def brainlord_bank_dumper(f, dump_path, table, id, block, cur, start=0x0, end=0x0):
+def seventhsaga_bank_dumper(f, dump_path, table, id, block, cur, start=0x0, end=0x0):
     f.seek(start)
     while f.tell() < end:
         text_address = f.tell()
@@ -42,6 +45,30 @@ def brainlord_bank_dumper(f, dump_path, table, id, block, cur, start=0x0, end=0x
             out.write(ref + '\n' + text_decoded + "\n\n")
         id += 1
     return id
+
+def dump_blocks(f, table, dump_path):
+    filename = os.path.join(dump_path, 'misc1.csv')
+    with open(filename, 'w+') as csv_file:
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow(['text_address', 'text', 'trans'])
+        f.seek(MISC_BLOCK1[0])
+        while f.tell() <= MISC_BLOCK1[1]:
+            text_address = f.tell()
+            text = read_text(f, text_address, end_byte=b'\xf7')
+            text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
+            fields = [hex(text_address), text_decoded]
+            csv_writer.writerow(fields)
+    filename = os.path.join(dump_path, 'misc2.csv')
+    with open(filename, 'w+') as csv_file:
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow(['text_address', 'text', 'trans'])
+        f.seek(MISC_BLOCK2[0])
+        while f.tell() <= MISC_BLOCK2[1]:
+            text_address = f.tell()
+            text = read_text(f, text_address, end_byte=b'\xf7')
+            text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
+            fields = [hex(text_address), text_decoded]
+            csv_writer.writerow(fields)
 
 def seventhsaga_text_dumper(args):
     source_file = args.source_file
@@ -58,9 +85,9 @@ def seventhsaga_text_dumper(args):
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
         id = 1
-        id = brainlord_bank_dumper(f, dump_path, table, id, 1, cur, TEXT_BLOCK1[0], TEXT_BLOCK1[1])
-        id = brainlord_bank_dumper(f, dump_path, table, id, 2, cur, TEXT_BLOCK2[0], TEXT_BLOCK2[1])
-        id = brainlord_bank_dumper(f, dump_path, table, id, 3, cur, TEXT_BLOCK3[0], TEXT_BLOCK3[1])
+        id = seventhsaga_bank_dumper(f, dump_path, table, id, 1, cur, TEXT_BLOCK1[0], TEXT_BLOCK1[1])
+        id = seventhsaga_bank_dumper(f, dump_path, table, id, 2, cur, TEXT_BLOCK2[0], TEXT_BLOCK2[1])
+        id = seventhsaga_bank_dumper(f, dump_path, table, id, 3, cur, TEXT_BLOCK3[0], TEXT_BLOCK3[1])
     cur.close()
     conn.commit()
     conn.close()
@@ -99,6 +126,18 @@ def seventhsaga_gfx_inserter(args):
     with open(dest_file, 'r+b') as f:
         insert_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1], translation_path, 'gfx_font1.bin')
 
+def seventhsaga_misc_dumper(args):
+    source_file = args.source_file
+    table1_file = args.table1
+    dump_path = args.dump_path
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
+        sys.exit('SOURCE ROM CHECKSUM FAILED!')
+    table = Table(table1_file)
+    shutil.rmtree(dump_path, ignore_errors=True)
+    os.mkdir(dump_path)
+    with open(source_file, 'rb') as f:
+        dump_blocks(f, table, dump_path)
+
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--no_crc32_check', action='store_true', dest='no_crc32_check', required=False, default=False, help='CRC32 Check')
@@ -126,11 +165,11 @@ insert_gfx_parser = subparsers.add_parser('insert_gfx', help='Execute GFX INSERT
 insert_gfx_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 insert_gfx_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
 insert_gfx_parser.set_defaults(func=seventhsaga_gfx_inserter)
-# dump_misc_parser = subparsers.add_parser('dump_misc', help='Execute MISC DUMP')
-# dump_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-# dump_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-# dump_misc_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-# dump_misc_parser.set_defaults(func=brainlord_misc_dumper)
+dump_misc_parser = subparsers.add_parser('dump_misc', help='Execute MISC DUMP')
+dump_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+dump_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+dump_misc_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+dump_misc_parser.set_defaults(func=seventhsaga_misc_dumper)
 # insert_misc_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
 # insert_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 # insert_misc_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
