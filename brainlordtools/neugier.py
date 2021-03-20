@@ -8,6 +8,7 @@ import sys, os, struct, sqlite3, shutil, csv
 from collections import OrderedDict
 
 from rhtools.utils import crc32
+from rhtools3.db import insert_text, convert_to_binary, select_translation_by_author, select_most_recent_translation
 from rhtools.dump import read_text, write_text, write_byte, dump_binary, insert_binary, get_csv_translated_texts
 from rhtools.snes_utils import snes2pc_lorom, pc2snes_lorom
 from rhtools3.Table import Table
@@ -21,16 +22,17 @@ POINTER_BLOCK1_END = POINTER_BLOCK1_LIMIT = 0x112ac
 TEXT_BLOCK1_START = 0x100000
 TEXT_BLOCK1_END = TEXT_BLOCK1_LIMIT = 0x1fffff
 
+GFX_STATUS_OFFSETS = (0x1d680, 0x1de80)
 GFX_NEW_GAME_OFFSETS = (0x26200, 0x26800)
 GFX_FONT_OFFSETS = (0x28000, 0x28980)
-GFX_STATUS_OFFSETS = (0x1d680, 0x1dc80)
+GFX_INTRO_OFFSETS = (0x29200, 0x2a800)
 
-def neugier_dumper(args):
+def neugier_text_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
     dump_path = args.dump_path
     db = args.database_file
-    if crc32(source_file) != CRC32:
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     conn = sqlite3.connect(db)
@@ -43,31 +45,29 @@ def neugier_dumper(args):
         pointers = OrderedDict()
         f.seek(POINTER_BLOCK1_START)
         while f.tell() < POINTER_BLOCK1_END:
-            paddress = f.tell()
-            pvalue = f.read(3)
-            taddress = snes2pc_lorom(struct.unpack('i', pvalue[1:] + bytes([pvalue[0]]) + b'\x00')[0])
-            pointers.setdefault(taddress, []).append(paddress)
+            p_address = f.tell()
+            p_value = f.read(3)
+            text_address = snes2pc_lorom(struct.unpack('i', p_value[1:] + bytes([p_value[0]]) + b'\x00')[0])
+            pointers.setdefault(text_address, []).append(p_address)
         # TEXT 1
         id = 1
-        for i, (taddress, paddresses) in enumerate(pointers.items()):
-            pointer_addresses = ';'.join(str(hex(x)) for x in paddresses)
-            text = read_text(f, taddress, end_byte=b'\x00')
-            text += b'\x00'
+        for i, (text_address, p_addresses) in enumerate(pointers.items()):
+            pointer_addresses = ';'.join(str(hex(x)) for x in p_addresses)
+            text = read_text(f, text_address, end_byte=b'\x00')
             text_decoded = table.decode(text)
+            ref = '[BLOCK {}: {} to {}]'.format(str(id), hex(text_address), hex(f.tell() -1))
             # dump - db
-            text_binary = sqlite3.Binary(text)
-            text_length = len(text_binary)
-            cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, ?)', (id, text_binary, text_decoded, taddress, pointer_addresses, text_length, 1))
+            insert_text(cur, id, convert_to_binary(text), text_decoded, text_address, pointer_addresses, 1, ref)
             # dump - txt
             filename = os.path.join(dump_path, 'dump_eng.txt')
             with open(filename, 'a+') as out:
-                out.write(text_decoded)
+                out.write(ref + '\n' + text_decoded + "\n\n")
             id += 1
         cur.close()
         conn.commit()
         conn.close()
 
-def neugier_inserter(args):
+def neugier_text_inserter(args):
     dest_file = args.dest_file
     table2_file = args.table2
     db = args.database_file
@@ -79,13 +79,14 @@ def neugier_inserter(args):
     with open(dest_file, 'r+b') as f:
         # TEXT
         f.seek(TEXT_BLOCK1_START)
-        cur.execute("SELECT text, new_text, text_encoded, id, new_text2, address, pointer_address, size FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s' AND trans.status = 2) AS t2 ON t1.id=t2.id_text WHERE t1.block = %d" % (user_name, 1))
-        for row in cur:
+        rows = select_translation_by_author(cur, user_name, ['1'])
+        for row in rows:
             # INSERTER X
-            id = row[3]
-            original_text = row[2]
-            new_text = row[4]
-            text = new_text if new_text else original_text
+            id = row[0]
+            address = row[3]
+            text_decoded = row[2]
+            translation = row[5]
+            text = translation if translation else text_decoded
             decoded_text = table.encode(text)
             new_text_address = f.tell()
             if new_text_address + len(decoded_text) > (TEXT_BLOCK1_LIMIT + 1):
@@ -94,6 +95,7 @@ def neugier_inserter(args):
                 new_text_address = TEXT_BLOCK1_START + 0x8000
             f.seek(new_text_address)
             f.write(decoded_text)
+            f.write(b'\x00')
             next_text_address = f.tell()
             # REPOINTER X
             pointer_addresses = row[6]
@@ -113,22 +115,24 @@ def neugier_inserter(args):
 def neugier_gfx_dumper(args):
     source_file = args.source_file
     dump_path = args.dump_path
-    if crc32(source_file) != CRC32:
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
+        dump_binary(f, GFX_STATUS_OFFSETS[0], GFX_STATUS_OFFSETS[1], dump_path, 'gfx_status.bin')
         dump_binary(f, GFX_NEW_GAME_OFFSETS[0], GFX_NEW_GAME_OFFSETS[1], dump_path, 'gfx_new_game.bin')
         dump_binary(f, GFX_FONT_OFFSETS[0], GFX_FONT_OFFSETS[1], dump_path, 'gfx_font.bin')
-        dump_binary(f, GFX_STATUS_OFFSETS[0], GFX_STATUS_OFFSETS[1], dump_path, 'gfx_status.bin')
+        dump_binary(f, GFX_INTRO_OFFSETS[0], GFX_INTRO_OFFSETS[1], dump_path, 'gfx_intro.bin')
 
 def neugier_gfx_inserter(args):
     dest_file = args.dest_file
     translation_path = args.translation_path
     with open(dest_file, 'r+b') as f:
+        insert_binary(f, GFX_STATUS_OFFSETS[0], GFX_STATUS_OFFSETS[1], translation_path, 'gfx_status.bin')
         insert_binary(f, GFX_NEW_GAME_OFFSETS[0], GFX_NEW_GAME_OFFSETS[1], translation_path, 'gfx_new_game.bin')
         insert_binary(f, GFX_FONT_OFFSETS[0], GFX_FONT_OFFSETS[1], translation_path, 'gfx_font.bin')
-        insert_binary(f, GFX_STATUS_OFFSETS[0], GFX_STATUS_OFFSETS[1], translation_path, 'gfx_status.bin')
+        insert_binary(f, GFX_INTRO_OFFSETS[0], GFX_INTRO_OFFSETS[1], translation_path, 'gfx_intro.bin')
         # VWF
         write_byte(f, 0x110050, b'\x07')
         write_byte(f, 0x110051, b'\x07')
@@ -142,7 +146,7 @@ def neugier_misc_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
     dump_path = args.dump_path
-    if crc32(source_file) != CRC32:
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
@@ -188,38 +192,45 @@ def neugier_misc_inserter(args):
 
 import argparse
 parser = argparse.ArgumentParser()
+parser.add_argument('--no_crc32_check', action='store_true', dest='no_crc32_check', required=False, default=False, help='CRC32 Check')
+parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
-a_parser = subparsers.add_parser('dump', help='Execute DUMP')
-a_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-a_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-a_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-a_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
-a_parser.set_defaults(func=neugier_dumper)
-b_parser = subparsers.add_parser('insert', help='Execute INSERTER')
-b_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-b_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
-b_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
-b_parser.add_argument('-u', '--user', action='store', dest='user', help='')
-b_parser.set_defaults(func=neugier_inserter)
-c_parser = subparsers.add_parser('dump_gfx', help='Execute GFX DUMP')
-c_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-c_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-c_parser.set_defaults(func=neugier_gfx_dumper)
-d_parser = subparsers.add_parser('insert_gfx', help='Execute GFX INSERTER')
-d_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-d_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-d_parser.set_defaults(func=neugier_gfx_inserter)
-e_parser = subparsers.add_parser('dump_misc', help='Execute MISC DUMP')
-e_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-e_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-e_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-e_parser.set_defaults(func=neugier_misc_dumper)
-f_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
-f_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-f_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-f_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-f_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
-f_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-f_parser.set_defaults(func=neugier_misc_inserter)
-args = parser.parse_args()
-args.func(args)
+dump_text_parser = subparsers.add_parser('dump_text', help='Execute DUMP')
+dump_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+dump_text_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+dump_text_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+dump_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+dump_text_parser.set_defaults(func=neugier_text_dumper)
+insert_text_parser = subparsers.add_parser('insert_text', help='Execute INSERTER')
+insert_text_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_text_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+insert_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+insert_text_parser.add_argument('-u', '--user', action='store', dest='user', help='')
+insert_text_parser.set_defaults(func=neugier_text_inserter)
+dump_gfx_parser = subparsers.add_parser('dump_gfx', help='Execute GFX DUMP')
+dump_gfx_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+dump_gfx_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+dump_gfx_parser.set_defaults(func=neugier_gfx_dumper)
+insert_gfx_parser = subparsers.add_parser('insert_gfx', help='Execute GFX INSERTER')
+insert_gfx_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_gfx_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+insert_gfx_parser.set_defaults(func=neugier_gfx_inserter)
+dump_misc_parser = subparsers.add_parser('dump_misc', help='Execute MISC DUMP')
+dump_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+dump_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+dump_misc_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+dump_misc_parser.set_defaults(func=neugier_misc_dumper)
+insert_misc_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
+insert_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+insert_misc_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+insert_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+insert_misc_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+insert_misc_parser.set_defaults(func=neugier_misc_inserter)
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+    if args.func:
+        args.func(args)
+    else:
+        parser.print_help()
