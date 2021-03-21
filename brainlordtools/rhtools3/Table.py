@@ -24,20 +24,18 @@ class Table():
         self._mte = OrderedDict()
         self._dict = OrderedDict()
 
-        self._reverse_table = None
-        self._reverse_mte = None
-        self._reverse_dict = {}
+        self._reverse_table = OrderedDict()
+        self._reverse_mte = OrderedDict()
+        self._reverse_dict = OrderedDict()
 
         with open(filename, 'r') as f:
             for line in f:
-                line = line.strip('\n')
+                line = line.strip('\r\n').replace('\\n', '\n')
                 if line.startswith(Table.COMMENT_CHAR) or line.startswith('//'):
                     self._comments.append(line[1:])
                 else:
                     if '=' in line:
-                        parts = line.partition('=')
-                        part_key = parts[0]
-                        part_value = parts[2].replace('\r', '').replace('\n', '')
+                        (part_key, _, part_value) = line.partition('=')
                         if part_value:
                             if len(part_key) == 4:
                                 key = int(part_key[:2], 16)
@@ -50,8 +48,10 @@ class Table():
                                 key = int(part_key, 16)
                                 if len(part_value) > 1:
                                     self._mte[key] = part_value
+                                    self._reverse_mte[part_value] = key
                                 else:
                                     self._table[key] = part_value
+                                    self._reverse_table[part_value] = key
                     # end of string
                     elif line.startswith(Table.EOS_CHAR):
                         self._eos = int(line[1:], 16)
@@ -61,8 +61,8 @@ class Table():
                         self._eol = int(line[1:len(line)], 16)
                         self._table[int(line[1:len(line)], 16)] = '\n'
             # init reverse
-            self._reverse_table = {v: k for k, v in self._table.items()}
-            self._reverse_mte = OrderedDict({v: k for k, v in self._mte.items()})
+            # self._reverse_table = {v: k for k, v in self._table.items()}
+            # self._reverse_mte = OrderedDict({v: k for k, v in self._mte.items()})
             self._reverse_mte_keys = sorted(self._reverse_mte, key=len, reverse=True)
             self._reverse_dict_keys = sorted(self._reverse_dict, key=len, reverse=True)
 
@@ -83,14 +83,6 @@ class Table():
 
     def get(self, key):
         return self._table.get(key)
-
-    def separateByteEncode(self, text):
-        decoded = b''
-        if (text):
-            iter = enumerate(text)
-            for i, byte in iter:
-                decoded += self.PATTERN_SEPARATED_BYTE.format(byte)
-        return decoded
 
     def decode(self, text, mte_resolver=True, dict_resolver=True, eol_resolver=True, cmd_list=None):
         """ decode bytes into string """
