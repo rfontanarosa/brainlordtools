@@ -36,8 +36,7 @@ def write_byte(f, offset, byte):
 
 def dump_binary(f, start, end, path, filename):
     f.seek(start)
-    block_size = end - start
-    block = f.read(block_size)
+    block = f.read(end - start)
     with open(os.path.join(path, filename), 'wb') as out:
         out.write(block)
 

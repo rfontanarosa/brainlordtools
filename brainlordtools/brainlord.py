@@ -306,7 +306,7 @@ def brainlord_bank_dumper(f, dump_path, table, id, block, cur, start=0x0, end=0x
     f.seek(start)
     while f.tell() < end:
         text_address = f.tell()
-        text = read_text(f, text_address, end_byte=b'\xf7')
+        text = read_text(f, text_address, end_byte=b'\xf7', cmd_list={b'\xfc': 5})
         text_decoded = table.decode(text, mte_resolver=True, dict_resolver=False, cmd_list={0xf6: 1, 0xfb: 5, 0xfc: 5, 0xfd: 2, 0xfe: 2, 0xff: 3})
         # dump - db
         insert_text(cur, id, convert_to_binary(text), text_decoded, text_address, '', block, '')

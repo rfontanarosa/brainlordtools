@@ -69,7 +69,7 @@ def ruinarm_text_dumper(args):
                 pointer_addresses = ';'.join(str(hex(x)) for x in p_addresses)
                 text = ruinarm_read_text(f, text_address)
                 text_decoded = table.decode(text)
-                ref = '[BLOCK {}: BANK {} - {} to {} - {}]'.format(str(id), str(k + 1), hex(text_address), hex(f.tell() -1), pointer_addresses)
+                ref = '[BLOCK {}: {} to {} - BANK {} - {}]'.format(str(id), hex(text_address), hex(f.tell() -1), str(k + 1), pointer_addresses)
                 # dump - db
                 insert_text(cur, id, convert_to_binary(text), text_decoded, text_address, pointer_addresses, 1, ref)
                 # dump - txt
@@ -80,6 +80,52 @@ def ruinarm_text_dumper(args):
         cur.close()
         conn.commit()
         conn.close()
+
+def ruinarm_text_inserter(args):
+    source_file = args.source_file
+    dest_file = args.dest_file
+    table2_file = args.table2
+    translation_path = args.translation_path
+    db = args.database_file
+    user_name = args.user
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
+        sys.exit('SOURCE ROM CHECKSUM FAILED!')
+    table = Table(table2_file)
+    buffer = OrderedDict()
+    #
+    translation_file = os.path.join(translation_path, 'dump_ita.txt')
+    with open(translation_file, 'r') as f:
+        for line in f:
+            if '[BLOCK ' in line:
+                splitted_line = line.split(' ')
+                block = int(splitted_line[1].replace(':', ''))
+                offset_from = int(splitted_line[2], 16)
+                offset_to = int(splitted_line[4], 16)
+                buffer[block] = ['', [offset_from, offset_to]]
+            else:
+                buffer[block][0] += line
+    #
+    with open(dest_file, 'rb+') as f:
+        for block, value in buffer.items():
+            [text, offsets] = value
+            encoded_text = table.encode(text[:-2])
+            [offset_from, offset_to] = offsets
+            f.seek(offset_from)
+
+            swapped_text = b''
+            i = 0
+            while i < len(encoded_text):
+                swapped_text += encoded_text[i:i+2][::-1]
+                i += 2
+
+            f.write(swapped_text)
+
+            # if block == 3:
+            #     print(swapped_text)
+            #     print(table.decode(swapped_text, tbl_resolver=False, dict_resolver=False, mte_resolver=False, ctrl_resolver=False))
+            #     print(hex(f.tell()))
+
+
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -92,6 +138,14 @@ dump_text_parser.add_argument('-t1', '--table1', action='store', dest='table1', 
 dump_text_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
 dump_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
 dump_text_parser.set_defaults(func=ruinarm_text_dumper)
+insert_text_parser = subparsers.add_parser('insert_text', help='Execute TEXT INSERTER')
+insert_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+insert_text_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_text_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+insert_text_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+insert_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+insert_text_parser.add_argument('-u', '--user', action='store', dest='user', help='')
+insert_text_parser.set_defaults(func=ruinarm_text_inserter)
 
 if __name__ == "__main__":
     args = parser.parse_args()
