@@ -10,9 +10,11 @@ from collections import OrderedDict
 class Table():
 
     COMMENT_CHAR = ';'
-    EOS_CHAR = '/'
+    # EOS_CHAR = '/'
     EOL_CHAR = '*'
-    PATTERN_SEPARATED_BYTE = '{{{:02x}}}'
+
+    HEX_FORMAT = '{{{:02x}}}'
+    DOUBLE_HEX_FORMAT =  HEX_FORMAT + HEX_FORMAT
 
     def __init__(self, filename):
 
@@ -50,10 +52,6 @@ class Table():
                                 else:
                                     self._table[key] = part_value
                                     self._reverse_table[part_value] = key
-                    # end of string
-                    elif line.startswith(Table.EOS_CHAR):
-                        self._eos = int(line[1:], 16)
-                        self._table[int(line[1:], 16)] = '\r'
                     # end of line
                     elif line.startswith(Table.EOL_CHAR):
                         self._eol = int(line[1:len(line)], 16)
@@ -87,35 +85,27 @@ class Table():
             i = 0
             while i < len(text):
                 byte = text[i]
-                if self.is_eos(byte):
-                    decoded.append(self.PATTERN_SEPARATED_BYTE.format(byte))
-                elif self.is_eol(byte):
-                    if eol_resolver:
-                        decoded.append('\n')
-                    else:
-                        decoded.append(self.PATTERN_SEPARATED_BYTE.format(byte))
-                else:
+                if True:
                     if cmd_list and byte in cmd_list.keys():
-                        decoded.append(self.PATTERN_SEPARATED_BYTE.format(byte))
+                        decoded.append(self.HEX_FORMAT.format(byte))
                         bytes_to_read = cmd_list.get(byte)
                         for _ in range(bytes_to_read):
                             i += 1
                             byte = text[i]
-                            decoded.append(self.PATTERN_SEPARATED_BYTE.format(byte))
+                            decoded.append(self.HEX_FORMAT.format(byte))
                     elif dict_resolver and byte in self._dict:
                         i += 1
                         byte2 = text[i]
                         if byte2 in self._dict[byte]:
                             decoded.append(self._dict[byte][byte2])
                         else:
-                            decoded.append(self.PATTERN_SEPARATED_BYTE.format(byte))
-                            decoded.append(self.PATTERN_SEPARATED_BYTE.format(byte2))
+                            decoded.append(self.DOUBLE_HEX_FORMAT.format(byte, byte2))
                     elif mte_resolver and byte in self._mte:
                         decoded.append(self._mte[byte])
                     elif tbl_resolver and byte in self._table:
                         decoded.append(self._table[byte])
                     else:
-                        decoded.append(self.PATTERN_SEPARATED_BYTE.format(byte))
+                        decoded.append(self.HEX_FORMAT.format(byte))
                 i += 1
         return ''.join(decoded)
 
@@ -127,19 +117,18 @@ class Table():
                 for value in self._reverse_dict_keys:
                     if value in text:
                         key = self._reverse_dict[value]
-                        h1 = self.PATTERN_SEPARATED_BYTE.format(key[0])
-                        h2 = self.PATTERN_SEPARATED_BYTE.format(key[1])
-                        text = text.replace(value, h1 + h2)
+                        h = self.DOUBLE_HEX_FORMAT.format(key[0], key[1])
+                        text = re.sub(r'(?!{})({})(?!{}|.{{1}}{})'.format(self.HEX_FORMAT[0], re.escape(value), self.HEX_FORMAT[-1], self.HEX_FORMAT[-1]), h, text)
             if mte_resolver:
                 for value in self._reverse_mte_keys:
                     if value in text:
                         key = self._reverse_mte[value]
-                        h = self.PATTERN_SEPARATED_BYTE.format(key)
-                        text = re.sub(r'(?!{})({})(?!{})'.format(self.PATTERN_SEPARATED_BYTE[0], re.escape(value), self.PATTERN_SEPARATED_BYTE[-1]), h, text)
+                        h = self.HEX_FORMAT.format(key)
+                        text = re.sub(r'(?!{})({})(?!{})'.format(self.HEX_FORMAT[0], re.escape(value), self.HEX_FORMAT[-1]), h, text)
             i = 0
             while i < len(text):
                 char = text[i]
-                if char == self.PATTERN_SEPARATED_BYTE[0]:
+                if char == self.HEX_FORMAT[0]:
                     char_to_decode = text[i+1:i+3]
                     byte_decoded = bytes.fromhex(char_to_decode)
                     encoded += byte_decoded
