@@ -40,9 +40,7 @@ class Table():
                             if len(part_key) == 4:
                                 key = int(part_key[:2], 16)
                                 subkey = int(part_key[2:], 16)
-                                if key not in self._dict:
-                                    self._dict[key] = OrderedDict()
-                                self._dict[key][subkey] = part_value
+                                self._dict.setdefault(key, OrderedDict())[subkey] = part_value
                                 self._reverse_dict[part_value] = (key, subkey)
                             else:
                                 key = int(part_key, 16)
@@ -61,8 +59,6 @@ class Table():
                         self._eol = int(line[1:len(line)], 16)
                         self._table[int(line[1:len(line)], 16)] = '\n'
             # init reverse
-            # self._reverse_table = {v: k for k, v in self._table.items()}
-            # self._reverse_mte = OrderedDict({v: k for k, v in self._mte.items()})
             self._reverse_mte_keys = sorted(self._reverse_mte, key=len, reverse=True)
             self._reverse_dict_keys = sorted(self._reverse_dict, key=len, reverse=True)
 
@@ -84,7 +80,7 @@ class Table():
     def get(self, key):
         return self._table.get(key)
 
-    def decode(self, text, mte_resolver=True, dict_resolver=True, eol_resolver=True, cmd_list=None):
+    def decode(self, text, tbl_resolver=True, mte_resolver=True, dict_resolver=True, cmd_list=None):
         """ decode bytes into string """
         decoded = []
         if text:
@@ -116,7 +112,7 @@ class Table():
                             decoded.append(self.PATTERN_SEPARATED_BYTE.format(byte2))
                     elif mte_resolver and byte in self._mte:
                         decoded.append(self._mte[byte])
-                    elif byte in self._table:
+                    elif tbl_resolver and byte in self._table:
                         decoded.append(self._table[byte])
                     else:
                         decoded.append(self.PATTERN_SEPARATED_BYTE.format(byte))
