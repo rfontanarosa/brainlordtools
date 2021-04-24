@@ -190,6 +190,34 @@ def neugier_misc_inserter(args):
         # Credits
         insert_binary(f, 0xd0919, 0xd0f37, translation_path, 'credits.bin')
 
+def neugier_credits_dumper(args):
+    source_file = args.source_file
+    table3_file = args.table3
+    dump_path = args.dump_path
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
+        sys.exit('SOURCE ROM CHECKSUM FAILED!')
+    table = Table(table3_file)
+    shutil.rmtree(dump_path, ignore_errors=True)
+    os.mkdir(dump_path)
+    filename = os.path.join(dump_path, 'credits.txt')
+    with open(source_file, 'rb') as f:
+        pointers = OrderedDict()
+        f.seek(snes2pc_lorom(0x1aea74))
+        while f.tell() < snes2pc_lorom(0x1aeaaa):
+            p_address = f.tell()
+            p_value = f.read(2)
+            text_address = snes2pc_lorom(struct.unpack('H', p_value)[0] + 0x1a0000)
+            pointers.setdefault(text_address, []).append(p_address)
+        with open(filename, 'a+') as txt_file:
+            for i, (text_address, p_addresses) in enumerate(pointers.items()):
+                f.seek(text_address)
+                number_of_lines = int.from_bytes(f.read(1), "little")
+                txt_file.write(f'[{number_of_lines}]' + '\n')
+                for i in range(number_of_lines):
+                    text = read_text(f, f.tell() + 1, end_byte=b'\x00')
+                    text_decoded = table.decode(text)
+                    txt_file.write(text_decoded + '\n')
+
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--no_crc32_check', action='store_true', dest='no_crc32_check', required=False, default=False, help='CRC32 Check')
@@ -227,6 +255,11 @@ insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1'
 insert_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
 insert_misc_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
 insert_misc_parser.set_defaults(func=neugier_misc_inserter)
+dump_credits_parser = subparsers.add_parser('dump_credits', help='Execute CREDITS DUMP')
+dump_credits_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+dump_credits_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Credits table filename')
+dump_credits_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+dump_credits_parser.set_defaults(func=neugier_credits_dumper)
 
 if __name__ == "__main__":
     args = parser.parse_args()
