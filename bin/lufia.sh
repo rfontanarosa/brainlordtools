@@ -8,7 +8,7 @@ SOURCE="$RESOURCE_PATH/roms/Lufia & The Fortress of Doom (U) [!].sfc"
 DESTINATION="$RESOURCE_PATH/roms/Lufia & The Fortress of Doom (I) [!].sfc"
 
 TABLE1="$RESOURCE_PATH/tables/AllOriginal.tbl"
-TABLE2="$RESOURCE_PATH/tables/WithoutMte.tbl"
+TABLE2="$RESOURCE_PATH/tables/LufiaScriptIta.tbl"
 
 DUMP_TEXT_PATH="$RESOURCE_PATH/dump_text"
 DUMP_MISC_PATH="$RESOURCE_PATH/dump_misc"
