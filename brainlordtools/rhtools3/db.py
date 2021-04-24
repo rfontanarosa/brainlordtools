@@ -4,7 +4,7 @@ def insert_text(cur, id, text, decoded_text, address, pointer_adresses, block, r
     cur.execute('INSERT OR REPLACE INTO texts VALUES (?, ?, ?, ?, ?, ?, ?, ?)', (id, text, decoded_text, address, pointer_adresses, len(text), block, ref))
 
 def insert_translation(cur, id_text, project, author, translation, status, date, tags, comment):
-    cur.execute('INSERT INTO translations VALUES (?, ?, ?, ?, ?, ?, ?, ?)', (id_text, project, author, translation, status, date, tags, comment))
+    cur.execute('INSERT OR REPLACE INTO translations VALUES (?, ?, ?, ?, ?, ?, ?, ?)', (id_text, project, author, translation, status, date, tags, comment))
 
 def update_translation(cur, id_text, project, author, translation, status, date, tags, comment):
     cur.execute('UPDATE translations SET translation=?, status=?, date=?, tags=?, comment=? WHERE id_text=? AND project=? AND author=?', (translation, status, date, tags, comment, id_text, project, author))
