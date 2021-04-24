@@ -4,57 +4,82 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, sqlite3
+import sys, os, sqlite3, time
+from rhtools3.db import insert_text, convert_to_binary, select_translation_by_author, insert_translation
 
-resources_path = '../resources/soe'
-dump_path = os.path.join(resources_path, 'dump')
-db = os.path.join(resources_path, 'db/soe.sqlite')
 user_name = 'clomax'
+resources_path = '/Users/rfontanarosa/git/brainlordresources/soe'
+db = os.path.join(resources_path, 'db/soe.sqlite3')
+dump_path = os.path.join(resources_path, 'dump_text')
+translation_path = os.path.join(resources_path, 'translation_text')
+dump_fullpath = os.path.join(dump_path, 'dump_eng.txt')
+dump_ita_fullpath = os.path.join(translation_path, 'dump_ita.txt')
+dump_user_fullpath = os.path.join(translation_path, 'dump_ita_{}.txt'.format(user_name))
 
-fullpath = os.path.join(dump_path, 'text.txt')
-fullpathIta = os.path.join(dump_path, 'text-ita.txt')
+import_dump = True
+import_user_translation = True
+export_user_translation = False
 
-conn = sqlite3.connect(db)
-conn.text_factory = str
-cur = conn.cursor()
-with open(fullpath, 'rb') as f:
-	id = 1
-	id2 = ''
-	text_encoded = ''
-	for index, line in enumerate(f):
-		if index:
-			if '<End>' in line:
-				text_encoded += line
-				text_length = len(text_encoded)
-				cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, ?, ?)', (id, '', text_encoded, '', '', text_length, 1, 0))
-				id += 1
-				text_encoded = ''
-			else:
-				text_encoded += line
-cur.close()
-conn.commit()
-conn.close()
+if import_dump:
+  conn = sqlite3.connect(db)
+  conn.text_factory = str
+  cur = conn.cursor()
+  with open(dump_fullpath, 'r') as f:
+    id = 1
+    text_decoded = ''
+    for index, line in enumerate(f):
+      if not index:
+        continue
+      if '<End>' in line:
+        text_decoded += line
+        text_decoded = text_decoded[:-6]
+        insert_text(cur, id, '', text_decoded, '', '', 1, '')
+        id += 1
+        text_decoded = ''
+      else:
+        text_decoded += line
+  cur.close()
+  conn.commit()
+  conn.close()
 
-if os.path.isfile(fullpathIta):
-	os.remove(fullpathIta)
+if import_user_translation:
+  conn = sqlite3.connect(db)
+  conn.text_factory = str
+  cur = conn.cursor()
+  with open(dump_user_fullpath, 'r') as f:
+    id = 1
+    text_decoded = ''
+    for index, line in enumerate(f):
+      if not index:
+        continue
+      if '<End>' in line:
+        text_decoded += line
+        text_decoded = text_decoded[:-6]
+        insert_translation(cur, id, 'TEST', user_name, text_decoded, 2, time.time(), '', '')
+        id += 1
+        text_decoded = ''
+      else:
+        text_decoded += line
+  cur.close()
+  conn.commit()
+  conn.close()
 
-conn = sqlite3.connect(db)
-conn.text_factory = str
-cur = conn.cursor()
-with open(fullpathIta, 'ab') as f:
-	f.write('') ## EF BB BF
-	f.write('<3002 text entries>\r\n')
-	cur.execute("SELECT text, new_text, text_encoded, id, new_text2, id2 FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s' AND trans.status = 2) AS t2 ON t1.id=t2.id_text ORDER BY t1.id" % user_name)
-	for row in cur:
-		id2 = row[5]
-		id = row[3]
-		original_text = row[2]
-		new_text = row[4]
-		if new_text:
-			text = new_text
-		else:
-			text = original_text
-		f.write(text)
-cur.close()
-conn.commit()
-conn.close()
+if export_user_translation:
+  if os.path.isfile(dump_user_fullpath):
+    os.remove(dump_user_fullpath)
+  conn = sqlite3.connect(db)
+  conn.text_factory = str
+  cur = conn.cursor()
+  with open(dump_user_fullpath, 'a') as f:
+    f.write('') ## EF BB BF
+    f.write('<3002 text entries>\r\n')
+    rows = select_translation_by_author(cur, user_name, ['1'])
+    for row in rows:
+      text_decoded = row[2]
+      translation = row[5]
+      text = translation if translation else text_decoded
+      f.write(text)
+      f.write('<End>\n')
+  cur.close()
+  conn.commit()
+  conn.close()
