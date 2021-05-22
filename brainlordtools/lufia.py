@@ -121,7 +121,23 @@ def lufia_misc_dumper(args):
             while f.tell() < 0xfdb6f:
                 text_address = struct.unpack('H', f.read(2))[0] + 0xfdb00
                 f1.seek(text_address + 15)
-                pointers[f1.tell()] = struct.unpack('H', f1.read(2))[0] + 0xfdb00
+                pointers[f1.tell()] = text_address
+            for key, value in pointers.items():
+                text = read_text(f, value, end_byte=b'\00')
+                text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
+                fields = [hex(value), text_decoded]
+                csv_writer.writerow(fields)
+        # Attacks
+        filename = os.path.join(dump_path, 'attacks.csv')
+        with open(filename, 'w+') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['text_address', 'text', 'trans'])
+            pointers = OrderedDict()
+            f.seek(0x4150a)
+            while f.tell() < 0x4157b:
+                text_address = snes2pc_lorom(struct.unpack('H', f.read(2))[0]) + 0x40000
+                f1.seek(text_address)
+                pointers[f1.tell()] = text_address
             for key, value in pointers.items():
                 text = read_text(f, value, end_byte=b'\00')
                 text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
