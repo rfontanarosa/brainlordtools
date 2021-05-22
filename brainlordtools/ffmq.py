@@ -17,7 +17,7 @@ def ffmq_misc_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
     dump_path = args.dump_path
-    if crc32(source_file) != CRC32:
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
@@ -118,18 +118,27 @@ def ffmq_misc_inserter(args):
 
 import argparse
 parser = argparse.ArgumentParser()
+parser.add_argument('--no_crc32_check', action='store_true', dest='no_crc32_check', required=False, default=False, help='CRC32 Check')
+parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
-a_parser = subparsers.add_parser('dump_misc', help='Execute MISC DUMP')
-a_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-a_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-a_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-a_parser.set_defaults(func=ffmq_misc_dumper)
-b_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
-b_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-b_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-b_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-b_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
-b_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-b_parser.set_defaults(func=ffmq_misc_inserter)
+dump_misc_parser = subparsers.add_parser('dump_misc', help='Execute MISC DUMP')
+dump_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+dump_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+dump_misc_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+dump_misc_parser.set_defaults(func=ffmq_misc_dumper)
+insert_misc_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
+insert_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+insert_misc_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+insert_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+insert_misc_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+insert_misc_parser.set_defaults(func=ffmq_misc_inserter)
 args = parser.parse_args()
 args.func(args)
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+    if args.func:
+        args.func(args)
+    else:
+        parser.print_help()
