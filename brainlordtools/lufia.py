@@ -9,7 +9,7 @@ from collections import OrderedDict
 
 from rhtools.utils import crc32
 from rhtools3.db import insert_text, convert_to_binary, select_translation_by_author, select_most_recent_translation
-from rhtools.dump import read_text, write_text, dump_binary, insert_binary
+from rhtools.dump import read_text, write_text, dump_binary, insert_binary, get_csv_translated_texts
 from rhtools.snes_utils import snes2pc_lorom, pc2snes_lorom
 from rhtools3.Table import Table
 
@@ -42,6 +42,8 @@ def lufia_text_dumper(args):
             text_address = int(offset) - 0x200
             text = read_text(f, text_address, end_byte=b'\04', cmd_list={b'\x07': 1, b'\x08': 1, b'\x09': 1, b'\x0a': 1, b'\x0b': 1, b'\x0c': 1, b'\x0d': 1, b'\x0f': 1})
             text_decoded = table.decode(text, mte_resolver=True, dict_resolver=True, cmd_list={0x06: 1, 0x0f: 1})
+            if len(text) < 3:
+                print('{} - {} - {}'.format(text_address, id, text_decoded))
             ref = '[BLOCK {}: {} to {}]'.format(str(id), hex(text_address), hex(f.tell() - 1))
             # dump - db
             insert_text(cur, id, convert_to_binary(text), text_decoded, text_address, '', 1, ref)
@@ -180,6 +182,10 @@ def lufia_text_inserter(args):
         for block, value in buffer.items():
 
             [text, offsets] = value
+
+            if offsets[1] - offsets[0] < 3:
+                continue
+
             encoded_text = table.encode(text[:-2], mte_resolver=False, dict_resolver=True)  # Encode text
             [offset_from, offset_to] = offsets
             f.seek(offset_from)  # Go the the offset of the original text
@@ -214,6 +220,42 @@ def lufia_text_inserter(args):
             new_text_offset = f.tell()
 
             index += 1
+
+def lufia_misc_inserter(args):
+    source_file = args.source_file
+    dest_file = args.dest_file
+    table1_file = args.table1
+    table2_file = args.table2
+    translation_path = args.translation_path
+    if crc32(source_file) != CRC32:
+        sys.exit('SOURCE ROM CHECKSUM FAILED!')
+    table = Table(table1_file)
+    table2 = Table(table2_file)
+    with open(dest_file, 'r+b') as f:
+        # Enemy Names
+        translation_file = os.path.join(translation_path, 'enemy_names.csv')
+        translated_texts = get_csv_translated_texts(translation_file)
+        for i, (t_address, t_value) in enumerate(translated_texts.items()):
+            text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
+            if len(text) != 10:
+                sys.exit("{} exceeds".format(t_value))
+            write_text(f, t_address, text, length=10)
+        # Items
+        translation_file = os.path.join(translation_path, 'items.csv')
+        translated_texts = get_csv_translated_texts(translation_file)
+        for i, (t_address, t_value) in enumerate(translated_texts.items()):
+            text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
+            if len(text) != 12:
+                sys.exit("{} exceeds".format(t_value))
+            write_text(f, t_address, text, length=12)
+        # Magic
+        translation_file = os.path.join(translation_path, 'magic.csv')
+        translated_texts = get_csv_translated_texts(translation_file)
+        for i, (t_address, t_value) in enumerate(translated_texts.items()):
+            text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
+            if len(text) != 8:
+                sys.exit("{} exceeds".format(t_value))
+            write_text(f, t_address, text, length=8)
 
 def lufia_gfx_dumper(args):
     source_file = args.source_file
@@ -273,6 +315,13 @@ dump_misc_parser.add_argument('-s', '--source', action='store', dest='source_fil
 dump_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
 dump_misc_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
 dump_misc_parser.set_defaults(func=lufia_misc_dumper)
+insert_misc_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
+insert_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+insert_misc_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+insert_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+insert_misc_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+insert_misc_parser.set_defaults(func=lufia_misc_inserter)
 expand_parser = subparsers.add_parser('expand', help='Execute EXPANDER')
 expand_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 expand_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
