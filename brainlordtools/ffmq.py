@@ -4,11 +4,12 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, shutil, csv
+import sys, os, struct, shutil, csv
 from collections import OrderedDict
 
 from rhtools.utils import crc32
 from rhtools.dump import read_text, write_text, get_csv_translated_texts
+from rhtools.snes_utils import snes2pc_lorom, pc2snes_lorom
 from rhtools3.Table import Table
 
 CRC32 = '2C52C792'
@@ -22,7 +23,7 @@ def ffmq_misc_dumper(args):
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
-    with open(source_file, 'rb') as f:
+    with open(source_file, 'rb') as f, open(source_file, 'rb') as f1:
         # Locations
         filename = os.path.join(dump_path, 'locations.csv')
         with open(filename, 'w+') as csv_file:
@@ -71,6 +72,20 @@ def ffmq_misc_dumper(args):
                 text_encoded = table.decode(text, mte_resolver=False, dict_resolver=False)
                 fields = [hex(text_address), text_encoded]
                 csv_writer.writerow(fields)
+        # Statuses
+        filename = os.path.join(dump_path, 'statuses.csv')
+        with open(filename, 'w+') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['text_address', 'text', 'trans'])
+            f1.seek(0x19f6b)
+            while f1.tell() < 0x19f82:
+                pointer_address = f1.tell()
+                text_address = snes2pc_lorom(struct.unpack('I', f1.read(3) + b'\x00')[0]) + 0x8000
+                f.seek(text_address)
+                text = read_text(f, text_address, end_byte=b'\x00')
+                text_encoded = table.decode(text, mte_resolver=False, dict_resolver=False)
+                fields = [hex(text_address), text_encoded]
+                csv_writer.writerow(fields)
 
 def ffmq_misc_inserter(args):
     source_file = args.source_file
@@ -82,7 +97,7 @@ def ffmq_misc_inserter(args):
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     table2 = Table(table2_file)
-    with open(dest_file, 'r+b') as f:
+    with open(dest_file, 'r+b') as f, open(dest_file, 'r+b') as f1:
         # Locations
         translation_file = os.path.join(translation_path, 'locations.csv')
         translated_texts = get_csv_translated_texts(translation_file)
@@ -115,6 +130,15 @@ def ffmq_misc_inserter(args):
             if len(text) != 16:
                 sys.exit("{} exceeds".format(t_value))
             write_text(f, t_address, text, length=16)
+        # Statuses
+        f1.seek(0x19f6b)
+        f.seek(0x7ff00)
+        translation_file = os.path.join(translation_path, 'statuses.csv')
+        translated_texts = get_csv_translated_texts(translation_file)
+        for i, (_, t_value) in enumerate(translated_texts.items()):
+            text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
+            f1.write(struct.pack('i', pc2snes_lorom(f.tell()))[:-1])
+            f.write(text + b'\x00')
 
 import argparse
 parser = argparse.ArgumentParser()
