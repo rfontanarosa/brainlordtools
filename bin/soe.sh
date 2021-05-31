@@ -20,10 +20,10 @@ MISC1="$RESOURCE_PATH/misc.csv"
 # ./bin/evertool reinsert /Users/rfontanarosa/git/brainlordresources/soe/roms/evermore.sfc /Users/rfontanarosa/git/brainlordresources/soe/dump_text/dump_ita.txt
 # deactivate
 
-python3 ../brainlordtools/soe.py dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
-python3 ../brainlordtools/soe.py dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_MISC_PATH"
+python ../brainlordtools/soe.py dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
+python ../brainlordtools/soe.py dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_MISC_PATH"
 
-python3 ../brainlordtools/soe.py insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
-python3 ../brainlordtools/soe.py insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -tp "$TRANSLATION_MISC_PATH" -m1 "$MISC1"
+python ../brainlordtools/soe.py insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
+python ../brainlordtools/soe.py insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -tp "$TRANSLATION_MISC_PATH" -m1 "$MISC1"
 
 asar "$RESOURCE_PATH/hack/menu_text_ita.asm" "$DESTINATION"
