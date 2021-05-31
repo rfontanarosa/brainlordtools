@@ -121,7 +121,7 @@ def lufia_misc_dumper(args):
             while f.tell() < 0xfdb6f:
                 text_address = struct.unpack('H', f.read(2))[0] + 0xfdb00
                 f1.seek(text_address + 15)
-                pointers[f1.tell()] = text_address
+                pointers[f1.tell()] = struct.unpack('H', f1.read(2))[0] + 0xfdb00
             for key, value in pointers.items():
                 text = read_text(f, value, end_byte=b'\00')
                 text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
