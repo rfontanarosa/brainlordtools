@@ -55,13 +55,18 @@ FONT2_BLOCK = (0x40C84, 0x41883) # 24bit - 3byte
 FONT2_VWF_TABLE = (0x41884, 0x41903) # 127
 
 def encode_text(text):
-    text = text.replace(u'à', '{11}')
-    text = text.replace(u'è', '{13}')
-    text = text.replace(u'é', '{15}')
-    text = text.replace(u'ì', '{17}')
-    text = text.replace(u'ò', '{19}')
-    text = text.replace(u'ù', '{1B}')
-    text = text.replace(u'È', '{1D}')
+    text = text.replace(u'à', '{10}')
+    text = text.replace(u'è', '{11}')
+    text = text.replace(u'é', '{12}')
+    text = text.replace(u'ì', '{13}')
+    text = text.replace(u'ò', '{14}')
+    text = text.replace(u'ù', '{15}')
+    text = text.replace(u'À', '{18}')
+    text = text.replace(u'È', '{19}')
+    text = text.replace(u'É', '{1a}')
+    text = text.replace(u'Ì', '{1b}')
+    text = text.replace(u'Ò', '{1c}')
+    text = text.replace(u'Ù', '{1d}')
     return text
 
 def dump_blocks(f, table, dump_path):
@@ -178,7 +183,7 @@ def repoint_npc_enemy_names(f, pointers, new_pointers, offset=0x340000):
                 f.write(struct.pack('H', p_new_value - offset))
                 f.write(b'\xf4')
 
-def soe_dumper(args):
+def soe_misc_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
     dump_path = args.dump_path
@@ -190,7 +195,7 @@ def soe_dumper(args):
     with open(source_file, 'rb') as f:
         dump_blocks(f, table, dump_path)
 
-def soe_inserter(args):
+def soe_misc_inserter(args):
     source_file = args.source_file
     dest_file = args.dest_file
     table1_file = args.table1
@@ -318,26 +323,34 @@ def soe_gfx_inserter(args):
 
 import argparse
 parser = argparse.ArgumentParser()
+parser.add_argument('--no_crc32_check', action='store_true', dest='no_crc32_check', required=False, default=False, help='CRC32 Check')
+parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
-a_parser = subparsers.add_parser('dump', help='Execute DUMP')
-a_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-a_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-a_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-a_parser.set_defaults(func=soe_dumper)
-b_parser = subparsers.add_parser('insert', help='Execute INSERTER')
-b_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-b_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-b_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-b_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-b_parser.add_argument('-m1', '--misc1', action='store', dest='misc_file1', help='MISC filename')
-b_parser.set_defaults(func=soe_inserter)
-c_parser = subparsers.add_parser('dump_gfx', help='Execute GFX DUMP')
-c_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-c_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-c_parser.set_defaults(func=soe_gfx_dumper)
-d_parser = subparsers.add_parser('insert_gfx', help='Execute GFX INSERTER')
-d_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-d_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-d_parser.set_defaults(func=soe_gfx_inserter)
-args = parser.parse_args()
-args.func(args)
+dump_misc_parser = subparsers.add_parser('dump_misc', help='Execute DUMP')
+dump_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+dump_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+dump_misc_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+dump_misc_parser.set_defaults(func=soe_misc_dumper)
+insert_misc_parser = subparsers.add_parser('insert_misc', help='Execute INSERTER')
+insert_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+insert_misc_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+insert_misc_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+insert_misc_parser.add_argument('-m1', '--misc1', action='store', dest='misc_file1', help='MISC filename')
+insert_misc_parser.set_defaults(func=soe_misc_inserter)
+dump_gfx_parser = subparsers.add_parser('dump_gfx', help='Execute GFX DUMP')
+dump_gfx_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+dump_gfx_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+dump_gfx_parser.set_defaults(func=soe_gfx_dumper)
+insert_gfx_parser = subparsers.add_parser('insert_gfx', help='Execute GFX INSERTER')
+insert_gfx_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_gfx_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+insert_gfx_parser.set_defaults(func=soe_gfx_inserter)
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+    if args.func:
+        args.func(args)
+    else:
+        parser.print_help()
+
