@@ -26,4 +26,5 @@ python ../brainlordtools/soe.py dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_
 python ../brainlordtools/soe.py insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
 python ../brainlordtools/soe.py insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -tp "$TRANSLATION_MISC_PATH" -m1 "$MISC1"
 
+asar "$RESOURCE_PATH/hack/gfx_hack.asm" "$DESTINATION"
 asar "$RESOURCE_PATH/hack/menu_text_ita.asm" "$DESTINATION"

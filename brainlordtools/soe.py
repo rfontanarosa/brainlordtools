@@ -312,6 +312,9 @@ def soe_gfx_inserter(args):
         f.write(b'\xa9')
         f.write(b'\x71')
         #
+        f.seek(0x129917)
+        f.write(b'\x18')
+        #
         insert_binary(f, FONT1_BLOCK[0] + (16 * 8 * 3), FONT1_BLOCK[1], translation_path, 'gfx_font1.bin')
         insert_binary(f, FONT1_VWF_TABLE[0] + 16, FONT1_VWF_TABLE[1], translation_path, 'gfx_vwf1.bin')
         insert_binary(f, FONT2_BLOCK[0] + (16 * 8 * 3), FONT2_BLOCK[1], translation_path, 'gfx_font2.bin')

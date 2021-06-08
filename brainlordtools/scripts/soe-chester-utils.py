@@ -17,8 +17,8 @@ dump_ita_fullpath = os.path.join(translation_path, 'dump_ita.txt')
 dump_user_fullpath = os.path.join(translation_path, 'dump_ita_{}.txt'.format(user_name))
 
 import_dump = True
-import_user_translation = True
-export_user_translation = False
+import_user_translation = False
+export_user_translation = True
 
 if import_dump:
   conn = sqlite3.connect(db)
@@ -28,11 +28,8 @@ if import_dump:
     id = 1
     text_decoded = ''
     for index, line in enumerate(f):
-      if not index:
-        continue
       if '<End>' in line:
-        text_decoded += line
-        text_decoded = text_decoded[:-6]
+        text_decoded += line[:-6]
         insert_text(cur, id, '', text_decoded, '', '', 1, '')
         id += 1
         text_decoded = ''
@@ -50,11 +47,8 @@ if import_user_translation:
     id = 1
     text_decoded = ''
     for index, line in enumerate(f):
-      if not index:
-        continue
       if '<End>' in line:
-        text_decoded += line
-        text_decoded = text_decoded[:-6]
+        text_decoded += line[:-6]
         insert_translation(cur, id, 'TEST', user_name, text_decoded, 2, time.time(), '', '')
         id += 1
         text_decoded = ''
@@ -71,8 +65,6 @@ if export_user_translation:
   conn.text_factory = str
   cur = conn.cursor()
   with open(dump_user_fullpath, 'a') as f:
-    f.write('') ## EF BB BF
-    f.write('<3002 text entries>\r\n')
     rows = select_translation_by_author(cur, user_name, ['1'])
     for row in rows:
       text_decoded = row[2]
