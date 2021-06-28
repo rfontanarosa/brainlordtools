@@ -25,10 +25,12 @@ class Table():
         self._table = OrderedDict()
         self._mte = OrderedDict()
         self._dict = OrderedDict()
+        self._controls = OrderedDict()
 
         self._reverse_table = OrderedDict()
         self._reverse_mte = OrderedDict()
         self._reverse_dict = OrderedDict()
+        self._reverse_controls = OrderedDict()
 
         with open(filename, 'r') as f:
             for line in f:
@@ -39,12 +41,25 @@ class Table():
                     if '=' in line:
                         (part_key, _, part_value) = line.partition('=')
                         if part_value:
-                            if len(part_key) == 4:
+                            if part_key.startswith('$'):
+                                pattern = (part_value + ']').replace(']', '', 1).replace('%X', '{:02x}')
+                                if len(part_key) == 5:
+                                    key = int(part_key[1:3], 16)
+                                    subkey = int(part_key[3:5], 16)
+                                    self._controls.setdefault(key, OrderedDict())[subkey] = pattern
+                                    self._reverse_controls[part_value] = (key, subkey)
+                                elif len(part_key) == 3:
+                                    key = int(part_key[1:], 16)
+                                    self._controls[key] = pattern
+                                    self._reverse_controls[part_value] = key
+                                else:
+                                    raise Exception()
+                            elif len(part_key) == 4:
                                 key = int(part_key[:2], 16)
                                 subkey = int(part_key[2:], 16)
                                 self._dict.setdefault(key, OrderedDict())[subkey] = part_value
                                 self._reverse_dict[part_value] = (key, subkey)
-                            else:
+                            elif len(part_key) == 2:
                                 key = int(part_key, 16)
                                 if len(part_value) > 1:
                                     self._mte[key] = part_value
@@ -52,13 +67,24 @@ class Table():
                                 else:
                                     self._table[key] = part_value
                                     self._reverse_table[part_value] = key
+                            else:
+                                raise Exception()
                     # end of line
                     elif line.startswith(Table.EOL_CHAR):
-                        self._eol = int(line[1:len(line)], 16)
-                        self._table[int(line[1:len(line)], 16)] = '\n'
+                        part_key = line[1:]
+                        if len(part_key) == 4:
+                            key = int(part_key[:2], 16)
+                            subkey = int(part_key[2:], 16)
+                            self._dict.setdefault(key, OrderedDict())[subkey] = '\n'
+                            self._reverse_dict['\n'] = (key, subkey)
+                        else:
+                            self._eol = int(part_key, 16)
+                            self._table[int(part_key, 16)] = '\n'
+                            self._reverse_table['\n'] = int(part_key, 16)
             # init reverse
             self._reverse_mte_keys = sorted(self._reverse_mte, key=len, reverse=True)
             self._reverse_dict_keys = sorted(self._reverse_dict, key=len, reverse=True)
+            self._reverse_controls_keys = sorted(self._reverse_controls, key=len, reverse=True)
 
     def __iter__(self):
         return self._table.__iter__()
@@ -78,7 +104,7 @@ class Table():
     def get(self, key):
         return self._table.get(key)
 
-    def decode(self, text, tbl_resolver=True, mte_resolver=True, dict_resolver=True, cmd_list=None):
+    def decode(self, text, tbl_resolver=True, mte_resolver=True, dict_resolver=True, ctrl_resolver=True, cmd_list=None):
         """ decode bytes into string """
         decoded = []
         if text:
@@ -86,7 +112,17 @@ class Table():
             while i < len(text):
                 byte = text[i]
                 if True:
-                    if cmd_list and byte in cmd_list.keys():
+                    if ctrl_resolver and byte in self._controls.keys():
+                        pattern = self._controls[byte]
+                        if not isinstance(pattern, str):
+                            i += 1
+                            byte2 = text[i]
+                            pattern = pattern[byte2]
+                        count = pattern.count(',')
+                        Bytes = text[i+1:i+count+2]
+                        decoded.append(pattern.format(*Bytes).replace(',', ' '))
+                        i += count
+                    elif cmd_list and byte in cmd_list.keys():
                         decoded.append(self.HEX_FORMAT.format(byte))
                         bytes_to_read = cmd_list.get(byte)
                         for _ in range(bytes_to_read):
@@ -109,10 +145,23 @@ class Table():
                 i += 1
         return ''.join(decoded)
 
-    def encode(self, text, mte_resolver=True, dict_resolver=True):
+    def encode(self, text, mte_resolver=True, dict_resolver=True, ctrl_resolver=True):
         """ encode string into bytes """
         encoded = b''
         if text:
+            if ctrl_resolver:
+                for value in self._reverse_controls_keys:
+                    replacements = []
+                    key = self._reverse_controls[value]
+                    control = value.split(',')[0][1:-1]
+                    for m in re.finditer(r'\[{}[^\]]*\]'.format(re.escape(control)), text):
+                        replacement = self.HEX_FORMAT.format(key) if not isinstance(key, tuple) else self.DOUBLE_HEX_FORMAT.format(key[0], key[1])
+                        text_to_replace = text[m.start():m.end()]
+                        for decoded_byte in text_to_replace[:-1].split(' ')[1:]:
+                            replacement += self.HEX_FORMAT.format(int(decoded_byte, 16))
+                        replacements.append([text_to_replace, replacement])
+                    for item in replacements:
+                        text = text.replace(item[0], item[1])
             if dict_resolver:
                 for value in self._reverse_dict_keys:
                     if value in text:
