@@ -7,7 +7,7 @@ __email__ = "robertofontanarosa@gmail.com"
 import sys, os, shutil, struct, sqlite3
 from collections import OrderedDict
 
-from rhtools.utils import crc32, int2byte, int2hex
+from rhtools.utils import crc32
 from rhtools3.db import insert_text, convert_to_binary
 from rhtools.dump import read_text
 from rhtools3.Table import Table
@@ -68,8 +68,8 @@ def spike_text_dumper(args):
         for i, (taddress, paddresses) in enumerate(pointers.items()):
             pointer_addresses = ';'.join(hex(x) for x in paddresses)
             f.seek(taddress)
-            text = read_text(f, taddress, end_byte=b'\xf0', cmd_list={b'\xf4': 2, b'\xf6': 1, b'\xf8': 1, b'\xfa': 4, b'\xfc': 1, b'\xfe': 1, b'\xff': 1})
-            text_decoded = table1.decode(text, cmd_list={0xf4: 2, 0xf6: 1, 0xf8: 1, 0xfa: 4, 0xfc: 1, 0xfe: 1, 0xff: 1})
+            text = read_text(f, taddress, end_byte=b'\xf0', cmd_list={b'\xf4': 2, b'\xf6': 1, b'\xf8': 1, b'\xfa': 4, b'\xfc': 1, b'\xfd': 4, b'\xfe': 1, b'\xff': 2})
+            text_decoded = table1.decode(text, cmd_list={0xf4: 2, 0xf6: 1, 0xf8: 1, 0xfa: 4, 0xfc: 1, 0xfd: 4, 0xfe: 1, 0xff: 2})
             # dump - db
             insert_text(cur, id, convert_to_binary(text), text_decoded, taddress, pointer_addresses, 1, id)
             # dump - txt
@@ -82,13 +82,13 @@ def spike_text_dumper(args):
         conn.close()
 
 def spike_expander(args):
-	source_file = args.source_file
-	dest_file = args.dest_file
-	if os.path.getsize(source_file) == os.path.getsize(dest_file):
-		shutil.copy(source_file, dest_file)
-		with open(dest_file, 'r+b') as f:
-			f.seek(0, 2)
-			f.write(b'\x00' * 32768)
+    source_file = args.source_file
+    dest_file = args.dest_file
+    if os.path.getsize(source_file) == os.path.getsize(dest_file):
+        shutil.copy(source_file, dest_file)
+        with open(dest_file, 'r+b') as f:
+            f.seek(0, 2)
+            f.write(b'\x00' * 32768)
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -122,4 +122,3 @@ if __name__ == "__main__":
         args.func(args)
     else:
         parser.print_help()
-
