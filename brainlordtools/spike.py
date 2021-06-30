@@ -7,8 +7,8 @@ __email__ = "robertofontanarosa@gmail.com"
 import sys, os, shutil, struct, sqlite3
 from collections import OrderedDict
 
-from rhtools.utils import crc32
 from rhtools3.db import insert_text, convert_to_binary
+from rhtools.utils import crc32, file_copy, expand_rom
 from rhtools.dump import read_text
 from rhtools3.Table import Table
 
@@ -31,6 +31,7 @@ POINTER_BLOCK_1 = (0x62003, 0x6208f)
 POINTER_BLOCK_2 = (0x62090, 0x622c3)
 
 EXP_START = 0x107f50
+EXP_SIZE = 32768
 
 def spike_text_dumper(args):
     source_file = args.source_file
@@ -82,13 +83,8 @@ def spike_text_dumper(args):
         conn.close()
 
 def spike_expander(args):
-    source_file = args.source_file
     dest_file = args.dest_file
-    if os.path.getsize(source_file) == os.path.getsize(dest_file):
-        shutil.copy(source_file, dest_file)
-        with open(dest_file, 'r+b') as f:
-            f.seek(0, 2)
-            f.write(b'\x00' * 32768)
+    expand_rom(dest_file, EXP_SIZE)
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -110,9 +106,12 @@ dump_text_parser.set_defaults(func=spike_text_dumper)
 # insert_text_parser.add_argument('-u', '--user', action='store', dest='user', help='')
 # insert_text_parser.set_defaults(func=spike_text_inserter)
 expand_parser = subparsers.add_parser('expand', help='Execute EXPANDER')
-expand_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 expand_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 expand_parser.set_defaults(func=spike_expander)
+file_copy_parser = subparsers.add_parser('file_copy', help='File COPY')
+file_copy_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+file_copy_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+file_copy_parser.set_defaults(func=file_copy)
 args = parser.parse_args()
 args.func(args)
 
