@@ -22,9 +22,9 @@ TRANSLATION_TEXT_PATH="$RESOURCE_PATH/translation_text"
 # "$WINE_PATH/wine" "mccmp.exe" "$SOURCE" "$DESTINATION"
 # cd $CURRENT_PATH
 
-# python ../brainlordtools/spike.py insert -d "$DESTINATION" -t2 "$TABLE2" -db "$DB" -u "$USER"
 python "$TOOLS_PATH/spike.py" file_copy -s "$SOURCE" -d "$DESTINATION"
 python "$TOOLS_PATH/spike.py" expand -d "$DESTINATION"
 
 python "$TOOLS_PATH/spike.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH" -db "$DB"
 
+python "$TOOLS_PATH/spike.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE1" -tp "$TRANSLATION_TEXT_PATH" -db "$DB" -u "$USER"

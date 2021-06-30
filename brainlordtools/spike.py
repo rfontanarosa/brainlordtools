@@ -7,13 +7,11 @@ __email__ = "robertofontanarosa@gmail.com"
 import sys, os, shutil, struct, sqlite3
 from collections import OrderedDict
 
-from rhtools3.db import insert_text, convert_to_binary
 from rhtools.utils import crc32, file_copy, expand_rom
+from rhtools3.db import insert_text, convert_to_binary, select_translation_by_author
 from rhtools.dump import read_text
+from rhtools.snes_utils import snes2pc_lorom, pc2snes_lorom
 from rhtools3.Table import Table
-
-SNES_HEADER_SIZE = 0x200
-SNES_BANK_SIZE = 0x8000
 
 CRC32 = '8C2068D1'
 
@@ -30,8 +28,9 @@ CRC32 = '8C2068D1'
 POINTER_BLOCK_1 = (0x62003, 0x6208f)
 POINTER_BLOCK_2 = (0x62090, 0x622c3)
 
-EXP_START = 0x107f50
 EXP_SIZE = 32768
+
+NEW_TEXT_OFFSET_1 = 0x107f50
 
 def spike_text_dumper(args):
     source_file = args.source_file
@@ -82,6 +81,45 @@ def spike_text_dumper(args):
         conn.commit()
         conn.close()
 
+def spike_text_inserter(args):
+    dest_file = args.dest_file
+    table2_file = args.table2
+    db = args.database_file
+    user_name = args.user
+    table = Table(table2_file)
+    conn = sqlite3.connect(db)
+    conn.text_factory = str
+    cur = conn.cursor()
+    with open(dest_file, 'r+b') as f:
+        # TEXT
+        f.seek(NEW_TEXT_OFFSET_1)
+        rows = select_translation_by_author(cur, user_name, ['1'])
+        for row in rows:
+            # INSERTER X
+            id = row[0]
+            address = row[3]
+            text_decoded = row[2]
+            translation = row[5]
+            text = translation if translation else text_decoded
+            text_encoded = table.encode(text)
+            new_text_address = f.tell()
+            f.seek(new_text_address)
+            f.write(text_encoded)
+            f.write(b'\x00')
+            next_text_address = f.tell()
+            # REPOINTER X
+            pointer_addresses = row[4]
+            if pointer_addresses:
+                pvalue = struct.pack('i', pc2snes_lorom(new_text_address) + 0x800000)
+                for pointer_address in pointer_addresses.split(';'):
+                    if pointer_address:
+                        pointer_address = int(pointer_address, 16)
+                        f.seek(pointer_address)
+                        f.write(bytes(pvalue[:3]))
+            f.seek(next_text_address)
+    cur.close()
+    conn.close()
+
 def spike_expander(args):
     dest_file = args.dest_file
     expand_rom(dest_file, EXP_SIZE)
@@ -97,14 +135,14 @@ dump_text_parser.add_argument('-t1', '--table1', action='store', dest='table1', 
 dump_text_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
 dump_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
 dump_text_parser.set_defaults(func=spike_text_dumper)
-# insert_text_parser = subparsers.add_parser('insert_text', help='Execute TEXT INSERTER')
-# insert_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-# insert_text_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-# insert_text_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
-# insert_text_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-# insert_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
-# insert_text_parser.add_argument('-u', '--user', action='store', dest='user', help='')
-# insert_text_parser.set_defaults(func=spike_text_inserter)
+insert_text_parser = subparsers.add_parser('insert_text', help='Execute TEXT INSERTER')
+insert_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+insert_text_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_text_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+insert_text_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+insert_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+insert_text_parser.add_argument('-u', '--user', action='store', dest='user', help='')
+insert_text_parser.set_defaults(func=spike_text_inserter)
 expand_parser = subparsers.add_parser('expand', help='Execute EXPANDER')
 expand_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 expand_parser.set_defaults(func=spike_expander)
