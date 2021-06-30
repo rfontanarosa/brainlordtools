@@ -85,6 +85,18 @@ def crc32(filename):
 		prev = zlib.crc32(line, prev)
 	return '%X' % (prev & 0xFFFFFFFF)
 
+import os, shutil
+
+def file_copy(args):
+	source_file = args.source_file
+	dest_file = args.dest_file
+	shutil.copy(source_file, dest_file)
+
+def expand_rom(dest_file, size_in_bytes):
+	with open(dest_file, 'r+b') as f:
+		f.seek(0, os.SEEK_END)
+		f.write(b'\x00' * size_in_bytes)
+
 ########
 # TEST #
 ########
