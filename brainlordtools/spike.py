@@ -4,11 +4,11 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, shutil, struct, sqlite3
+import os, shutil, sqlite3, struct, sys
 from collections import OrderedDict
 
-from rhtools.utils import crc32, file_copy, expand_rom
-from rhtools3.db import insert_text, convert_to_binary, select_translation_by_author
+from rhtools.utils import crc32, expand_rom, file_copy
+from rhtools3.db import insert_text, convert_to_binary, select_translation_by_author, select_most_recent_translation
 from rhtools.dump import read_text
 from rhtools.snes_utils import snes2pc_lorom, pc2snes_lorom
 from rhtools3.Table import Table

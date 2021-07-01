@@ -4,10 +4,10 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, struct, sqlite3, shutil, csv
+import csv, os, shutil, sqlite3, struct, sys
 from collections import OrderedDict
 
-from rhtools.utils import crc32
+from rhtools.utils import crc32, file_copy
 from rhtools3.db import insert_text, convert_to_binary, select_translation_by_author, select_most_recent_translation
 from rhtools.dump import read_text, write_text, write_byte, dump_binary, insert_binary, get_csv_translated_texts
 from rhtools.snes_utils import snes2pc_lorom, pc2snes_lorom
@@ -22,8 +22,9 @@ POINTER_BLOCK1_END = POINTER_BLOCK1_LIMIT = 0x112ac
 TEXT_BLOCK1_START = 0x100000
 TEXT_BLOCK1_END = TEXT_BLOCK1_LIMIT = 0x1fffff
 
-GFX_STATUS_OFFSETS = (0x1d680, 0x1de80)
-GFX_NEW_GAME_OFFSETS = (0x26200, 0x26800)
+GFX_NEW_GAME_OFFSETS = (0x1d6e0, 0x1d9e0)
+GFX_TITLE = (0x1da00, 0x20000)
+GFX_STATUS_OFFSETS = (0x26200, 0x26800)
 GFX_FONT_OFFSETS = (0x28000, 0x28980)
 GFX_INTRO_OFFSETS = (0x29200, 0x2a800)
 
@@ -87,24 +88,24 @@ def neugier_text_inserter(args):
             text_decoded = row[2]
             translation = row[5]
             text = translation if translation else text_decoded
-            decoded_text = table.encode(text)
+            text_encoded = table.encode(text)
             new_text_address = f.tell()
-            if new_text_address + len(decoded_text) > (TEXT_BLOCK1_LIMIT + 1):
+            if new_text_address + len(text_encoded) > (TEXT_BLOCK1_LIMIT + 1):
                 sys.exit('CRITICAL ERROR! ID {} - BLOCK {} - TEXT_BLOCK_LIMIT! {} > {} ({})'.format(id, 1, next_text_address + len(decoded_text), TEXT_BLOCK1_LIMIT, (TEXT_BLOCK1_LIMIT - next_text_address - len(decoded_text))))
-            if new_text_address < TEXT_BLOCK1_START + 0x8000 and new_text_address + len(decoded_text) >= TEXT_BLOCK1_START + 0x8000:
+            if new_text_address < TEXT_BLOCK1_START + 0x8000 and new_text_address + len(text_encoded) >= TEXT_BLOCK1_START + 0x8000:
                 new_text_address = TEXT_BLOCK1_START + 0x8000
             f.seek(new_text_address)
-            f.write(decoded_text)
+            f.write(text_encoded)
             f.write(b'\x00')
             next_text_address = f.tell()
             # REPOINTER X
-            pointer_addresses = row[6]
+            pointer_addresses = row[4]
             if pointer_addresses:
+                pvalue = struct.pack('i', pc2snes_lorom(new_text_address))
                 for pointer_address in pointer_addresses.split(';'):
                     if pointer_address:
                         pointer_address = int(pointer_address, 16)
                         f.seek(pointer_address)
-                        pvalue = struct.pack('i', pc2snes_lorom(new_text_address))
                         f.write(bytes([pvalue[2]]) + pvalue[:2])
                         if pointer_address > (POINTER_BLOCK1_LIMIT + 1):
                             sys.exit('CRITICAL ERROR! ID {} - BLOCK {} - POINTER_BLOCK_LIMIT! {} > {} ({})'.format(id, 1, pointer_address, POINTER_BLOCK1_LIMIT, (POINTER_BLOCK1_LIMIT - pointer_address)))
@@ -120,8 +121,9 @@ def neugier_gfx_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_binary(f, GFX_STATUS_OFFSETS[0], GFX_STATUS_OFFSETS[1], dump_path, 'gfx_status.bin')
         dump_binary(f, GFX_NEW_GAME_OFFSETS[0], GFX_NEW_GAME_OFFSETS[1], dump_path, 'gfx_new_game.bin')
+        dump_binary(f, GFX_TITLE[0], GFX_TITLE[1], dump_path, 'gfx_title.bin')
+        dump_binary(f, GFX_STATUS_OFFSETS[0], GFX_STATUS_OFFSETS[1], dump_path, 'gfx_status.bin')
         dump_binary(f, GFX_FONT_OFFSETS[0], GFX_FONT_OFFSETS[1], dump_path, 'gfx_font.bin')
         dump_binary(f, GFX_INTRO_OFFSETS[0], GFX_INTRO_OFFSETS[1], dump_path, 'gfx_intro.bin')
 
@@ -129,8 +131,9 @@ def neugier_gfx_inserter(args):
     dest_file = args.dest_file
     translation_path = args.translation_path
     with open(dest_file, 'r+b') as f:
-        insert_binary(f, GFX_STATUS_OFFSETS[0], GFX_STATUS_OFFSETS[1], translation_path, 'gfx_status.bin')
         insert_binary(f, GFX_NEW_GAME_OFFSETS[0], GFX_NEW_GAME_OFFSETS[1], translation_path, 'gfx_new_game.bin')
+        insert_binary(f, GFX_TITLE[0], GFX_TITLE[1], translation_path, 'gfx_title.bin')
+        insert_binary(f, GFX_STATUS_OFFSETS[0], GFX_STATUS_OFFSETS[1], translation_path, 'gfx_status.bin')
         insert_binary(f, GFX_FONT_OFFSETS[0], GFX_FONT_OFFSETS[1], translation_path, 'gfx_font.bin')
         insert_binary(f, GFX_INTRO_OFFSETS[0], GFX_INTRO_OFFSETS[1], translation_path, 'gfx_intro.bin')
         # VWF
@@ -260,6 +263,10 @@ dump_credits_parser.add_argument('-s', '--source', action='store', dest='source_
 dump_credits_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Credits table filename')
 dump_credits_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
 dump_credits_parser.set_defaults(func=neugier_credits_dumper)
+file_copy_parser = subparsers.add_parser('file_copy', help='File COPY')
+file_copy_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+file_copy_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+file_copy_parser.set_defaults(func=file_copy)
 
 if __name__ == "__main__":
     args = parser.parse_args()

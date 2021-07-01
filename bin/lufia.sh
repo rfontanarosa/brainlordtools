@@ -1,6 +1,8 @@
 #!/bin/bash
 
-RESOURCE_PATH="../../brainlordresources/lufia"
+BRAINLORD_PATH="/Users/rfontanarosa/git"
+RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/lufia"
+TOOLS_PATH="$BRAINLORD_PATH/brainlordtools/brainlordtools"
 
 USER="clomax"
 DB="$RESOURCE_PATH/db/lufia.sqlite3"
@@ -18,14 +20,15 @@ TRANSLATION_TEXT_PATH="$RESOURCE_PATH/translation_text"
 TANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
 TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
 
-python ../brainlordtools/lufia.py expand -s "$SOURCE" -d "$DESTINATION"
+python "$TOOLS_PATH/lufia.py" file_copy -s "$SOURCE" -d "$DESTINATION"
+python "$TOOLS_PATH/lufia.py" expand -d "$DESTINATION"
 
-python ../brainlordtools/lufia.py dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH" -db "$DB"
-python ../brainlordtools/lufia.py dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
-python ../brainlordtools/lufia.py dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_MISC_PATH"
+python "$TOOLS_PATH/lufia.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH" -db "$DB"
+python "$TOOLS_PATH/lufia.py" dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
+python "$TOOLS_PATH/lufia.py" dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_MISC_PATH"
 
-python ../brainlordtools/lufia.py insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE2" -tp "$TRANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
-python ../brainlordtools/lufia.py insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
-python ../brainlordtools/lufia.py insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE1" -tp "$TRANSLATION_MISC_PATH"
+python "$TOOLS_PATH/lufia.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE2" -tp "$TRANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
+python "$TOOLS_PATH/lufia.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
+python "$TOOLS_PATH/lufia.py" insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE1" -tp "$TRANSLATION_MISC_PATH"
 
 asar "$RESOURCE_PATH/hack/hack.asm" "$DESTINATION"
