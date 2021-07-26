@@ -106,7 +106,7 @@ def lufia_misc_dumper(args):
             csv_writer.writerow(['text_address', 'text', 'trans'])
             pointers = OrderedDict()
             f.seek(0xfdb00)
-            while f.tell() < 0xfdb6f:
+            while f.tell() < (0xfdb6f - (7 * 2)):
                 pointers[f.tell()] = struct.unpack('H', f.read(2))[0] + 0xfdb00
             for key, value in pointers.items():
                 f.seek(value)
@@ -121,9 +121,9 @@ def lufia_misc_dumper(args):
             csv_writer.writerow(['text_address', 'text', 'trans'])
             pointers = OrderedDict()
             f.seek(0xfdb00)
-            while f.tell() < 0xfdb6f:
-                text_address = struct.unpack('H', f.read(2))[0] + 0xfdb00
-                f1.seek(text_address + 15)
+            while f.tell() < (0xfdb6f - (7 * 2)):
+                pointer_address = struct.unpack('H', f.read(2))[0] + 0xfdb00 + 15
+                f1.seek(pointer_address)
                 pointers[f1.tell()] = struct.unpack('H', f1.read(2))[0] + 0xfdb00
             for key, value in pointers.items():
                 text = read_text(f, value, end_byte=b'\00')
@@ -250,31 +250,46 @@ def lufia_misc_inserter(args):
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     table2 = Table(table2_file)
-    with open(dest_file, 'r+b') as f:
+    with open(dest_file, 'r+b') as f1, open(dest_file, 'r+b') as f2:
         # Enemy Names
         translation_file = os.path.join(translation_path, 'enemy_names.csv')
         translated_texts = get_csv_translated_texts(translation_file)
         for i, (t_address, t_value) in enumerate(translated_texts.items()):
-            text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
+            text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
             if len(text) != 10:
                 sys.exit("{} exceeds".format(t_value))
-            write_text(f, t_address, text, length=10)
+            write_text(f1, t_address, text, length=10)
         # Items
         translation_file = os.path.join(translation_path, 'items.csv')
         translated_texts = get_csv_translated_texts(translation_file)
         for i, (t_address, t_value) in enumerate(translated_texts.items()):
-            text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
+            text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
             if len(text) != 12:
                 sys.exit("{} exceeds".format(t_value))
-            write_text(f, t_address, text, length=12)
+            write_text(f1, t_address, text, length=12)
         # Magic
         translation_file = os.path.join(translation_path, 'magic.csv')
         translated_texts = get_csv_translated_texts(translation_file)
         for i, (t_address, t_value) in enumerate(translated_texts.items()):
-            text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
+            text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
             if len(text) != 8:
                 sys.exit("{} exceeds".format(t_value))
-            write_text(f, t_address, text, length=8)
+            write_text(f1, t_address, text, length=8)
+        # Magic descriptions
+        pointers_addresses = []
+        f2.seek(0xfdb00)
+        while f2.tell() < 0xfdb6f:
+            pointers_addresses.append(struct.unpack('H', f2.read(2))[0] + 0xfdb00 + 15)
+        f2.seek(0xfdb00)
+        f1.seek(0x138000)
+        translation_file = os.path.join(translation_path, 'magic_descriptions.csv')
+        translated_texts = get_csv_translated_texts(translation_file)
+        for i, (t_address, t_value) in enumerate(translated_texts.items()):
+            pointer = struct.pack('H', f1.tell() - 0x130000)
+            f2.seek(pointers_addresses[i])
+            f2.write(pointer)
+            text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
+            f1.write(text + b'\00')
 
 def lufia_gfx_dumper(args):
     source_file = args.source_file

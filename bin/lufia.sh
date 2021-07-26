@@ -33,3 +33,4 @@ python "$TOOLS_PATH/lufia.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_
 python "$TOOLS_PATH/lufia.py" insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE3" -tp "$TRANSLATION_MISC_PATH"
 
 asar "$RESOURCE_PATH/hack/hack.asm" "$DESTINATION"
+asar "$RESOURCE_PATH/hack/various.asm" "$DESTINATION"
