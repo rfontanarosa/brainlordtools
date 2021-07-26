@@ -16,6 +16,7 @@ from rhtools3.Table import Table
 CRC32 = '5E1AA1A6'
 
 FONT1_BLOCK = (0x54250, 0x54b40)
+FONT2_BLOCK = (0x10000, 0x10e00)
 
 EXP_SIZE = 1048576
 
@@ -284,12 +285,14 @@ def lufia_gfx_dumper(args):
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
         dump_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1], dump_path, 'gfx_font1.bin')
+        dump_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[1], dump_path, 'gfx_font2.bin')
 
 def lufia_gfx_inserter(args):
     dest_file = args.dest_file
     translation_path = args.translation_path
     with open(dest_file, 'r+b') as f:
         insert_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1], translation_path, 'gfx_font1.bin')
+        insert_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[1], translation_path, 'gfx_font2.bin')
 
 def lufia_expander(args):
     dest_file = args.dest_file

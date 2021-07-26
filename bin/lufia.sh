@@ -11,6 +11,7 @@ DESTINATION="$RESOURCE_PATH/roms/Lufia & The Fortress of Doom (I) [!].sfc"
 
 TABLE1="$RESOURCE_PATH/tables/AllOriginal.tbl"
 TABLE2="$RESOURCE_PATH/tables/LufiaScriptIta.tbl"
+TABLE3="$RESOURCE_PATH/tables/LufiaMenuIta.tbl"
 
 DUMP_TEXT_PATH="$RESOURCE_PATH/dump_text"
 DUMP_MISC_PATH="$RESOURCE_PATH/dump_misc"
@@ -29,6 +30,6 @@ python "$TOOLS_PATH/lufia.py" dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_MI
 
 python "$TOOLS_PATH/lufia.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE2" -tp "$TRANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
 python "$TOOLS_PATH/lufia.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
-python "$TOOLS_PATH/lufia.py" insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE1" -tp "$TRANSLATION_MISC_PATH"
+python "$TOOLS_PATH/lufia.py" insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE3" -tp "$TRANSLATION_MISC_PATH"
 
 asar "$RESOURCE_PATH/hack/hack.asm" "$DESTINATION"
