@@ -290,6 +290,16 @@ def lufia_misc_inserter(args):
             f2.write(pointer)
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
             f1.write(text + b'\00')
+        # Attacks
+        f2.seek(0x4150a)
+        f1.seek(0x140000)
+        translation_file = os.path.join(translation_path, 'attacks.csv')
+        translated_texts = get_csv_translated_texts(translation_file)
+        for i, (t_address, t_value) in enumerate(translated_texts.items()):
+            pointer = struct.pack('H', f1.tell() - 0x138000)
+            f2.write(pointer)
+            text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
+            f1.write(text + b'\00')
 
 def lufia_gfx_dumper(args):
     source_file = args.source_file
