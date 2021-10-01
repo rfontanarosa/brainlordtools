@@ -232,6 +232,7 @@ def lufia_text_inserter(args):
 
         ptr_table_offset = 0x100100
         new_text_offset = 0x108000
+        next_bank_offset = new_text_offset + 0x8000
 
         index = 0
 
@@ -247,6 +248,11 @@ def lufia_text_inserter(args):
                 if len(encoded_text) < 3:
                     f.write(encoded_text)
                 continue
+
+            # Cross bank check
+            if new_text_offset + len(encoded_text) >= next_bank_offset:
+                new_text_offset = next_bank_offset
+                next_bank_offset += 0x8000
 
             # Write the Jump Byte
             f.write(b'\x7f')
@@ -353,7 +359,7 @@ def lufia_misc_inserter(args):
         pointer = struct.pack('H', pc2snes_lorom(f1.tell() & 0x00FFFF))
         f2.write(pointer)
         # MTE 2
-        f2.seek(MTE1_POINTERS_OFFSETS[0])
+        f2.seek(MTE2_POINTERS_OFFSETS[0])
         f1.seek(0x54b42)
         translation_file = os.path.join(translation_path, 'mte2.csv')
         translated_texts = get_csv_translated_texts(translation_file)
@@ -384,6 +390,7 @@ def lufia_gfx_inserter(args):
     with open(dest_file, 'r+b') as f:
         insert_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1], translation_path, 'gfx_font1.bin')
         insert_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[1], translation_path, 'gfx_font2.bin')
+        insert_binary(f, 0x097c4d, 0x097c4d + 4497, translation_path, '097c4d_logo_ita_CMP.bin') # max size 4687
 
 def lufia_expander(args):
     dest_file = args.dest_file
