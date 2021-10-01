@@ -34,3 +34,7 @@ python "$TOOLS_PATH/lufia.py" insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$T
 
 asar "$RESOURCE_PATH/hack/hack.asm" "$DESTINATION"
 asar "$RESOURCE_PATH/hack/various.asm" "$DESTINATION"
+asar "$RESOURCE_PATH/hack/menus.asm" "$DESTINATION"
+asar "$RESOURCE_PATH/hack/battle_msg.asm" "$DESTINATION"
+asar "$RESOURCE_PATH/hack/levelup_msg.asm" "$DESTINATION"
+asar "$RESOURCE_PATH/hack/end_stats.asm" "$DESTINATION"
