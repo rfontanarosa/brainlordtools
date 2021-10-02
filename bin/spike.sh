@@ -28,3 +28,5 @@ python "$TOOLS_PATH/spike.py" expand -d "$DESTINATION"
 python "$TOOLS_PATH/spike.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH" -db "$DB"
 
 python "$TOOLS_PATH/spike.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE1" -tp "$TRANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
+
+asar "$RESOURCE_PATH/asm/main.asm" "$DESTINATION"

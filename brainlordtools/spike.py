@@ -15,22 +15,24 @@ from rhtools3.Table import Table
 
 CRC32 = '8C2068D1'
 
-# POINTER_BLOCKS = (
-#     (0x930, 0x97d),
-#     (0x10104, 0x10109),
-#     (0x1010c, 0x10133),
-#     (0x10468, 0x10497),
-#     (0x1068e, 0x106ad),
-#     (0x1228f, 0x122ae),
-#     (0x12628, 0x12657)
-# )
+POINTER_BLOCKS = (
+    # (0x930, 0x97d),
+    # (0x10104, 0x10109),
+    # (0x1010c, 0x10133),
+    # (0x10468, 0x10497),
+    # (0x1068e, 0x106ad),
+    (0x1228f, 0x122ae),
+    (0x12628, 0x12657)
+)
 
-POINTER_BLOCK_1 = (0x62003, 0x6208f)
+# POINTER_BLOCK_1 is empty!
+# POINTER_BLOCK_1 = (0x62003, 0x6208f)
 POINTER_BLOCK_2 = (0x62090, 0x622c3)
 
-EXP_SIZE = 32768
+EXP_SIZE = 524288
 
-NEW_TEXT_OFFSET_1 = 0x107f50
+NEW_TEXT_OFFSET_1 = 0x100000
+NEW_TEXT_OFFSET_2 = 0x108000
 
 def spike_text_dumper(args):
     source_file = args.source_file
@@ -47,16 +49,8 @@ def spike_text_dumper(args):
     os.mkdir(dump_path)
     id = 1
     with open(source_file, 'rb') as f:
-        pointers = OrderedDict()
-        # for pointer_block in POINTER_BLOCKS:
-        #     f.seek(pointer_block[0])
-        #     while f.tell() < pointer_block[1]:
-        #         p_offset = f.tell()
-        #         pointer = f.read(2)
-        #         p_value = struct.unpack('H', pointer)[0] + 0x10000 - 0x8000
-        #         if p_value > 0:
-        #             pointers.setdefault(p_value, []).append(p_offset)
         # READ POINTERS BLOCK 2
+        pointers = OrderedDict()
         f.seek(POINTER_BLOCK_2[0])
         while f.tell() < POINTER_BLOCK_2[1]:
             p_offset = f.tell()
@@ -64,10 +58,9 @@ def spike_text_dumper(args):
             p_value = struct.unpack('i', pointer[:3] + b'\x00')[0] - 0x868000
             if p_value > 0:
                 pointers.setdefault(p_value, []).append(p_offset)
-        # READ TEXT BLOCK 2
+        # READ TEXT FROM POINTERS
         for i, (taddress, paddresses) in enumerate(pointers.items()):
             pointer_addresses = ';'.join(hex(x) for x in paddresses)
-            f.seek(taddress)
             text = read_text(f, taddress, end_byte=b'\xf0', cmd_list={b'\xf4': 2, b'\xf6': 1, b'\xf8': 1, b'\xfa': 4, b'\xfc': 1, b'\xfd': 4, b'\xfe': 1, b'\xff': 2})
             text_decoded = table1.decode(text, cmd_list={0xf4: 2, 0xf6: 1, 0xf8: 1, 0xfa: 4, 0xfc: 1, 0xfd: 4, 0xfe: 1, 0xff: 2})
             # dump - db
@@ -77,9 +70,30 @@ def spike_text_dumper(args):
             with open(filename, 'a+') as out:
                 out.write(str(id) + ' - ' + pointer_addresses + '\n' + text_decoded + "\n\n")
             id += 1
-        cur.close()
-        conn.commit()
-        conn.close()
+        # READ POINTER BLOCKS
+        pointers = OrderedDict()
+        for pointer_block in POINTER_BLOCKS:
+            f.seek(pointer_block[0])
+            while f.tell() < pointer_block[1]:
+                p_offset = f.tell()
+                pointer = f.read(2)
+                p_value = struct.unpack('H', pointer)[0] + 0x10000 - 0x8000
+                if p_value > 0:
+                    pointers.setdefault(p_value, []).append(p_offset)
+        for i, (taddress, paddresses) in enumerate(pointers.items()):
+            pointer_addresses = ';'.join(hex(x) for x in paddresses)
+            text = read_text(f, taddress, end_byte=b'\xf0', cmd_list={b'\xf4': 2, b'\xf6': 1, b'\xf8': 1, b'\xfa': 4, b'\xfc': 1, b'\xfd': 4, b'\xfe': 1, b'\xff': 2})
+            text_decoded = table1.decode(text, cmd_list={0xf4: 2, 0xf6: 1, 0xf8: 1, 0xfa: 4, 0xfc: 1, 0xfd: 4, 0xfe: 1, 0xff: 2})
+            # dump - db
+            insert_text(cur, id, convert_to_binary(text), text_decoded, taddress, pointer_addresses, 2, id)
+            # dump - txt
+            filename = os.path.join(dump_path, 'dump_eng.txt')
+            with open(filename, 'a+') as out:
+                out.write(str(id) + ' - ' + pointer_addresses + '\n' + text_decoded + "\n\n")
+            id += 1
+    cur.close()
+    conn.commit()
+    conn.close()
 
 def spike_text_inserter(args):
     dest_file = args.dest_file
@@ -91,8 +105,8 @@ def spike_text_inserter(args):
     conn.text_factory = str
     cur = conn.cursor()
     with open(dest_file, 'r+b') as f:
-        # TEXT
-        f.seek(NEW_TEXT_OFFSET_1)
+        # TEXT 1
+        new_text_address = NEW_TEXT_OFFSET_1
         rows = select_translation_by_author(cur, user_name, ['1'])
         for row in rows:
             # INSERTER X
@@ -102,10 +116,9 @@ def spike_text_inserter(args):
             translation = row[5]
             text = translation if translation else text_decoded
             text_encoded = table.encode(text)
-            new_text_address = f.tell()
             f.seek(new_text_address)
             f.write(text_encoded)
-            f.write(b'\x00')
+            f.write(b'\xf0')
             next_text_address = f.tell()
             # REPOINTER X
             pointer_addresses = row[4]
@@ -115,8 +128,33 @@ def spike_text_inserter(args):
                     if pointer_address:
                         pointer_address = int(pointer_address, 16)
                         f.seek(pointer_address)
-                        f.write(bytes(pvalue[:3]))
-            f.seek(next_text_address)
+                        f.write(bytes(pvalue[:-1]))
+            new_text_address = next_text_address
+        # TEXT 2
+        new_text_address = NEW_TEXT_OFFSET_2
+        rows = select_translation_by_author(cur, user_name, ['2'])
+        for row in rows:
+            # INSERTER X
+            id = row[0]
+            address = row[3]
+            text_decoded = row[2]
+            translation = row[5]
+            text = translation if translation else text_decoded
+            text_encoded = table.encode(text)
+            f.seek(new_text_address)
+            f.write(text_encoded)
+            f.write(b'\xf0')
+            next_text_address = f.tell()
+            # REPOINTER X
+            pointer_addresses = row[4]
+            if pointer_addresses:
+                pvalue = struct.pack('i', pc2snes_lorom(new_text_address) + 0x800000)
+                for pointer_address in pointer_addresses.split(';'):
+                    if pointer_address:
+                        pointer_address = int(pointer_address, 16)
+                        f.seek(pointer_address)
+                        f.write(bytes(pvalue[:2]))
+            new_text_address = next_text_address
     cur.close()
     conn.close()
 
@@ -150,8 +188,6 @@ file_copy_parser = subparsers.add_parser('file_copy', help='File COPY')
 file_copy_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 file_copy_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 file_copy_parser.set_defaults(func=file_copy)
-args = parser.parse_args()
-args.func(args)
 
 if __name__ == "__main__":
     args = parser.parse_args()
