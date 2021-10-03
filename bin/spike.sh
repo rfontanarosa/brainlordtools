@@ -16,13 +16,13 @@ DUMP_TEXT_PATH="$RESOURCE_PATH/dump_text"
 
 TRANSLATION_TEXT_PATH="$RESOURCE_PATH/translation_text"
 
-# CURRENT_PATH=$PWD
-# WINE_PATH="/Applications/Wine Stable.app/Contents/Resources/wine/bin"
-# cd "$BRAINLORD_PATH/mcfang-dec"
-# "$WINE_PATH/wine" "mccmp.exe" "$SOURCE" "$DESTINATION"
-# cd $CURRENT_PATH
+CURRENT_PATH=$PWD
+WINE_PATH="/Applications/Wine Stable.app/Contents/Resources/wine/bin"
+cd "$BRAINLORD_PATH/mcfang-dec"
+"$WINE_PATH/wine" "mccmp.exe" "$SOURCE" "$DESTINATION"
+cd $CURRENT_PATH
 
-python "$TOOLS_PATH/spike.py" file_copy -s "$SOURCE" -d "$DESTINATION"
+# python "$TOOLS_PATH/spike.py" file_copy -s "$SOURCE" -d "$DESTINATION"
 python "$TOOLS_PATH/spike.py" expand -d "$DESTINATION"
 
 python "$TOOLS_PATH/spike.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH" -db "$DB"
