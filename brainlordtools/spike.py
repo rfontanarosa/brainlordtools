@@ -4,12 +4,12 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import os, shutil, sqlite3, struct, sys
+import csv, os, shutil, sqlite3, struct, sys
 from collections import OrderedDict
 
 from rhtools.utils import crc32, expand_rom, file_copy
 from rhtools3.db import insert_text, convert_to_binary, select_translation_by_author, select_most_recent_translation
-from rhtools.dump import read_text
+from rhtools.dump import read_text, write_text, get_csv_translated_texts
 from rhtools.snes_utils import snes2pc_lorom, pc2snes_lorom
 from rhtools3.Table import Table
 
@@ -77,6 +77,30 @@ def spike_text_dumper(args):
     conn.commit()
     conn.close()
 
+def spike_misc_dumper(args):
+    source_file = args.source_file
+    table1_file = args.table1
+    dump_path = args.dump_path
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
+        sys.exit('SOURCE ROM CHECKSUM FAILED!')
+    table = Table(table1_file)
+    shutil.rmtree(dump_path, ignore_errors=True)
+    os.mkdir(dump_path)
+    with open(source_file, 'rb') as f, open(source_file, 'rb') as f1:
+        # Monsters
+        filename = os.path.join(dump_path, 'monsters.csv')
+        with open(filename, 'w+') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['text_address', 'text', 'trans'])
+            f.seek(0x62303)
+            while f.tell() <= 0x626dc:
+                text_address = f.tell()
+                text = read_text(f, text_address, end_byte=b'\xf0')
+                if text:
+                    text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
+                    fields = [hex(text_address), text_decoded]
+                    csv_writer.writerow(fields)
+
 def spike_text_inserter(args):
     dest_file = args.dest_file
     table2_file = args.table2
@@ -140,6 +164,26 @@ def spike_text_inserter(args):
     cur.close()
     conn.close()
 
+def spike_misc_inserter(args):
+    source_file = args.source_file
+    dest_file = args.dest_file
+    table1_file = args.table1
+    table2_file = args.table2
+    translation_path = args.translation_path
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
+        sys.exit('SOURCE ROM CHECKSUM FAILED!')
+    table = Table(table1_file)
+    table2 = Table(table2_file)
+    with open(dest_file, 'r+b') as f1, open(dest_file, 'r+b') as f2:
+        # Enemies
+        translation_file = os.path.join(translation_path, 'monsters.csv')
+        translated_texts = get_csv_translated_texts(translation_file)
+        for i, (t_address, t_value) in enumerate(translated_texts.items()):
+            text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
+            if len(text) > 9:
+                sys.exit("{} exceeds".format(t_value))
+            write_text(f1, t_address, text)
+
 def spike_expander(args):
     dest_file = args.dest_file
     size_to_expand = (1048576 + 524288) - os.path.getsize(dest_file)
@@ -164,6 +208,18 @@ insert_text_parser.add_argument('-tp', '--translation_path', action='store', des
 insert_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
 insert_text_parser.add_argument('-u', '--user', action='store', dest='user', help='')
 insert_text_parser.set_defaults(func=spike_text_inserter)
+dump_misc_parser = subparsers.add_parser('dump_misc', help='Execute MISC DUMP')
+dump_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+dump_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+dump_misc_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+dump_misc_parser.set_defaults(func=spike_misc_dumper)
+insert_misc_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
+insert_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+insert_misc_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+insert_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+insert_misc_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+insert_misc_parser.set_defaults(func=spike_misc_inserter)
 expand_parser = subparsers.add_parser('expand', help='Execute EXPANDER')
 expand_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 expand_parser.set_defaults(func=spike_expander)
