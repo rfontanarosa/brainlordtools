@@ -20,13 +20,13 @@ CRC32 = '8C2068D1'
 
 POINTER_BLOCKS = (
     (0x62090, 0x622c3),
-    # (0x930, 0x97d),
-    # (0x10104, 0x10109),
-    # (0x1010c, 0x10133),
+    (0x1228f, 0x122ae),
+    (0x12628, 0x12657),
+    (0x10104, 0x10109),
+    (0x1010a, 0x10133),
+    # (0x92e, 0x97d),
     # (0x10468, 0x10497),
     # (0x1068e, 0x106ad),
-    (0x1228f, 0x122ae),
-    (0x12628, 0x12657)
 )
 
 NEW_TEXT_OFFSET_1 = 0x140000
@@ -138,7 +138,7 @@ def spike_text_inserter(args):
             new_text_address = next_text_address
         # TEXT 2
         new_text_address = NEW_TEXT_OFFSET_2
-        rows = select_translation_by_author(cur, user_name, ['2', '3'])
+        rows = select_translation_by_author(cur, user_name, ['2', '3', '4', '5'])
         for row in rows:
             # INSERTER X
             id = row[0]
