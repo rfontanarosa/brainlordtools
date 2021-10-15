@@ -1,7 +1,7 @@
 import os, sys, csv
 from collections import OrderedDict
 
-def read_text(f, offset, length=None, end_byte=None, cmd_list=None):
+def read_text(f, offset, length=None, end_byte=None, cmd_list=None, append_end_byte=False):
     text = b''
     f.seek(offset)
     if length:
@@ -9,12 +9,14 @@ def read_text(f, offset, length=None, end_byte=None, cmd_list=None):
     elif end_byte:
         while True:
             byte = f.read(1)
-            if byte == end_byte:
-                break
-            elif cmd_list and byte in cmd_list.keys():
+            if cmd_list and byte in cmd_list.keys():
                 text += byte
                 bytes_to_read = cmd_list.get(byte)
                 text += f.read(bytes_to_read)
+            elif byte in end_byte:
+                if append_end_byte:
+                    text += byte
+                break
             else:
                 text += byte
     return text
