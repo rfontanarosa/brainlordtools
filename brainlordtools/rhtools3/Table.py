@@ -179,15 +179,11 @@ class Table():
                 char = text[i]
                 if char == self.HEX_FORMAT[0]:
                     char_to_decode = text[i+1:i+3]
-                    byte_decoded = bytes.fromhex(char_to_decode)
-                    encoded += byte_decoded
+                    encoded += bytes.fromhex(char_to_decode)
                     i += 3
                 else:
                     key = self._reverse_table.get(char)
-                    if key != None:
-                        encoded += bytes([key])
-                    else:
-                        encoded += char.encode()
+                    encoded += bytes([key]) if key != None else char.encode()
                 i += 1
         return encoded
 
