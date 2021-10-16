@@ -21,7 +21,7 @@ DUMP_CREDITS_PATH="$RESOURCE_PATH/dump_credits"
 TANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
 TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
 
-python "$TOOLS_PATH/neugier.py" file_copy -s "$SOURCE" -d "$DESTINATION"
+python "$TOOLS_PATH/_utils.py" file_copy -s "$SOURCE" -d "$DESTINATION"
 
 python "$TOOLS_PATH/neugier.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH" -db "$DB"
 python "$TOOLS_PATH/neugier.py" dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"

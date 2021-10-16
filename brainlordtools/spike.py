@@ -7,7 +7,7 @@ __email__ = "robertofontanarosa@gmail.com"
 import csv, os, shutil, sqlite3, struct, sys
 from collections import OrderedDict
 
-from rhtools.utils import crc32, expand_rom, file_copy
+from rhtools.utils import crc32, expand_rom
 from rhtools3.db import insert_text, convert_to_binary, select_translation_by_author, select_most_recent_translation
 from rhtools.dump import read_text, write_text, get_csv_translated_texts
 from rhtools.snes_utils import snes2pc_lorom, pc2snes_lorom
@@ -223,10 +223,6 @@ insert_misc_parser.set_defaults(func=spike_misc_inserter)
 expand_parser = subparsers.add_parser('expand', help='Execute EXPANDER')
 expand_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 expand_parser.set_defaults(func=spike_expander)
-file_copy_parser = subparsers.add_parser('file_copy', help='File COPY')
-file_copy_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-file_copy_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-file_copy_parser.set_defaults(func=file_copy)
 
 if __name__ == "__main__":
     args = parser.parse_args()
