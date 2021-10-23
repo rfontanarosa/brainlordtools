@@ -21,6 +21,7 @@ TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
 CURRENT_PATH=$PWD
 WINE_PATH="/Applications/Wine Stable.app/Contents/Resources/wine/bin"
 cd "$BRAINLORD_PATH/mcfang-dec"
+# "$WINE_PATH/wine" "mcdec.exe" "$SOURCE"
 "$WINE_PATH/wine" "mccmp.exe" "$SOURCE" "$DESTINATION"
 cd $CURRENT_PATH
 

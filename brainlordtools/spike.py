@@ -15,9 +15,6 @@ from rhtools3.Table import Table
 
 CRC32 = '8C2068D1'
 
-# POINTER_BLOCK_1 is empty!
-# POINTER_BLOCK_1 = (0x62003, 0x6208f)
-
 POINTER_BLOCKS = (
     (0x62090, 0x622c3),
     (0x1228f, 0x122ae),
