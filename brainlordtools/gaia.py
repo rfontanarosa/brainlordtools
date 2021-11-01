@@ -8,7 +8,7 @@ import csv, os, re, shutil, sqlite3, struct, sys
 from collections import OrderedDict
 
 from rhtools.utils import crc32, expand_rom
-from rhtools3.db import insert_text, convert_to_binary, select_translation_by_author, select_most_recent_translation
+from rhtools3.db import insert_text, select_translation_by_author, select_most_recent_translation
 from rhtools.dump import read_text, write_text, dump_binary, insert_binary, get_csv_translated_texts
 from rhtools.snes_utils import snes2pc_lorom, pc2snes_lorom
 from rhtools3.Table import Table
@@ -58,7 +58,7 @@ def gaia_text_dumper(args):
             ref = '[BLOCK {}: {} to {} - {}]'.format(str(id), hex(taddress), hex(f.tell() - 1), pointer_addresses)
             text_decoded = table.decode(text, mte_resolver=True, dict_resolver=True)
             # dump - db
-            # insert_text(cur, id, convert_to_binary(text), text_decoded, text_address, '', 1, ref)
+            # insert_text(cur, id, text, text_decoded, text_address, '', 1, ref)
             # dump - txt
             filename = os.path.join(dump_path, 'dump_eng.txt')
             with open(filename, 'a+') as out:

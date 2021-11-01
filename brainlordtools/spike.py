@@ -8,7 +8,7 @@ import csv, os, shutil, sqlite3, struct, sys
 from collections import OrderedDict
 
 from rhtools.utils import crc32, expand_rom
-from rhtools3.db import insert_text, convert_to_binary, select_translation_by_author, select_most_recent_translation
+from rhtools3.db import insert_text, select_translation_by_author, select_most_recent_translation
 from rhtools.dump import read_text, write_text, get_csv_translated_texts
 from rhtools.snes_utils import snes2pc_lorom, pc2snes_lorom
 from rhtools3.Table import Table
@@ -64,7 +64,7 @@ def spike_text_dumper(args):
                 text = read_text(f, taddress, end_byte=b'\xf0', cmd_list={b'\xf4': 2, b'\xf6': 1, b'\xf8': 1, b'\xfa': 4, b'\xfc': 1, b'\xfd': 4, b'\xfe': 1, b'\xff': 2})
                 text_decoded = table1.decode(text, cmd_list={0xf4: 2, 0xf6: 1, 0xf8: 1, 0xfa: 4, 0xfc: 1, 0xfd: 4, 0xfe: 1, 0xff: 2})
                 # dump - db
-                insert_text(cur, id, convert_to_binary(text), text_decoded, taddress, pointer_addresses, str(index + 1), id)
+                insert_text(cur, id, text, text_decoded, taddress, pointer_addresses, str(index + 1), id)
                 # dump - txt
                 filename = os.path.join(dump_path, 'dump_eng.txt')
                 with open(filename, 'a+') as out:

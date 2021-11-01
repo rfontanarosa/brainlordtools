@@ -8,7 +8,7 @@ import sys, os, struct, sqlite3, shutil, csv
 from collections import OrderedDict
 
 from rhtools.utils import crc32
-from rhtools3.db import insert_text, convert_to_binary, select_translation_by_author, select_most_recent_translation
+from rhtools3.db import insert_text, select_translation_by_author, select_most_recent_translation
 from rhtools.dump import read_text, write_text, write_byte, dump_binary, insert_binary, get_csv_translated_texts
 from rhtools.snes_utils import snes2pc_lorom, pc2snes_lorom
 from rhtools3.Table import Table
@@ -71,7 +71,7 @@ def ruinarm_text_dumper(args):
                 text_decoded = table.decode(text)
                 ref = '[BLOCK {}: {} to {} - BANK {} - {}]'.format(str(id), hex(text_address), hex(f.tell() -1), str(k + 1), pointer_addresses)
                 # dump - db
-                insert_text(cur, id, convert_to_binary(text), text_decoded, text_address, pointer_addresses, 1, ref)
+                insert_text(cur, id, text, text_decoded, text_address, pointer_addresses, 1, ref)
                 # dump - txt
                 filename = os.path.join(dump_path, 'dump_jap.txt')
                 with open(filename, 'a+') as out:

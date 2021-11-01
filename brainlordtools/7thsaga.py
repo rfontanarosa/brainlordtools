@@ -8,7 +8,7 @@ import sys, os, struct, sqlite3, shutil, csv
 from collections import OrderedDict
 
 from rhtools.utils import crc32
-from rhtools3.db import insert_text, convert_to_binary, select_translation_by_author, select_most_recent_translation
+from rhtools3.db import insert_text, select_translation_by_author, select_most_recent_translation
 from rhtools.dump import read_text, write_text, dump_binary, insert_binary
 from rhtools.snes_utils import snes2pc_hirom, pc2snes_hirom
 from rhtools3.Table import Table
@@ -38,7 +38,7 @@ def seventhsaga_bank_dumper(f, dump_path, table, id, block, cur, start=0x0, end=
         text_decoded = table.decode(text, mte_resolver=True, dict_resolver=False, cmd_list={0xf6: 1, 0xfb: 5, 0xfc: 5, 0xfd: 2, 0xfe: 2, 0xff: 3})
         ref = '[BLOCK {}: {} to {}]'.format(str(id), hex(text_address), hex(f.tell()))
         # dump - db
-        insert_text(cur, id, convert_to_binary(text), text_decoded, text_address, '', block, '')
+        insert_text(cur, id, text, text_decoded, text_address, '', block, '')
         # dump - txt
         filename = os.path.join(dump_path, 'dump_eng.txt')
         with open(filename, 'a+') as out:

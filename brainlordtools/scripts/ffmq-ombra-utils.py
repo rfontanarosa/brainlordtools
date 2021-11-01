@@ -6,7 +6,7 @@ __email__ = "robertofontanarosa@gmail.com"
 
 import sys, os, sqlite3
 from collections import OrderedDict
-from rhtools3.db import insert_text, convert_to_binary, select_translation_by_author
+from rhtools3.db import insert_text, select_translation_by_author
 
 user_name = 'clomax'
 resources_path = '/Users/rfontanarosa/git/brainlordresources/ffmq'
