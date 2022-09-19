@@ -23,19 +23,17 @@ if import_dump:
     id = 0
     buffer = OrderedDict()
     for line in f:
-      if '<BLOCK ' in line:
-        id += 1
-        buffer[id] = ['', line]
-      elif '<HEADER' in line:
+      if line.startswith('<HEADER'):
         pass
+      elif line.startswith('<BLOCK '):
+        id += 1
+        buffer[id] = ['', line.strip('\n\r')]
       else:
         if id != 0:
           buffer[id][0] += line
     for id, value in buffer.items():
       [text, ref] = value
       text_length = len(text)
-      if id == 1813:
-        print(text)
       text_decoded = text.rstrip('\n\r')
       insert_text(cur, id, b'', text_decoded, '', '', 1, ref)
   cur.close()

@@ -28,16 +28,16 @@ if import_dump:
     id = 0
     buffer = OrderedDict()
     for line in f:
-      if '[BLOCK ' in line:
+      if line.startswith('[BLOCK '):
         id += 1
-        buffer[id] = ['', line]
+        buffer[id] = ['', line.strip('\n\r')]
       else:
         buffer[id][0] += line
     for id, value in buffer.items():
       [text, ref] = value
       text_length = len(text)
       text_decoded = text.strip('\n\r')
-      insert_text(cur, id, '', text_decoded, '', '', 1, ref)
+      insert_text(cur, id, b'', text_decoded, '', '', 1, ref)
   cur.close()
   conn.commit()
   conn.close()
@@ -51,9 +51,7 @@ if export_user_translation:
   with open(dump_user_fullpath, 'a') as f:
     rows = select_translation_by_author(cur, user_name, ['1'])
     for row in rows:
-      text_decoded = row[2]
-      translation = row[5]
-      ref = row[6]
+      _, _, text_decoded, _, _, translation, ref = row
       text = translation if translation else text_decoded
       f.write(ref)
       f.write('\r\n')
