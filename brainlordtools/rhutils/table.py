@@ -75,14 +75,14 @@ class Table():
         print(node)
         print('-----')
         if len(key) == 1:
-            node[key if type(key) == str else int.from_bytes(key, byteorder='big')] = value
+            node[key if type(key) == str else int.from_bytes(key, byteorder='big')] = value if type(value) == ControlCode else {'': value}
         else:
             self._create_graph(node.setdefault(key[0], {}), key[1:], value)
 
     def _data_decode(self, node, data, i=1):
         node = node.get(data[0])
-        if type(node) == str:
-            return (i, node)
+        if type(node) == dict and node.get(''):
+            return (i, node.get(''))
         elif type(node) == dict and len(data) > 1:
             return self._data_decode(node, data[1:], i+1)
         elif type(node) == ControlCode:
@@ -94,8 +94,11 @@ class Table():
 
     def _data_encode(self, node, data, i=1):
         node = node.get(data[0])
-        if type(node) == bytes:
-            return (i, node)
+        if type(node) == dict and node.get(''):
+            if len(data) > 1 and node.get(data[1]):
+                return self._data_encode(node, data[1:], i+1)
+            else:
+                return (i, node.get(''))
         elif type(node) == dict and len(data) > 1:
             return self._data_encode(node, data[1:], i+1)
         elif type(node) == ControlCode:
@@ -147,7 +150,7 @@ class Table():
 if __name__ == "__main__":
     filepath = '/Users/robertofontanarosa/Desktop/table.tbl'
     table = Table(filepath)
-    source = b'\xf8\x01\x02\xff\xcc\x04\xff\x05\xff\x99\xfc\x02\x01\xfb\x88\x88\x88\x00\xdd\xff'
+    source = b'\x09\x25\x09\x26\xf8\x01\x02\xff\xcc\x04\xff\x05\xff\x99\xfc\x02\x01\xfb\x88\x88\x88\x00\xdd\xff'
     # print(table)
     decoded = table.decode(source)
     print(f'decoded: {decoded}')
