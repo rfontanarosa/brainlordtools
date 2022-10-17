@@ -53,7 +53,6 @@ class Table():
                 if line.startswith(Table.COMMENT_CHAR) or line.startswith('//'):
                     pass
                 elif line.startswith(Table.END_TOKEN_CHAR):
-                    print(line)
                     self.end_token = bytes.fromhex(line[1:])
                     control_code = ControlCode(line[1:], '[END]\n\n')
                     self._create_graph(self._table, control_code.key, control_code)
@@ -72,8 +71,6 @@ class Table():
                             raise Exception(line)
 
     def _create_graph(self, node, key, value):
-        print(node)
-        print('-----')
         if len(key) == 1:
             node[key if type(key) == str else int.from_bytes(key, byteorder='big')] = value if type(value) == ControlCode else {'': value}
         else:
@@ -151,7 +148,7 @@ if __name__ == "__main__":
     filepath = '/Users/robertofontanarosa/Desktop/table.tbl'
     table = Table(filepath)
     source = b'\x09\x25\x09\x26\xf8\x01\x02\xff\xcc\x04\xff\x05\xff\x99\xfc\x02\x01\xfb\x88\x88\x88\x00\xdd\xff'
-    # print(table)
+    print(table)
     decoded = table.decode(source)
     print(f'decoded: {decoded}')
     encoded = table.encode(decoded)
