@@ -7,9 +7,9 @@ __email__ = "robertofontanarosa@gmail.com"
 import sys, os, struct, shutil, csv
 from collections import OrderedDict
 
-from rhtools.utils import crc32
-from rhtools.dump import read_text, write_text, dump_binary, insert_binary
 from rhtools3.Table import Table
+from rhutils.dump import read_text, write_text, dump_binary, insert_binary
+from rhutils.rom import crc32
 
 CRC32 = 'A5C0045E'
 

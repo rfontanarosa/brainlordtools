@@ -6,7 +6,7 @@ __email__ = "robertofontanarosa@gmail.com"
 
 import sys, os, sqlite3
 from collections import OrderedDict
-from rhtools3.db import insert_text
+from rhutils.db import insert_text
 
 resources_path = '/Users/robertofontanarosa/git/brainlordresources/starocean'
 db = os.path.join(resources_path, 'db/starocean.sqlite3')

@@ -5,7 +5,7 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import sys, os, sqlite3, time
-from rhtools3.db import insert_text, select_translation_by_author, insert_translation
+from rhutils.db import insert_text, select_translation_by_author, insert_translation
 
 user_name = 'ombra'
 resources_path = '/Users/rfontanarosa/git/brainlordresources/smrpg'

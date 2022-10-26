@@ -1,4 +1,4 @@
-import os, sys, csv
+import os, csv
 from collections import OrderedDict
 
 def read_text(f, offset, length=None, end_byte=None, cmd_list=None, append_end_byte=False):

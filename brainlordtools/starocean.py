@@ -5,7 +5,7 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import os, shutil
-from rhtools.dump import dump_binary, insert_binary
+from rhutils.dump import dump_binary, insert_binary
 
 def starocean_gfx_dumper(args):
     source_file = args.source_file

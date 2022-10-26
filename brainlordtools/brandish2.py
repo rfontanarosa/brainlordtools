@@ -7,8 +7,9 @@ __email__ = "robertofontanarosa@gmail.com"
 import sys, os, struct, sqlite3
 from collections import OrderedDict
 
-from rhtools.utils import crc32, string_address2int_address, byte2int, int2hex, hex2dec, int_address2string_address2
+from rhtools.utils import string_address2int_address, byte2int, int2hex, hex2dec, int_address2string_address2
 from rhtools.OldTable import Table
+from rhutils.rom import crc32
 
 SNES_HEADER_SIZE = 0x200
 SNES_BANK_SIZE = 0x8000

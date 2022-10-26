@@ -7,10 +7,10 @@ __email__ = "robertofontanarosa@gmail.com"
 import sys, os, struct, shutil, csv
 from collections import OrderedDict
 
-from rhtools.utils import crc32
-from rhtools.dump import read_text, write_text, get_csv_translated_texts
-from rhtools.snes_utils import snes2pc_lorom, pc2snes_lorom
 from rhtools3.Table import Table
+from rhutils.dump import read_text, write_text, get_csv_translated_texts
+from rhutils.rom import crc32
+from rhutils.snes import snes2pc_lorom, pc2snes_lorom
 
 CRC32 = '2C52C792'
 
