@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BRAINLORD_PATH="/Users/robertofontanarosa/git"
+BRAINLORD_PATH="$HOME/git"
 RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/soe"
 TOOLS_PATH="$BRAINLORD_PATH/brainlordtools/brainlordtools"
 
@@ -19,7 +19,7 @@ TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
 MISC1="$RESOURCE_PATH/misc.csv"
 
 CURRENT_PATH=$PWD
-cd /Users/robertofontanarosa/git/Romhacking
+cd $HOME/git/Romhacking
 source ./venv/bin/activate
 ./bin/evertool reinsert $SOURCE $TRANSLATION_TEXT_PATH/dump_ita_clomax.txt
 deactivate

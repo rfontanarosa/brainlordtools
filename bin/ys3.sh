@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BRAINLORD_PATH="/Users/rfontanarosa/git"
+BRAINLORD_PATH="$HOME/git"
 RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/ys3"
 TOOLS_PATH="$BRAINLORD_PATH/brainlordtools/brainlordtools"
 
