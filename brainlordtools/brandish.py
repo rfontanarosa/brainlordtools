@@ -11,7 +11,6 @@ from rhutils.db import insert_text, select_translation_by_author
 from rhutils.dump import read_text, dump_binary, insert_binary
 from rhutils.rom import crc32
 
-SNES_HEADER_SIZE = 0x200
 SNES_BANK_SIZE = 0x8000
 
 CRC32 = '74F70A0B'

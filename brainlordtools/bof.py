@@ -13,9 +13,6 @@ from rhtools.utils import byte2int, hex2dec, int2hex, clean_text
 from rhtools.Table import Table
 from rhutils.rom import crc32
 
-SNES_HEADER_SIZE = 0x200
-SNES_BANK_SIZE = 0x8000
-
 CRC32 = 'C788B696'
 
 DICT1_POINTER_BLOCK_START = 0x63400

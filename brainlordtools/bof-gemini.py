@@ -9,9 +9,6 @@ import sys, os, struct, sqlite3
 from rhtools.utils import hex2dec, clean_text
 from rhtools.Table import Table
 
-SNES_HEADER_SIZE = 0x200
-SNES_BANK_SIZE = 0x8000
-
 DICT1_POINTER_BLOCK_START = 0x180000
 DICT1_POINTER_BLOCK_END = DICT1_POINTER_BLOCK_LIMIT = 0x1801ff
 DICT1_BLOCK_START = 0x180200

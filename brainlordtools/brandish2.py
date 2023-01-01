@@ -11,9 +11,6 @@ from rhtools.utils import string_address2int_address, byte2int, int2hex, hex2dec
 from rhtools.OldTable import Table
 from rhutils.rom import crc32
 
-SNES_HEADER_SIZE = 0x200
-SNES_BANK_SIZE = 0x8000
-
 CRC32 = '9DB396EC'
 
 TEXT_BLOCK_START = 0x280787

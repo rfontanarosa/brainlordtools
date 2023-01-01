@@ -6,6 +6,8 @@ __email__ = "robertofontanarosa@gmail.com"
 
 import os, struct
 
+SNES_HEADER_SIZE = 0x200
+
 def pc2snes_lorom(offset):
     return ((offset * 2) & 0xFF0000) + (offset & 0x7FFF) + 0x8000
 
