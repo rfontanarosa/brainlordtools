@@ -89,27 +89,32 @@ class Table():
 
     def _data_decode(self, node, data, i=1):
         node = node.get(data[0])
-        if type(node) == dict and node.get(''):
-            return (i, node.get(''))
-        elif type(node) == dict and len(data) > 1:
+        if isinstance(node, dict) and node.get(''):
+            if len(data) > 1 and node.get(data[1]):
+                return self._data_decode(node, data[1:], i+1)
+            else:
+                return (i, node.get(''))
+        elif isinstance(node, dict) and len(data) > 1:
             return self._data_decode(node, data[1:], i+1)
-        elif type(node) == ControlCode:
+        elif isinstance(node, ControlCode):
             bytes_to_read = len(node.params)
             Bytes = data[1:bytes_to_read + 1]
             return (bytes_to_read + i, node.string_to_format.format(*Bytes))
         else:
             return (1, self.HEX_FORMAT.format(data[0]))
 
-    def _data_encode(self, node, data, i=1):
+    def _data_encode(self, node, data, i=1, buffer=()):
         node = node.get(data[0])
-        if type(node) == dict and node.get(''):
+        if isinstance(node, dict):
             if len(data) > 1 and node.get(data[1]):
-                return self._data_encode(node, data[1:], i+1)
-            else:
+                if node.get(''):
+                    buffer = (i, node.get(''))
+                return self._data_encode(node, data[1:], i+1, buffer)
+            elif node.get(''):
                 return (i, node.get(''))
-        elif type(node) == dict and len(data) > 1:
-            return self._data_encode(node, data[1:], i+1)
-        elif type(node) == ControlCode:
+            else:
+                return (buffer[0], buffer[1])
+        elif isinstance(node, ControlCode):
             if data[0] == ']':
                 return (len(node.string_to_format), node.key)
             else:
