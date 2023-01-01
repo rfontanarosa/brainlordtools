@@ -54,9 +54,14 @@ class Table():
                     pass
                 elif line.startswith(Table.END_TOKEN_CHAR):
                     self.end_token = bytes.fromhex(line[1:])
-                    control_code = ControlCode(line[1:], '[END]\n\n')
+                    control_code = ControlCode(line[1:], '[END]')
                     self._create_graph(self._table, control_code.key, control_code)
                     self._create_graph(self._reverse_table, control_code.value, control_code)
+                elif line.startswith(Table.END_LINE_CHAR):
+                    part_key = line[1:]
+                    self.line_token = bytes.fromhex(part_key)
+                    self._create_graph(self._table, bytes.fromhex(part_key), '\n')
+                    self._create_graph(self._reverse_table, '\n', bytes.fromhex(part_key))
                 else:
                     part_key, _, part_value = line.partition('=')
                     if part_value:
