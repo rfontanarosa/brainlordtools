@@ -72,7 +72,13 @@ class Table():
 
     def _create_graph(self, node, key, value):
         if len(key) == 1:
-            node[key if type(key) == str else int.from_bytes(key, byteorder='big')] = value if type(value) == ControlCode else {'': value}
+            node_key = key if isinstance(key, str) else int.from_bytes(key, byteorder='big')
+            if isinstance(value, ControlCode):
+                node[node_key] = value
+            else:
+                new_value = node.setdefault(node_key, {})
+                new_value[''] = value
+                node[node_key] = new_value
         else:
             self._create_graph(node.setdefault(key[0], {}), key[1:], value)
 
