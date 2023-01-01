@@ -11,7 +11,7 @@ from rhutils.db import insert_text
 resources_path = '/Users/robertofontanarosa/git/brainlordresources/starocean'
 db = os.path.join(resources_path, 'db/starocean.sqlite3')
 dump_path = os.path.join(resources_path, 'dump_text')
-dump_fullpath = os.path.join(dump_path, 'dump_en.txt')
+dump_fullpath = os.path.join(dump_path, 'dump_eng.txt')
 
 import_dump = True
 
@@ -22,9 +22,11 @@ if import_dump:
   with open(dump_fullpath, 'r') as f:
     id = 0
     buffer = OrderedDict()
-    for line in f:
-      if line.startswith('<HEADER'):
-        pass
+    iterator = iter(f)
+    for line in iterator:
+      if line.startswith('<HEADER '):
+        next_line = next(iterator)
+        buffer[id] = ['', line + next_line.strip('\n\r')]
       elif line.startswith('<BLOCK '):
         id += 1
         buffer[id] = ['', line.strip('\n\r')]
