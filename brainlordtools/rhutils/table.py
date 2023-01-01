@@ -42,13 +42,13 @@ class Table():
     HEX_FORMAT = '{{{:02x}}}'
     DOUBLE_HEX_FORMAT =  HEX_FORMAT + HEX_FORMAT
 
-    def __init__(self, filepath):
+    def __init__(self, filepath, encoding='utf-8'):
 
         self.end_token, self.end_line = None, None
         self._table, self._reverse_table = {}, {}
 
-        with open(filepath, 'r') as f:
-            for line in f:
+        with open(filepath, 'r', encoding=encoding) as file:
+            for line in file:
                 line = line.strip('\r\n').replace('\\n', '\n')
                 if line.startswith(Table.COMMENT_CHAR) or line.startswith('//'):
                     pass
@@ -110,7 +110,7 @@ class Table():
         else:
             char = data[0]
             if char == self.HEX_FORMAT[0]:
-                hex_to_decode = data[i:i+2]
+                hex_to_decode = data[1:3]
                 Byte = bytes.fromhex(hex_to_decode)
                 return (4, Byte)
             else:
