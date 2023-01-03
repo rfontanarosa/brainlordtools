@@ -5,7 +5,6 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import csv, os, shutil, struct, sys
-from collections import OrderedDict
 
 from rhutils.dump import dump_binary, insert_binary, read_text
 from rhutils.rom import crc32
@@ -33,32 +32,94 @@ def bof2_text_dumper(args):
     # cur = conn.cursor()
     shutil.rmtree(dump_path, ignore_errors=False)
     os.mkdir(dump_path)
+    if os.path.isfile(os.path.join(dump_path, 'dump_eng.txt')):
+        os.remove(os.path.join(dump_path, 'dump_eng.txt'))
     with open(source_file, 'rb') as f:
-        id = 1
+        id, id2 = 1, 0
         for i, block_pointer in enumerate(POINTERS_BLOCKS):
             start, end, offset = block_pointer
             # READ POINTERS BLOCK
-            pointers = OrderedDict()
+            pointers = {}
             f.seek(start)
             while (f.tell() < end):
                 p_offset = f.tell()
                 p_value = struct.unpack('H', f.read(2))[0] + offset
                 pointers.setdefault(p_value, []).append(p_offset)
             # READ TEXT BLOCK
-            for index, (taddress, paddresses) in enumerate(pointers.items()):
+            for _, (taddress, paddresses) in enumerate(pointers.items()):
                 pointer_addresses = ';'.join(hex(x) for x in paddresses)
                 text = read_text(f, taddress, end_byte=b'\x01', cmd_list={b'\x03': 1, b'\x07': 1, b'\x08': 1, b'\x12': 1}, append_end_byte=True)
                 text_decoded = table.decode(text)
                 # dump - db
-                # insert_text(cur, id, text, text_decoded, taddress, pointer_addresses, i, id)
+                # insert_text(cur, id, text, text_decoded, taddress, pointer_addresses, i, id2)
                 # dump - txt
                 filename = os.path.join(dump_path, 'dump_eng.txt')
                 with open(filename, 'a+') as out:
-                    out.write('[ID {} - BLOCK {} - TEXT {} - POINTER {}]\n{}\n\n'.format(id, i, hex(taddress), pointer_addresses, text_decoded))
+                    out.write(f'[ID {id} - ID2 {id2} - BLOCK {i} - TEXT {hex(taddress)} - POINTER {pointer_addresses}]\n{text_decoded}\n\n')
                 id += 1
+                id2 += len(paddresses)
+            print(id2)
     # cur.close()
     # conn.commit()
     # conn.close()
+
+
+def bof2_text_inserter(args):
+    source_file = args.source_file
+    dest_file = args.dest_file
+    table2_file = args.table2
+    translation_path = args.translation_path
+    # db = args.database_file
+    # user_name = args.user
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
+        sys.exit('SOURCE ROM CHECKSUM FAILED!')
+    table = Table(table2_file)
+    entries = []
+    #
+    translation_file = os.path.join(translation_path, 'dump_ita.txt')
+    with open(translation_file, 'r', encoding='utf-8') as f:
+        buffer = ['', 0]
+        for line in f:
+            if '[ID ' in line:
+                number_of_pointers = len(line.split(' ')[-1].split(';'))
+                buffer = ['', number_of_pointers]
+                entries.append(buffer)
+            else:
+                buffer[0] += line
+    #
+    with open(dest_file, 'rb+') as f:
+        ptr_table_offset = 0x22e000
+        current_bank_offset = 0x290000
+        next_bank_offset = current_bank_offset + 0x10000
+
+        bank_entries = []
+        current_bank_entries = 0
+
+        f.seek(current_bank_offset)
+        for entry in entries:
+            text, number_of_pointers = entry
+            encoded_text = table.encode(text)
+            current_text_offset = f.tell()
+            if (current_text_offset + len(encoded_text) < next_bank_offset):
+                # pointer
+                f.seek(ptr_table_offset)
+                new_pointer = (current_text_offset & 0x00FFFF).to_bytes(2,  byteorder='little')
+                for _ in range(0, number_of_pointers):
+                    f.write(new_pointer)
+                ptr_table_offset = f.tell()
+                # text
+                f.seek(current_text_offset)
+                f.write(encoded_text)
+                current_bank_entries += number_of_pointers
+            else:
+                current_bank_offset += 0x10000
+                next_bank_offset = current_bank_offset + 0x10000
+                bank_entries.append(current_bank_entries)
+
+        f.seek(0x22ddf2)
+        print(bank_entries)
+        for bank_entry in bank_entries:
+            f.write(bank_entry.to_bytes(2,  byteorder='little'))
 
 def bof2_misc_dumper(args):
     source_file = args.source_file
@@ -69,12 +130,11 @@ def bof2_misc_dumper(args):
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
-    with open(source_file, 'rb') as f, open(source_file, 'rb') as f1:
+    with open(source_file, 'rb') as f:
         filename = os.path.join(dump_path, 'items.csv')
         with open(filename, 'w+') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
-            pointers = OrderedDict()
             f.seek(0x70010)
             while f.tell() < 0x71000:
                 text = f.read(16)
@@ -109,6 +169,14 @@ dump_text_parser.add_argument('-t1', '--table1', action='store', dest='table1', 
 dump_text_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
 dump_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
 dump_text_parser.set_defaults(func=bof2_text_dumper)
+insert_text_parser = subparsers.add_parser('insert_text', help='Execute TEXT INSERTER')
+insert_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+insert_text_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_text_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+insert_text_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+insert_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+insert_text_parser.add_argument('-u', '--user', action='store', dest='user', help='')
+insert_text_parser.set_defaults(func=bof2_text_inserter)
 dump_gfx_parser = subparsers.add_parser('dump_gfx', help='Execute GFX DUMP')
 dump_gfx_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 dump_gfx_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
