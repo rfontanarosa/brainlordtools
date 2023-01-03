@@ -4,7 +4,7 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, sqlite3, time
+import os, sqlite3, time
 from rhutils.db import insert_text, select_translation_by_author, insert_translation
 
 user_name = 'clomax'

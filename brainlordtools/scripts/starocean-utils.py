@@ -4,8 +4,7 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, sqlite3
-from collections import OrderedDict
+import os, sqlite3
 from rhutils.db import insert_text
 
 resources_path = '/Users/robertofontanarosa/git/brainlordresources/starocean'
@@ -21,7 +20,7 @@ if import_dump:
   cur = conn.cursor()
   with open(dump_fullpath, 'r') as f:
     id = 0
-    buffer = OrderedDict()
+    buffer = {}
     iterator = iter(f)
     for line in iterator:
       if line.startswith('<HEADER '):
