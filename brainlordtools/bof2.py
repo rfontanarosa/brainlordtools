@@ -45,6 +45,8 @@ def bof2_text_dumper(args):
                 p_offset = f.tell()
                 p_value = struct.unpack('H', f.read(2))[0] + offset
                 pointers.setdefault(p_value, []).append(p_offset)
+                # if len(pointers[p_value]) > 1 and pointers[p_value][-2] != pointers[p_value][-1] - 2:
+                #     pass
             # READ TEXT BLOCK
             for _, (taddress, paddresses) in enumerate(pointers.items()):
                 pointer_addresses = ';'.join(hex(x) for x in paddresses)
@@ -100,21 +102,21 @@ def bof2_text_inserter(args):
             text, number_of_pointers = entry
             encoded_text = table.encode(text)
             current_text_offset = f.tell()
-            if (current_text_offset + len(encoded_text) < next_bank_offset):
-                # pointer
-                f.seek(ptr_table_offset)
-                new_pointer = (current_text_offset & 0x00FFFF).to_bytes(2,  byteorder='little')
-                for _ in range(0, number_of_pointers):
-                    f.write(new_pointer)
-                ptr_table_offset = f.tell()
-                # text
-                f.seek(current_text_offset)
-                f.write(encoded_text)
-                current_bank_entries += number_of_pointers
-            else:
+            if current_text_offset + len(encoded_text) >= next_bank_offset:
                 current_bank_offset += 0x10000
                 next_bank_offset = current_bank_offset + 0x10000
                 bank_entries.append(current_bank_entries)
+                current_text_offset = current_bank_offset
+            # pointer
+            f.seek(ptr_table_offset)
+            new_pointer = (current_text_offset & 0x00FFFF).to_bytes(2,  byteorder='little')
+            for _ in range(0, number_of_pointers):
+                f.write(new_pointer)
+            ptr_table_offset = f.tell()
+            # text
+            f.seek(current_text_offset)
+            f.write(encoded_text)
+            current_bank_entries += number_of_pointers
 
         f.seek(0x22ddf2)
         print(bank_entries)
