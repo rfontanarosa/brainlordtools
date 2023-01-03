@@ -19,7 +19,7 @@ TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
 MISC1="$RESOURCE_PATH/misc.csv"
 
 CURRENT_PATH=$PWD
-cd $HOME/git/Romhacking
+cd $BRAINLORD_PATH/Romhacking
 source ./venv/bin/activate
 ./bin/evertool reinsert $SOURCE $TRANSLATION_TEXT_PATH/dump_ita_clomax.txt
 deactivate

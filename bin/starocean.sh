@@ -14,7 +14,7 @@ TRANSLATION_TEXT_PATH="$RESOURCE_PATH/translation_text"
 TANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
 
 CURRENT_PATH=$PWD
-cd /Users/robertofontanarosa/git/Romhacking
+cd $BRAINLORD_PATH/Romhacking
 source ./venv/bin/activate
 # python -m starocean.main extract $RESOURCE_PATH/roms/Star_Ocean_U.sfc $DUMP_TEXT_PATH/dump_eng.txt
 python -m starocean.main reinsert $SOURCE $TRANSLATION_TEXT_PATH/dump_eng.txt

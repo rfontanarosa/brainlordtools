@@ -85,7 +85,7 @@ def ys3_misc_dumper(args):
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
-    with open(source_file, 'rb') as f, open(source_file, 'rb') as f1:
+    with open(source_file, 'rb') as f:
         filename = os.path.join(dump_path, 'misc.csv')
         with open(filename, 'w+') as csv_file:
             csv_writer = csv.writer(csv_file)

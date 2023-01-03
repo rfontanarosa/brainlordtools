@@ -83,7 +83,7 @@ def spike_misc_dumper(args):
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
-    with open(source_file, 'rb') as f, open(source_file, 'rb') as f1:
+    with open(source_file, 'rb') as f:
         # Monsters
         filename = os.path.join(dump_path, 'monsters.csv')
         with open(filename, 'w+') as csv_file:
