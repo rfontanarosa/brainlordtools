@@ -41,7 +41,7 @@ def bof2_text_dumper(args):
             # READ POINTERS BLOCK
             pointers = {}
             f.seek(start)
-            while (f.tell() < end):
+            while f.tell() < end:
                 p_offset = f.tell()
                 p_value = struct.unpack('H', f.read(2))[0] + offset
                 pointers.setdefault(p_value, []).append(p_offset)
@@ -56,7 +56,7 @@ def bof2_text_dumper(args):
                 # insert_text(cur, id, text, text_decoded, taddress, pointer_addresses, i, id2)
                 # dump - txt
                 filename = os.path.join(dump_path, 'dump_eng.txt')
-                with open(filename, 'a+') as out:
+                with open(filename, 'a+', encoding='utf-8') as out:
                     out.write(f'[ID {id} - ID2 {id2} - BLOCK {i} - TEXT {hex(taddress)} - POINTER {pointer_addresses}]\n{text_decoded}\n\n')
                 id += 1
                 id2 += len(paddresses)
@@ -134,7 +134,7 @@ def bof2_misc_dumper(args):
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
         filename = os.path.join(dump_path, 'items.csv')
-        with open(filename, 'w+') as csv_file:
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             f.seek(0x70010)

@@ -14,7 +14,7 @@ dump_path = os.path.join(resources_path, 'dump_text')
 translation_path = os.path.join(resources_path, 'translation_text')
 dump_fullpath = os.path.join(dump_path, 'dump_eng.txt')
 dump_ita_fullpath = os.path.join(translation_path, 'dump_ita.txt')
-dump_user_fullpath = os.path.join(translation_path, 'dump_ita_{}.txt'.format(user_name))
+dump_user_fullpath = os.path.join(translation_path, f'dump_ita_{user_name}.txt')
 
 import_dump = True
 import_user_translation = False

@@ -4,8 +4,7 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import csv, os, shutil, sqlite3, struct, sys
-from collections import OrderedDict
+import os, sqlite3, shutil, struct, sys
 
 from rhutils.db import insert_text, select_translation_by_author, select_most_recent_translation
 from rhutils.dump import read_text, write_text, get_csv_translated_texts
@@ -60,13 +59,12 @@ def ignition_text_dumper(args):
                 text = read_text(f1, taddress, end_byte=b'\xff', cmd_list={b'\xfc': 2}, append_end_byte=True)
                 text_decoded = table1.decode(text)
                 # dump - db
-                insert_text(cur, id, text, text_decoded, taddress, pointer_addresses, str(index + 1), id)
+                insert_text(cur, id, text, text_decoded, taddress, pointer_addresses, str(i + 1), str(index + 1))
                 # dump - txt
                 filename = os.path.join(dump_path, 'dump_eng.txt')
                 with open(filename, 'a+') as out:
-                    out.write('[ID {} - BLOCK {} - ORDER {} - {} - {}]\n{}'.format(id, i, index, hex(taddress), pointer_addresses, text_decoded))
+                    out.write('[ID {} - BLOCK {} - ORDER {} - {} - {}]\n{}\n\n'.format(id, i, index, hex(taddress), pointer_addresses, text_decoded))
                 id += 1
-            # sys.exit()
     cur.close()
     conn.commit()
     conn.close()

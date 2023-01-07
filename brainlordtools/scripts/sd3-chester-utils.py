@@ -4,7 +4,7 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, sqlite3
+import os, sqlite3
 
 resources_path = '../resources/sd3'
 dump_path = os.path.join(resources_path, 'dump')

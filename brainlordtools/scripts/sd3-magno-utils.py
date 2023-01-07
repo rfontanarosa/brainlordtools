@@ -6,7 +6,7 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, re, time, sqlite3
+import os, re, time, sqlite3
 from collections import OrderedDict
 
 resources_path = '../resources/sd3'
