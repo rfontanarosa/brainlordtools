@@ -6,9 +6,9 @@ __email__ = "robertofontanarosa@gmail.com"
 
 import os, sqlite3, shutil, struct, sys
 
-from rhutils.db import insert_text, select_translation_by_author, select_most_recent_translation
-from rhutils.dump import read_text, write_text, get_csv_translated_texts
-from rhutils.rom import crc32, expand_rom
+from rhutils.db import insert_text, select_translation_by_author
+from rhutils.dump import read_text
+from rhutils.rom import crc32
 from rhutils.snes import pc2snes_hirom
 from rhutils.table import Table
 
@@ -26,14 +26,12 @@ def ignition_text_dumper(args):
     db = args.database_file
     if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
-    table1 = Table(table1_file)
+    table = Table(table1_file)
     conn = sqlite3.connect(db)
     conn.text_factory = str
     cur = conn.cursor()
-    if not os.path.isdir(dump_path):
-        os.mkdir(dump_path)
-    if os.path.isfile(os.path.join(dump_path, 'dump_eng.txt')):
-        os.remove(os.path.join(dump_path, 'dump_eng.txt'))
+    shutil.rmtree(dump_path, ignore_errors=False)
+    os.mkdir(dump_path)
     id = 1
     with open(source_file, 'rb') as f1, open(source_file, 'rb') as f2:
         block_pointers = []
@@ -57,13 +55,14 @@ def ignition_text_dumper(args):
             for index, (taddress, paddresses) in enumerate(pointers):
                 pointer_addresses = hex(paddresses)
                 text = read_text(f1, taddress, end_byte=b'\xff', cmd_list={b'\xfc': 2}, append_end_byte=True)
-                text_decoded = table1.decode(text)
+                text_decoded = table.decode(text)
+                ref = f'[ID {id} - BLOCK {i} - ORDER {index} - {hex(taddress)} - {pointer_addresses}]'
                 # dump - db
-                insert_text(cur, id, text, text_decoded, taddress, pointer_addresses, str(i + 1), str(index + 1))
+                insert_text(cur, id, text, text_decoded, taddress, pointer_addresses, str(i + 1), ref)
                 # dump - txt
                 filename = os.path.join(dump_path, 'dump_eng.txt')
-                with open(filename, 'a+') as out:
-                    out.write('[ID {} - BLOCK {} - ORDER {} - {} - {}]\n{}\n\n'.format(id, i, index, hex(taddress), pointer_addresses, text_decoded))
+                with open(filename, 'a+', encoding='utf-8') as out:
+                    out.write(f'{ref}\n{text_decoded}\n\n')
                 id += 1
     cur.close()
     conn.commit()
