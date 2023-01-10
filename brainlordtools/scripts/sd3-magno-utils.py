@@ -56,7 +56,6 @@ if True:
 	conn.text_factory = str
 	cur = conn.cursor()
 	id = 1
-	date = time.time()
 	for block, fileName in enumerate(fileNames):
 		filePath = os.path.join(import_path, fileName)
 		with open(filePath, 'rb') as f:
@@ -76,7 +75,7 @@ if True:
 				text_length = len(text)
 				text = text.strip('\n\r')
 				text = text.decode("iso-8859-1").encode("utf-8")
-				cur.execute('insert or replace into trans values (?, ?, ?, ?, ?, ?, ?)', (id, 'clomax', text, '', 2, date, ''))
+				cur.execute('insert or replace into trans values (?, ?, ?, ?, ?, ?, ?)', (id, 'clomax', text, '', 2, time.time(), ''))
 				id += 1
 	cur.close()
 	conn.commit()

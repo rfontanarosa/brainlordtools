@@ -21,7 +21,6 @@ if import_user_translation:
   conn = sqlite3.connect(db)
   conn.text_factory = str
   cur = conn.cursor()
-  date = time.time()
   with open(dump_ita_fullpath, 'r') as f:
     id = 1
     buffer = ''

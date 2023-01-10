@@ -14,10 +14,10 @@ dump_path = os.path.join(resources_path, 'dump_text')
 translation_path = os.path.join(resources_path, 'translation_text')
 dialogues_fullpath = os.path.join(dump_path, 'dialogues.txt')
 dialogues_ita_fullpath = os.path.join(translation_path, 'dialogues_ita.txt')
-dialogues_user_fullpath = os.path.join(translation_path, 'dialogues_ita_{}.txt'.format(user_name))
+dialogues_user_fullpath = os.path.join(translation_path, f'dialogues_ita_{user_name}.txt')
 battle_dialogues_fullpath = os.path.join(dump_path, 'battleDialogues.txt')
 battle_dialogues_ita_fullpath = os.path.join(translation_path, 'battleDialogues_ita.txt')
-battle_dialogues_user_fullpath = os.path.join(translation_path, 'battleDialogues_ita_{}.txt'.format(user_name))
+battle_dialogues_user_fullpath = os.path.join(translation_path, f'battleDialogues_ita_{user_name}.txt')
 
 import_dump = True
 import_user_translation = False
