@@ -51,7 +51,6 @@ if import_user_translation:
   conn.text_factory = str
   cur = conn.cursor()
   id = 1
-  date = time.time()
   with open(dialogues_user_fullpath, 'r') as f:
     for line in f:
       splittedLine = line.split('\t')
