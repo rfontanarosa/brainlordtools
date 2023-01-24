@@ -33,7 +33,7 @@ python3 ../brainlordtools/brainlord.py insert_gfx -d "$DESTINATION" -tp "$TANSLA
 python3 ../brainlordtools/brainlord.py insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2" -tp "$TRANSLATION_MISC_PATH"
 python3 ../brainlordtools/brainlord.py insert_credits -d "$DESTINATION" -t3 "$TABLE3" -tp "$TANSLATION_CREDITS_PATH"
 
-asar "$RESOURCE_PATH/hack/main.asm" "$DESTINATION"
+asar "$RESOURCE_PATH/asm/main.asm" "$DESTINATION"
 
 # SOURCE="$RESOURCE_PATH/roms/Brain Lord (I) [!] - 0x74000.sfc"
 # DUMP_GFX_PATH="$RESOURCE_PATH/dump_gfx_mog"
