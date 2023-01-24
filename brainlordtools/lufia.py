@@ -49,14 +49,14 @@ def lufia_text_dumper(args):
             text = read_text(f, text_address, end_byte=b'\04', cmd_list={b'\x07': 1, b'\x08': 1, b'\x09': 1, b'\x0a': 1, b'\x0b': 1, b'\x0c': 1, b'\x0d': 1, b'\x0f': 1})
             text_decoded = table.decode(text, mte_resolver=True, dict_resolver=True, cmd_list={0x06: 1, 0x0f: 1})
             if len(text) < 3:
-                print('{} - {} - {}'.format(text_address, id, text_decoded))
-            ref = '[BLOCK {}: {} to {}]'.format(str(id), hex(text_address), hex(f.tell() - 1))
+                print(f'{text_address} - {id} - {text_decoded}')
+            ref = f'[BLOCK {id}: {hex(text_address)} to {hex(f.tell() - 1)}]'
             # dump - db
             insert_text(cur, id, text, text_decoded, text_address, '', 1, ref)
             # dump - txt
             filename = os.path.join(dump_path, 'dump_eng.txt')
-            with open(filename, 'a+') as out:
-                out.write(ref + '\n' + text_decoded + "\n\n")
+            with open(filename, 'a+', encoding='utf-8') as out:
+                out.write(f'{ref}\n{text_decoded}\n\n')
             id += 1
     cur.close()
     conn.commit()

@@ -55,14 +55,14 @@ def gaia_text_dumper(args):
         for i, (taddress, paddresses) in enumerate(pointers.items()):
             pointer_addresses = ';'.join(hex(x) for x in paddresses)
             text = read_text(f, taddress, end_byte=(b'\xc0', b'\xca'), cmd_list={b'\xd1': 2, b'\xd6': 1, b'\xd7': 1}, append_end_byte=True)
-            ref = '[BLOCK {}: {} to {} - {}]'.format(str(id), hex(taddress), hex(f.tell() - 1), pointer_addresses)
             text_decoded = table.decode(text, mte_resolver=True, dict_resolver=True)
+            ref = f'[BLOCK {id}: {hex(taddress)} to {hex(f.tell() - 1)} - {pointer_addresses}]'
             # dump - db
             # insert_text(cur, id, text, text_decoded, text_address, '', 1, ref)
             # dump - txt
             filename = os.path.join(dump_path, 'dump_eng.txt')
-            with open(filename, 'a+') as out:
-                out.write(ref + '\n' + text_decoded + "\n\n")
+            with open(filename, 'a+', encoding='utf-8') as out:
+                out.write(f'{ref}\n{text_decoded}\n\n')
             print(id)
             id += 1
     cur.close()

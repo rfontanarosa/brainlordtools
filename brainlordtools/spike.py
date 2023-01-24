@@ -63,12 +63,13 @@ def spike_text_dumper(args):
                 pointer_addresses = ';'.join(hex(x) for x in paddresses)
                 text = read_text(f, taddress, end_byte=b'\xf0', cmd_list={b'\xf4': 2, b'\xf6': 1, b'\xf8': 1, b'\xfa': 4, b'\xfc': 1, b'\xfd': 4, b'\xfe': 1, b'\xff': 2})
                 text_decoded = table1.decode(text, cmd_list={0xf4: 2, 0xf6: 1, 0xf8: 1, 0xfa: 4, 0xfc: 1, 0xfd: 4, 0xfe: 1, 0xff: 2})
+                ref = f'{id} - {pointer_addresses}'
                 # dump - db
                 insert_text(cur, id, text, text_decoded, taddress, pointer_addresses, str(index + 1), id)
                 # dump - txt
                 filename = os.path.join(dump_path, 'dump_eng.txt')
-                with open(filename, 'a+') as out:
-                    out.write(str(id) + ' - ' + pointer_addresses + '\n' + text_decoded + "\n\n")
+                with open(filename, 'a+', encoding='utf-8') as out:
+                    out.write(f'{ref}\n{text_decoded}\n\n')
                 id += 1
     cur.close()
     conn.commit()

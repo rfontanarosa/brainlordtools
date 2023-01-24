@@ -65,12 +65,13 @@ def ys3_text_dumper(args):
                 pointer_addresses = ';'.join(hex(x) for x in paddresses)
                 text = read_text(f, taddress, end_byte=b'\xff', cmd_list={b'\xf0': 2, b'\xf1': 2, b'\xf2': 1, b'\xf3': 1, b'\xf6': 1, b'\xf7': 1})
                 text_decoded = table1.decode(text, cmd_list={0xf0: 2, 0xf1: 2, 0xf2: 1, 0xf3: 1, 0xf6: 1, 0xf7: 1})
+                ref = f'{id} - {hex(taddress)} - {pointer_addresses}'
                 # dump - db
                 insert_text(cur, id, text, text_decoded, taddress, pointer_addresses, block + 1, id)
                 # dump - txt
                 filename = os.path.join(dump_path, 'dump_eng.txt')
                 with open(filename, 'a+') as out:
-                    out.write('{} - {} - {}\n{}\n\n'.format(id, hex(taddress), pointer_addresses, text_decoded))
+                    out.write(f'{ref}\n{text_decoded}\n\n')
                 id += 1
     cur.close()
     conn.commit()

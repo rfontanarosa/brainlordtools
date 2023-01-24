@@ -56,17 +56,17 @@ def neugier_text_dumper(args):
             pointer_addresses = ';'.join(str(hex(x)) for x in p_addresses)
             text = read_text(f, text_address, end_byte=b'\x00')
             text_decoded = table.decode(text)
-            ref = '[BLOCK {}: {} to {}]'.format(str(id), hex(text_address), hex(f.tell() -1))
+            ref = f'[BLOCK {id}: {hex(text_address)} to {hex(f.tell() -1)}]'
             # dump - db
             insert_text(cur, id, text, text_decoded, text_address, pointer_addresses, 1, ref)
             # dump - txt
             filename = os.path.join(dump_path, 'dump_eng.txt')
-            with open(filename, 'a+') as out:
-                out.write(ref + '\n' + text_decoded + "\n\n")
+            with open(filename, 'a+', encoding='utf-8') as out:
+                out.write(f'{ref}\n{text_decoded}\n\n')
             id += 1
-        cur.close()
-        conn.commit()
-        conn.close()
+    cur.close()
+    conn.commit()
+    conn.close()
 
 def neugier_text_inserter(args):
     dest_file = args.dest_file
