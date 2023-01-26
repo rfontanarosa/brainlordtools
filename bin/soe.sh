@@ -33,3 +33,4 @@ python "$TOOLS_PATH/soe.py" insert_custom -s "$SOURCE" -d "$DESTINATION" -t1 "$T
 
 asar "$RESOURCE_PATH/asm/gfx_hack.asm" "$DESTINATION"
 asar "$RESOURCE_PATH/asm/menu_text_ita.asm" "$DESTINATION"
+asar "$RESOURCE_PATH/asm/font.asm" "$DESTINATION"

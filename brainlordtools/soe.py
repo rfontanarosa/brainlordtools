@@ -54,21 +54,6 @@ FONT1_VWF_TABLE = (0x40C02, 0x40C81) # 127
 FONT2_BLOCK = (0x40C84, 0x41883) # 24bit - 3byte
 FONT2_VWF_TABLE = (0x41884, 0x41903) # 127
 
-def encode_text(text):
-    text = text.replace(u'à', '{10}')
-    text = text.replace(u'è', '{11}')
-    text = text.replace(u'é', '{12}')
-    text = text.replace(u'ì', '{13}')
-    text = text.replace(u'ò', '{14}')
-    text = text.replace(u'ù', '{15}')
-    text = text.replace(u'À', '{18}')
-    text = text.replace(u'È', '{19}')
-    text = text.replace(u'É', '{1a}')
-    text = text.replace(u'Ì', '{1b}')
-    text = text.replace(u'Ò', '{1c}')
-    text = text.replace(u'Ù', '{1d}')
-    return text
-
 def dump_blocks(f, table, dump_path):
     for i, (block_name, block_limits) in enumerate(TEXT_BLOCK.items()):
         filename = os.path.join(dump_path, block_name + '.csv')
@@ -158,7 +143,6 @@ def repoint_misc(filename, f, table, next_text_address=0x360000):
                             f.seek(p_address)
                             f.write(new_pointer)
                     trans = row.get('trans2') or row.get('trans1') or row.get('text')
-                    trans = encode_text(trans)
                     trans = table.encode(trans, mte_resolver=False, dict_resolver=False)
                     next_text_address = write_text(f, next_text_address, trans, end_byte=b'\x00')
 
@@ -230,7 +214,6 @@ def soe_misc_inserter(args):
         for i, (block_name, translated_texts) in enumerate(translated_blocks.items()):
             for i, (t_address, t_value) in enumerate(translated_texts.items()):
                 new_pointers[t_address] = t_new_address
-                t_value = encode_text(t_value)
                 t_value = table.encode(t_value, mte_resolver=False, dict_resolver=False)
                 if block_name not in ('npc_enemy_names1', 'npc_enemy_names2'):
                     t_new_address = write_text(f1, t_new_address, t_value, end_byte=b'\x00', limit=0x47712)
@@ -258,7 +241,6 @@ def soe_misc_inserter(args):
             if block_name in ('npc_enemy_names1', 'npc_enemy_names2'):
                 for i, (t_address, t_value) in enumerate(translated_texts.items()):
                     new_pointers[t_address] = t_new_address
-                    t_value = encode_text(t_value)
                     t_value = table.encode(t_value, mte_resolver=False, dict_resolver=False)
                     t_new_address = write_text(f1, t_new_address, t_value, end_byte=b'\x00')
         # repointing npc/enemies
@@ -297,29 +279,6 @@ def soe_gfx_inserter(args):
     dest_file = args.dest_file
     translation_path = args.translation_path
     with open(dest_file, 'r+b') as f:
-        f.seek(0xC9ED8)
-        f.write(b'\x10')
-        f.seek(0xCA54F)
-        f.write(b'\x10')
-        f.seek(0xCA5A4)
-        f.write(b'\x10')
-        f.seek(0xCA92A)
-        f.write(b'\x10')
-        f.seek(0xCB9B8)
-        f.write(b'\x10')
-        f.seek(0xCB9FD)
-        f.write(b'\x10')
-        f.seek(0xCBB21)
-        f.write(b'\x10')
-        f.seek(0xCC951)
-        f.write(b'\x10')
-        #
-        f.seek(0xC9E8B)
-        f.write(b'\xa9')
-        f.write(b'\x71')
-        f.seek(0xCA492)
-        f.write(b'\xa9')
-        f.write(b'\x71')
         #
         f.seek(0x129917)
         f.write(b'\x18')
