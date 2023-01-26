@@ -142,7 +142,7 @@ def repoint_misc(filename, f, table, next_text_address=0x360000):
                             new_pointer += b'\xf6'
                             f.seek(p_address)
                             f.write(new_pointer)
-                    trans = row.get('trans2') or row.get('trans1') or row.get('text')
+                    trans = row.get('trans') or row.get('text')
                     trans = table.encode(trans, mte_resolver=False, dict_resolver=False)
                     next_text_address = write_text(f, next_text_address, trans, end_byte=b'\x00')
 
