@@ -364,9 +364,7 @@ def brainlord_text_inserter(args):
         # db
         rows = select_most_recent_translation(cur, ['1', '2', '3', '4', '5', '6', '7'])
         for row in rows:
-            address = row[3]
-            text_decoded = row[2]
-            translation = row[5]
+            _, _, text_decoded, address, _, translation, _, _, _ = row
             text = translation if translation else text_decoded
             encoded_text = table.encode(text, mte_resolver=True, dict_resolver=False)
             if fw.tell() < 0x1a0000 and fw.tell() + len(encoded_text) > 0x19ffff:

@@ -1,6 +1,8 @@
 #!/bin/bash
 
-RESOURCE_PATH="../../brainlordresources/brainlord"
+BRAINLORD_PATH="$HOME/git"
+RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/brainlord"
+TOOLS_PATH="$BRAINLORD_PATH/brainlordtools/brainlordtools"
 
 USER="clomax"
 DB="$RESOURCE_PATH/db/brainlord.sqlite3"
@@ -21,17 +23,18 @@ TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
 TANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
 TANSLATION_CREDITS_PATH="$RESOURCE_PATH/translation_credits"
 
-python3 ../brainlordtools/brainlord.py expand -s "$SOURCE" -d "$DESTINATION"
+python "$TOOLS_PATH/_utils.py" file_copy -s "$SOURCE" -d "$DESTINATION"
+python "$TOOLS_PATH/brainlord.py" expand -s "$SOURCE" -d "$DESTINATION"
 
-python3 ../brainlordtools/brainlord.py dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH" -db "$DB"
-# python3 ../brainlordtools/brainlord.py dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
-# python3 ../brainlordtools/brainlord.py dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_MISC_PATH"
-# python3 ../brainlordtools/brainlord.py dump_credits -s "$SOURCE" -t3 "$TABLE3" -dp "$DUMP_CREDITS_PATH"
+python "$TOOLS_PATH/brainlord.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH" -db "$DB"
+# python "$TOOLS_PATH/brainlord.py" dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
+# python "$TOOLS_PATH/brainlord.py" dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_MISC_PATH"
+# python "$TOOLS_PATH/brainlord.py" dump_credits -s "$SOURCE" -t3 "$TABLE3" -dp "$DUMP_CREDITS_PATH"
 
-python3 ../brainlordtools/brainlord.py insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE2" -tp "$TANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
-python3 ../brainlordtools/brainlord.py insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
-python3 ../brainlordtools/brainlord.py insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2" -tp "$TRANSLATION_MISC_PATH"
-python3 ../brainlordtools/brainlord.py insert_credits -d "$DESTINATION" -t3 "$TABLE3" -tp "$TANSLATION_CREDITS_PATH"
+python "$TOOLS_PATH/brainlord.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE2" -tp "$TANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
+python "$TOOLS_PATH/brainlord.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
+python "$TOOLS_PATH/brainlord.py" insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2" -tp "$TRANSLATION_MISC_PATH"
+python "$TOOLS_PATH/brainlord.py" insert_credits -d "$DESTINATION" -t3 "$TABLE3" -tp "$TANSLATION_CREDITS_PATH"
 
 asar "$RESOURCE_PATH/asm/main.asm" "$DESTINATION"
 
@@ -39,5 +42,5 @@ asar "$RESOURCE_PATH/asm/main.asm" "$DESTINATION"
 # DUMP_GFX_PATH="$RESOURCE_PATH/dump_gfx_mog"
 # DESTINATION="$RESOURCE_PATH/roms/Brain Lord (U) [!] - 0x74000.sfc"
 # TANSLATION_GFX_PATH="$RESOURCE_PATH/dump_gfx_mog"
-# python3 ../brainlordtools/brainlord.py dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
-# python3 ../brainlordtools/brainlord.py insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
+# python "$TOOLS_PATH/brainlord.py" dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
+# python "$TOOLS_PATH/brainlord.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"

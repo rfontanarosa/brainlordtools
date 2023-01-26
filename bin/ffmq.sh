@@ -4,13 +4,10 @@ BRAINLORD_PATH="$HOME/git"
 RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/ffmq"
 TOOLS_PATH="$BRAINLORD_PATH/brainlordtools/brainlordtools"
 
-RESOURCE_PATH="../../brainlordresources/ffmq"
-
 USER="clomax"
-
 SOURCE="$RESOURCE_PATH/roms/Final Fantasy - Mystic Quest (U) (V1.1).sfc"
 # DESTINATION="$RESOURCE_PATH/roms/Final Fantasy - Mystic Quest (I) (V1.1).sfc"
-DESTINATION="$HOME/Final-Fantasy-Mystic-Quest-ITA/ffmq_new.sfc"
+DESTINATION="$BRAINLORD_PATH/Final-Fantasy-Mystic-Quest-ITA/ffmq_new.sfc"
 
 TABLE1="$RESOURCE_PATH/tables/ffmq.tbl"
 
