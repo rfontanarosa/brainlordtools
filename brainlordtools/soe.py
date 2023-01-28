@@ -5,7 +5,6 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import sys, os, struct, shutil, csv
-from collections import OrderedDict
 
 from rhtools3.Table import Table
 from rhutils.dump import read_text, write_text, dump_binary, insert_binary
@@ -13,7 +12,7 @@ from rhutils.rom import crc32
 
 CRC32 = 'A5C0045E'
 
-TEXT_BLOCK = OrderedDict()
+TEXT_BLOCK = {}
 TEXT_BLOCK['currency_names'] = (0x460AE, 0x460CF)
 TEXT_BLOCK['weapons_names'] = (0x460D0, 0x46195)
 TEXT_BLOCK['weapons_descriptions'] = (0x46196, 0x463CC)
@@ -33,7 +32,7 @@ TEXT_BLOCK['rare_item_names'] = (0x47397, 0x473D3)
 TEXT_BLOCK['rare_item_descriptions'] = (0x473D4, 0x473DD)
 TEXT_BLOCK['charm_descriptions'] = (0x473DE, 0x47712)
 
-POINTER_BLOCK = OrderedDict()
+POINTER_BLOCK = {}
 POINTER_BLOCK['currency_names'] = (0xf8704, 0xf870f, 3)
 POINTER_BLOCK['ring'] = (0xe814c, 0xe8653, 8)
 POINTER_BLOCK['alchemy_names'] = (0x45d09, 0x45d4e, 2)
@@ -55,9 +54,9 @@ FONT2_BLOCK = (0x40C84, 0x41883) # 24bit - 3byte
 FONT2_VWF_TABLE = (0x41884, 0x41903) # 127
 
 def dump_blocks(f, table, dump_path):
-    for i, (block_name, block_limits) in enumerate(TEXT_BLOCK.items()):
-        filename = os.path.join(dump_path, block_name + '.csv')
-        with open(filename, 'w+') as csv_file:
+    for _, (block_name, block_limits) in enumerate(TEXT_BLOCK.items()):
+        filename = os.path.join(dump_path, f'{block_name}.csv')
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             f.seek(block_limits[0])
@@ -69,7 +68,7 @@ def dump_blocks(f, table, dump_path):
                 csv_writer.writerow(fields)
 
 def get_pointers(f, options):
-    pointers = OrderedDict()
+    pointers = {}
     block_start = options[0]
     block_end = options[1]
     length = options[2]
@@ -82,7 +81,7 @@ def get_pointers(f, options):
     return pointers
 
 def get_weapon_names_pointers(f):
-    pointers = OrderedDict()
+    pointers = {}
     for start in (0xd8c3e + 3, 0xd8e17 + 3, 0xd8fee + 3):
         f.seek(start)
         while f.tell() < (start + (112*4)):
@@ -93,8 +92,8 @@ def get_weapon_names_pointers(f):
     return pointers
 
 def get_translated_texts(filename):
-    translated_texts = OrderedDict()
-    with open(filename, 'r') as csv_file:
+    translated_texts = {}
+    with open(filename, 'r', encoding='utf-8') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         for row in csv_reader:
             trans = row.get('trans') or row.get('text')
@@ -102,7 +101,7 @@ def get_translated_texts(filename):
             translated_texts[text_address] = trans
     return translated_texts
 
-def repoint_misc(filename, f, table, next_text_address=0x360000):
+def repoint_custom(filename, f, table, next_text_address=0x360000):
     with open(filename, 'r') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         for row in csv_reader:
@@ -147,7 +146,7 @@ def repoint_misc(filename, f, table, next_text_address=0x360000):
                     next_text_address = write_text(f, next_text_address, trans, end_byte=b'\x00')
 
 def repoint(f, pointers, new_pointers, offset=0x40000):
-    for i, (p_value, p_addresses) in enumerate(pointers.items()):
+    for _, (p_value, p_addresses) in enumerate(pointers.items()):
         p_new_value = new_pointers.get(p_value)
         if not p_new_value:
             print('NOT FOUND 1')
@@ -157,7 +156,7 @@ def repoint(f, pointers, new_pointers, offset=0x40000):
                 f.write(struct.pack('H', p_new_value - offset))
 
 def repoint_npc_enemy_names(f, pointers, new_pointers, offset=0x340000):
-    for i, (p_value, p_addresses) in enumerate(pointers.items()):
+    for _, (p_value, p_addresses) in enumerate(pointers.items()):
         p_new_value = new_pointers.get(p_value)
         if not p_new_value:
             print('NOT FOUND 2')
@@ -204,12 +203,12 @@ def soe_misc_inserter(args):
         p_rare_item_descriptions = get_pointers(f0, POINTER_BLOCK['rare_item_descriptions'])
         p_npc_enemy_names = get_pointers(f0, POINTER_BLOCK['npc_enemy_names'])
     with open(dest_file, 'r+b') as f1:
-        translated_blocks = OrderedDict()
-        for i, (block_name, block_limits) in enumerate(TEXT_BLOCK.items()):
+        translated_blocks = {}
+        for _, (block_name, _) in enumerate(TEXT_BLOCK.items()):
             translation_file = os.path.join(translation_path, block_name + '.csv')
             translated_blocks[block_name] = get_translated_texts(translation_file)
         # new pointers
-        new_pointers = OrderedDict()
+        new_pointers = {}
         t_new_address = 0x460ae
         for i, (block_name, translated_texts) in enumerate(translated_blocks.items()):
             for i, (t_address, t_value) in enumerate(translated_texts.items()):
@@ -235,7 +234,7 @@ def soe_misc_inserter(args):
         repoint(f1, p_rare_items, new_pointers)
         repoint(f1, p_rare_item_descriptions, new_pointers)
         # npc/enemies new pointers
-        new_pointers = OrderedDict()
+        new_pointers = {}
         t_new_address = 0x340000
         for i, (block_name, translated_texts) in enumerate(translated_blocks.items()):
             if block_name in ('npc_enemy_names1', 'npc_enemy_names2'):
@@ -256,7 +255,7 @@ def soe_custom_inserter(args):
     table = Table(table1_file)
     with open(dest_file, 'r+b') as f1:
         custom_file = os.path.join(translation_path, 'misc.csv')
-        repoint_misc(custom_file, f1, table)
+        repoint_custom(custom_file, f1, table)
 
 def soe_gfx_dumper(args):
     source_file = args.source_file

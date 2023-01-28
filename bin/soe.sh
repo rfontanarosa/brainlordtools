@@ -9,6 +9,7 @@ DESTINATION="$RESOURCE_PATH/roms/patched_evermore.sfc"
 
 TABLE1="$RESOURCE_PATH/tables/soe.tbl"
 
+DUMP_TEXT_PATH="$RESOURCE_PATH/dump_text"
 DUMP_GFX_PATH="$RESOURCE_PATH/dump_gfx"
 DUMP_MISC_PATH="$RESOURCE_PATH/dump_misc"
 
@@ -20,6 +21,7 @@ TRANSLATION_CUSTOM_PATH="$RESOURCE_PATH/translation_custom"
 CURRENT_PATH=$PWD
 cd $BRAINLORD_PATH/Romhacking
 source ./venv/bin/activate
+./bin/evertool extract $SOURCE $DUMP_TEXT_PATH/dump_eng.txt
 ./bin/evertool reinsert $SOURCE $TRANSLATION_TEXT_PATH/dump_ita_clomax.txt
 deactivate
 cd $CURRENT_PATH
