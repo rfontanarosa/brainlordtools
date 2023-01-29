@@ -134,6 +134,7 @@ def bof2_misc_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
+        # ITEMS
         filename = os.path.join(dump_path, 'items.csv')
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
@@ -141,6 +142,17 @@ def bof2_misc_dumper(args):
             f.seek(0x70010)
             while f.tell() < 0x71000:
                 text = f.read(16)
+                text_decoded = table.decode(text)
+                fields = [hex(f.tell()), text_decoded]
+                csv_writer.writerow(fields)
+        # LOCATIONS
+        filename = os.path.join(dump_path, 'locations.csv')
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['text_address', 'text', 'trans'])
+            f.seek(0x55168)
+            while f.tell() < 0x553e0:
+                text = f.read(8)
                 text_decoded = table.decode(text)
                 fields = [hex(f.tell()), text_decoded]
                 csv_writer.writerow(fields)
