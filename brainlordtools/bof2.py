@@ -4,8 +4,9 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import csv, os, shutil, struct, sys
+import csv, os, shutil, sqlite3, struct, sys
 
+from rhutils.db import insert_text
 from rhutils.dump import dump_binary, insert_binary, read_text
 from rhutils.rom import crc32
 from rhutils.table import Table
@@ -27,9 +28,9 @@ def bof2_text_dumper(args):
     if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
-    # conn = sqlite3.connect(db)
-    # conn.text_factory = str
-    # cur = conn.cursor()
+    conn = sqlite3.connect(db)
+    conn.text_factory = str
+    cur = conn.cursor()
     shutil.rmtree(dump_path, ignore_errors=False)
     os.mkdir(dump_path)
     if os.path.isfile(os.path.join(dump_path, 'dump_eng.txt')):
@@ -50,21 +51,20 @@ def bof2_text_dumper(args):
             # READ TEXT BLOCK
             for _, (taddress, paddresses) in enumerate(pointers.items()):
                 pointer_addresses = ';'.join(hex(x) for x in paddresses)
-                text = read_text(f, taddress, end_byte=b'\x01', cmd_list={b'\x03': 1, b'\x07': 1, b'\x08': 1, b'\x12': 1}, append_end_byte=True)
+                text = read_text(f, taddress, end_byte=b'\x01', cmd_list={b'\x03': 1, b'\x07': 1, b'\x08': 1, b'\x09': 1, b'\x12': 1}, append_end_byte=True)
                 text_decoded = table.decode(text)
                 ref = f'[ID {id} - ID2 {id2} - BLOCK {i} - TEXT {hex(taddress)} - POINTER {pointer_addresses}]'
                 # dump - db
-                # insert_text(cur, id, text, text_decoded, taddress, pointer_addresses, i, id2)
+                insert_text(cur, id, text, text_decoded, taddress, pointer_addresses, i, ref)
                 # dump - txt
                 filename = os.path.join(dump_path, 'dump_eng.txt')
                 with open(filename, 'a+', encoding='utf-8') as out:
                     out.write(f'{ref}\n{text_decoded}\n\n')
                 id += 1
                 id2 += len(paddresses)
-            print(id2)
-    # cur.close()
-    # conn.commit()
-    # conn.close()
+    cur.close()
+    conn.commit()
+    conn.close()
 
 
 def bof2_text_inserter(args):
