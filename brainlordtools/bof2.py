@@ -51,7 +51,7 @@ def bof2_text_dumper(args):
             # READ TEXT BLOCK
             for _, (taddress, paddresses) in enumerate(pointers.items()):
                 pointer_addresses = ';'.join(hex(x) for x in paddresses)
-                text = read_text(f, taddress, end_byte=b'\x01', cmd_list={b'\x03': 1, b'\x07': 1, b'\x08': 1, b'\x09': 1, b'\x12': 1}, append_end_byte=True)
+                text = read_text(f, taddress, end_byte=b'\x01', cmd_list={b'\x03': 1, b'\x07': 1, b'\x08': 1, b'\x09': 1, b'\x11': 1, b'\x12': 1, b'\x13': 1}, append_end_byte=True)
                 text_decoded = table.decode(text)
                 ref = f'[ID {id} - ID2 {id2} - BLOCK {i} - TEXT {hex(taddress)} - POINTER {pointer_addresses}]'
                 # dump - db
