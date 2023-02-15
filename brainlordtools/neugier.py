@@ -177,7 +177,7 @@ def neugier_misc_inserter(args):
     table1_file = args.table1
     table2_file = args.table2
     translation_path = args.translation_path
-    if crc32(source_file) != CRC32:
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     table2 = Table(table2_file)

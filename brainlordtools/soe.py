@@ -170,7 +170,7 @@ def soe_misc_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
     dump_path = args.dump_path
-    if crc32(source_file) != CRC32:
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
@@ -183,7 +183,7 @@ def soe_misc_inserter(args):
     dest_file = args.dest_file
     table1_file = args.table1
     translation_path = args.translation_path
-    if crc32(source_file) != CRC32:
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     with open(source_file, 'rb') as f0:
@@ -250,7 +250,7 @@ def soe_custom_inserter(args):
     dest_file = args.dest_file
     table1_file = args.table1
     translation_path = args.translation_path
-    if crc32(source_file) != CRC32:
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     with open(dest_file, 'r+b') as f1:
@@ -260,7 +260,7 @@ def soe_custom_inserter(args):
 def soe_gfx_dumper(args):
     source_file = args.source_file
     dump_path = args.dump_path
-    if crc32(source_file) != CRC32:
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)

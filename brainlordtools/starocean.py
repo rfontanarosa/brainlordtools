@@ -10,7 +10,7 @@ from rhutils.dump import dump_binary, insert_binary
 def starocean_gfx_dumper(args):
     source_file = args.source_file
     dump_path = args.dump_path
-    # if crc32(source_file) != CRC32:
+    # if not args.no_crc32_check and crc32(source_file) != CRC32:
     #     sys.exit('SOURCE ROM CHECKSUM FAILED!')
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
