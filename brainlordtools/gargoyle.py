@@ -7,17 +7,37 @@ __email__ = "robertofontanarosa@gmail.com"
 import csv, os, shutil, struct, sys
 
 
-from rhutils.dump import read_text, write_text, dump_binary, insert_binary, get_csv_translated_texts
-from rhutils.rom import crc32, expand_rom
+from rhutils.dump import read_text
+from rhutils.rom import crc32
 from rhutils.table import Table
 
 CRC32 = '1C3848C0'
 
-TEXT_POINTERS = (0x16000, 0x16112)
+TEXT_POINTERS = (0x16000, 0x16114)
 MISC_POINTERS1 = (0x16114, 0x16122)
 MISC_POINTERS2 = (0x16128, 0x16208)
 # MISC_POINTERS3 = (0xff73, 0xff82)
 # MISC_POINTERS = (0xfd74, )
+
+def gargoyle_read_text(f, offset, cmd_list={b'\x71': 1, b'\x74': 1, b'\x77': 1, b'\x78': 1, b'\x79': 1, b'\x7b': 1}):
+    text = b''
+    f.seek(offset)
+    while True:
+        byte = f.read(1)
+        if cmd_list and byte in cmd_list.keys():
+            text += byte
+            bytes_to_read = cmd_list.get(byte)
+            text += f.read(bytes_to_read)
+        elif byte in b'\x7f':
+            text += byte
+            break
+        elif byte in (b'\x72', b'\x73', b'\x7e'):
+            text += byte
+            text += f.read(1)
+            break
+        else:
+            text += byte
+    return text
 
 def gargoyle_text_dumper(args):
     source_file = args.source_file
@@ -37,13 +57,22 @@ def gargoyle_text_dumper(args):
         while f.tell() <= end:
             p_offset = f.tell()
             p_value = struct.unpack('H', f.read(2))[0] + 0x10000
-            print(hex(p_value))
-            # sys.exit()
             pointers.setdefault(p_value, []).append(p_offset)
         # READ TEXT BLOCK
-        for _, (taddress, paddresses) in enumerate(pointers.items()):
+        for i, (taddress, paddresses) in enumerate(list(pointers.items())[:-1]):
+            # pointer_addresses = ';'.join(hex(x) for x in paddresses)
+            # text = gargoyle_read_text(f, taddress)
+            # text_decoded = table.decode(text)
+            # ref = f'[ID {id} - TEXT {hex(taddress)} - POINTER {pointer_addresses}]'
+            # # dump - txt
+            # filename = os.path.join(dump_path, 'dump_eng.txt')
+            # with open(filename, 'a+', encoding='utf-8') as out:
+            #     out.write(f'{ref}\n{text_decoded}\n\n')
+            # id += 1
+            taddress2, _ = list(pointers.items())[i + 1]
             pointer_addresses = ';'.join(hex(x) for x in paddresses)
-            text = read_text(f, taddress, end_byte=b'\x7f')
+            f.seek(taddress)
+            text = f.read(taddress2 - taddress)
             text_decoded = table.decode(text)
             ref = f'[ID {id} - TEXT {hex(taddress)} - POINTER {pointer_addresses}]'
             # dump - txt
@@ -100,31 +129,34 @@ def gargoyle_text_inserter(args):
     dest_file = args.dest_file
     table2_file = args.table2
     translation_path = args.translation_path
-    db = args.database_file
-    user_name = args.user
     if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table2_file)
-    buffer = {}
 
-    translation_file = os.path.join(translation_path, 'dump_eng.txt')
-    with open(translation_file, 'r') as f:
+    buffer = {}
+    translation_file = os.path.join(translation_path, 'dump_ita.txt')
+    with open(translation_file, 'r', encoding='utf-8') as f:
         for line in f:
             if '[ID ' in line:
-                splitted_line = line.split(' ')
+                splitted_line = line[1:-2].split(' ')
                 block = int(splitted_line[1].replace(':', ''))
-                # offset_from = int(splitted_line[2], 16)
-                # offset_to = int(splitted_line[4].replace(']\n', ''), 16)
-                # buffer[block] = ['', [offset_from, offset_to]]
-                buffer[block] = ['']
+                buffer[block] = ['', splitted_line[7]]
             else:
                 buffer[block][0] += line
-
-    translation = b''
-    for _, value in buffer.items():
-        [text] = value
-        translation += table.encode(text)
-    print(len(translation))
+    with open(dest_file, 'rb+') as f:
+        new_text_offset = 0x1647f
+        for _, (text, pointers) in buffer.items():
+            for pointer in pointers.split(';'):
+                pointer = int(pointer, 16)
+                f.seek(pointer)
+                f.write(struct.pack('H', new_text_offset - 0x10000))
+            f.seek(new_text_offset)
+            text_to_write = table.encode(text[:-2])
+            if f.tell() + len(text_to_write) > 0x17bf9:
+                sys.exit('ERROR')
+            f.write(text_to_write)
+            new_text_offset = f.tell()
+        f.write(b'\x00' * (0x17bf9 - f.tell()))
 
 import argparse
 parser = argparse.ArgumentParser()
