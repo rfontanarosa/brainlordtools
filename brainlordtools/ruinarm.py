@@ -5,7 +5,6 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import sys, os, struct, sqlite3, shutil, csv
-from collections import OrderedDict
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_translation_by_author, select_most_recent_translation
@@ -57,7 +56,7 @@ def ruinarm_text_dumper(args):
         id = 1
         for k, pointer_block in enumerate(POINTER_BLOCKS):
             # TEXT POINTERS
-            pointers = OrderedDict()
+            pointers = {}
             f.seek(pointer_block[0])
             while f.tell() < pointer_block[1]:
                 p_address = f.tell()
@@ -91,7 +90,7 @@ def ruinarm_text_inserter(args):
     if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table2_file)
-    buffer = OrderedDict()
+    buffer = {}
     #
     translation_file = os.path.join(translation_path, 'dump_ita.txt')
     with open(translation_file, 'r') as f:

@@ -1,5 +1,4 @@
 import os, csv
-from collections import OrderedDict
 
 def read_text(f, offset, length=None, end_byte=None, cmd_list=None, append_end_byte=False):
     text = b''
@@ -52,8 +51,8 @@ def insert_binary(f, start, end, path, filename):
             raise Exception()
 
 def get_csv_translated_texts(filename):
-    translated_texts = OrderedDict()
-    with open(filename, 'r') as csv_file:
+    translated_texts = {}
+    with open(filename, 'r', encoding='utf-8') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         for row in csv_reader:
             trans = row.get('trans') or row.get('text')

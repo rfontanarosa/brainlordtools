@@ -5,7 +5,6 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import csv, os, shutil, sqlite3, struct, sys
-from collections import OrderedDict
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_translation_by_author, select_most_recent_translation
@@ -43,7 +42,7 @@ def neugier_text_dumper(args):
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
         # TEXT POINTERS 1
-        pointers = OrderedDict()
+        pointers = {}
         f.seek(POINTER_BLOCK1_START)
         while f.tell() < POINTER_BLOCK1_END:
             p_address = f.tell()
@@ -204,7 +203,7 @@ def neugier_credits_dumper(args):
     os.mkdir(dump_path)
     filename = os.path.join(dump_path, 'credits.txt')
     with open(source_file, 'rb') as f:
-        pointers = OrderedDict()
+        pointers = {}
         f.seek(snes2pc_lorom(0x1aea74))
         while f.tell() < snes2pc_lorom(0x1aeaaa):
             p_address = f.tell()

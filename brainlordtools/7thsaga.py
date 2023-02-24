@@ -5,7 +5,6 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import sys, os, struct, sqlite3, shutil, csv
-from collections import OrderedDict
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_translation_by_author, select_most_recent_translation

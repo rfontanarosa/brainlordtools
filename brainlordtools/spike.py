@@ -5,7 +5,6 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import csv, os, shutil, sqlite3, struct, sys
-from collections import OrderedDict
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_translation_by_author, select_most_recent_translation
@@ -46,7 +45,7 @@ def spike_text_dumper(args):
     with open(source_file, 'rb') as f:
         # READ POINTER BLOCKS
         for index, pointer_block in enumerate(POINTER_BLOCKS):
-            pointers = OrderedDict()
+            pointers = {}
             f.seek(pointer_block[0])
             while f.tell() < pointer_block[1]:
                 p_offset = f.tell()

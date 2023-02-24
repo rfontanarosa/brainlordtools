@@ -5,7 +5,6 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import csv, os, re, shutil, sqlite3, struct, sys
-from collections import OrderedDict
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_translation_by_author, select_most_recent_translation
@@ -41,7 +40,7 @@ def gaia_text_dumper(args):
     os.mkdir(dump_path)
     id = 1
     with open(source_file, 'rb') as f:
-        pointers = OrderedDict()
+        pointers = {}
         pointer_offsets = [m.start() for m in re.finditer(b'\x02\xbf', f.read())]
         for pointer_offset in pointer_offsets:
             if pointer_offset in pointer_offsets_to_exclude:
