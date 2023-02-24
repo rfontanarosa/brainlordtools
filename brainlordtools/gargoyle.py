@@ -6,7 +6,6 @@ __email__ = "robertofontanarosa@gmail.com"
 
 import csv, os, shutil, struct, sys
 
-
 from rhutils.dump import read_text
 from rhutils.rom import crc32
 from rhutils.table import Table
@@ -16,6 +15,8 @@ CRC32 = '1C3848C0'
 TEXT_POINTERS = (0x16000, 0x16114)
 MISC_POINTERS1 = (0x16114, 0x16122)
 MISC_POINTERS2 = (0x16128, 0x16208)
+BANK1_LIMIT = 0x17fff
+
 # MISC_POINTERS3 = (0xff73, 0xff82)
 # MISC_POINTERS = (0xfd74, )
 
@@ -93,7 +94,7 @@ def gargoyle_misc_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        #
+        # misc1
         filename = os.path.join(dump_path, 'misc1.csv')
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
@@ -108,7 +109,7 @@ def gargoyle_misc_dumper(args):
                 text_decoded = table.decode(text)
                 fields = [hex(pointer), hex(value), text_decoded]
                 csv_writer.writerow(fields)
-        #
+        # misc2
         filename = os.path.join(dump_path, 'misc2.csv')
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
@@ -127,14 +128,18 @@ def gargoyle_misc_dumper(args):
 def gargoyle_text_inserter(args):
     source_file = args.source_file
     dest_file = args.dest_file
+    table1_file = args.table1
     table2_file = args.table2
-    translation_path = args.translation_path
+    translation_dump_path = args.translation_path1
+    translation_misc_path = args.translation_path2
+    print(translation_misc_path)
     if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
-    table = Table(table2_file)
-
+    table1 = Table(table1_file)
+    table2 = Table(table2_file)
+    #
     buffer = {}
-    translation_file = os.path.join(translation_path, 'dump_ita.txt')
+    translation_file = os.path.join(translation_dump_path, 'dump_ita.txt')
     with open(translation_file, 'r', encoding='utf-8') as f:
         for line in f:
             if '[ID ' in line:
@@ -143,20 +148,50 @@ def gargoyle_text_inserter(args):
                 buffer[block] = ['', splitted_line[7]]
             else:
                 buffer[block][0] += line
-    with open(dest_file, 'rb+') as f:
-        new_text_offset = 0x1647f
-        for _, (text, pointers) in buffer.items():
+    #
+    with open(dest_file, 'r+b') as f1, open(dest_file, 'r+b') as f2:
+        f1.seek(0x1647f)
+        # misc1
+        translation_file = os.path.join(translation_misc_path, 'misc1.csv')
+        with open(translation_file, 'r', encoding='utf-8') as csv_file:
+            csv_reader = csv.DictReader(csv_file)
+            for row in csv_reader:
+                trans = row.get('trans') or row.get('text')
+                pointer_address = int(row['pointer_address'], 16)
+                #
+                encoded_trans = table2.encode(trans)
+                f1.write(encoded_trans + b'\x75')
+                pointer_value = struct.pack('H', f1.tell() - 0x10000)
+                f2.seek(pointer_address)
+                f2.write(pointer_value)
+        #misc2
+        translation_file = os.path.join(translation_misc_path, 'misc2.csv')
+        with open(translation_file, 'r', encoding='utf-8') as csv_file:
+            csv_reader = csv.DictReader(csv_file)
+            for row in csv_reader:
+                trans = row.get('trans') or row.get('text')
+                pointer_address = int(row['pointer_address'], 16)
+                #
+                encoded_trans = table2.encode(trans)
+                f1.write(encoded_trans + b'\x00')
+                pointer_value = struct.pack('H', f1.tell() - 0x10000)
+                f2.seek(pointer_address)
+                f2.write(pointer_value)
+        #dump
+        print(hex(f1.tell()))
+        new_text_offset = f1.tell()
+        for i, (text, pointers) in buffer.items():
             for pointer in pointers.split(';'):
                 pointer = int(pointer, 16)
-                f.seek(pointer)
-                f.write(struct.pack('H', new_text_offset - 0x10000))
-            f.seek(new_text_offset)
-            text_to_write = table.encode(text[:-2])
-            if f.tell() + len(text_to_write) > 0x17bf9:
-                sys.exit('ERROR')
-            f.write(text_to_write)
-            new_text_offset = f.tell()
-        f.write(b'\x00' * (0x17bf9 - f.tell()))
+                f1.seek(pointer)
+                f1.write(struct.pack('H', new_text_offset - 0x10000))
+            f1.seek(new_text_offset)
+            text_to_write = table1.encode(text[:-2])
+            if f1.tell() + len(text_to_write) > BANK1_LIMIT:
+                sys.exit(f'ERROR: {i}')
+            f1.write(text_to_write)
+            new_text_offset = f1.tell()
+        f1.write(b'\x00' * (BANK1_LIMIT - f1.tell()))
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -177,10 +212,10 @@ dump_misc_parser.set_defaults(func=gargoyle_misc_dumper)
 insert_text_parser = subparsers.add_parser('insert_text', help='Execute TEXT INSERTER')
 insert_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 insert_text_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_text_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Modified table filename')
 insert_text_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
-insert_text_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-insert_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
-insert_text_parser.add_argument('-u', '--user', action='store', dest='user', help='')
+insert_text_parser.add_argument('-tp1', '--translation_dump_path', action='store', dest='translation_path1', help='Translation DUMP path')
+insert_text_parser.add_argument('-tp2', '--translation_misc_path', action='store', dest='translation_path2', help='Translation MISC path')
 insert_text_parser.set_defaults(func=gargoyle_text_inserter)
 
 if __name__ == "__main__":
