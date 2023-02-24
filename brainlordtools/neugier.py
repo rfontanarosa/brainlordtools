@@ -7,7 +7,7 @@ __email__ = "robertofontanarosa@gmail.com"
 import csv, os, shutil, sqlite3, struct, sys
 
 from rhtools3.Table import Table
-from rhutils.db import insert_text, select_translation_by_author, select_most_recent_translation
+from rhutils.db import insert_text, select_translation_by_author
 from rhutils.dump import read_text, write_text, write_byte, dump_binary, insert_binary, get_csv_translated_texts
 from rhutils.rom import crc32
 from rhutils.snes import snes2pc_lorom, pc2snes_lorom
@@ -51,7 +51,7 @@ def neugier_text_dumper(args):
             pointers.setdefault(text_address, []).append(p_address)
         # TEXT 1
         id = 1
-        for i, (text_address, p_addresses) in enumerate(pointers.items()):
+        for _, (text_address, p_addresses) in enumerate(pointers.items()):
             pointer_addresses = ';'.join(str(hex(x)) for x in p_addresses)
             text = read_text(f, text_address, end_byte=b'\x00')
             text_decoded = table.decode(text)
@@ -82,15 +82,12 @@ def neugier_text_inserter(args):
         rows = select_translation_by_author(cur, user_name, ['1'])
         for row in rows:
             # INSERTER X
-            id = row[0]
-            address = row[3]
-            text_decoded = row[2]
-            translation = row[5]
+            id, _, text_decoded, address, pointer_addresses, translation, _ = row
             text = translation if translation else text_decoded
             text_encoded = table.encode(text)
             new_text_address = f.tell()
             if new_text_address + len(text_encoded) > (TEXT_BLOCK1_LIMIT + 1):
-                sys.exit('CRITICAL ERROR! ID {} - BLOCK {} - TEXT_BLOCK_LIMIT! {} > {} ({})'.format(id, 1, next_text_address + len(decoded_text), TEXT_BLOCK1_LIMIT, (TEXT_BLOCK1_LIMIT - next_text_address - len(decoded_text))))
+                sys.exit('CRITICAL ERROR! ID {} - BLOCK {} - TEXT_BLOCK_LIMIT! {} > {} ({})'.format(id, 1, next_text_address + len(text_decoded), TEXT_BLOCK1_LIMIT, (TEXT_BLOCK1_LIMIT - next_text_address - len(text_decoded))))
             if new_text_address < TEXT_BLOCK1_START + 0x8000 and new_text_address + len(text_encoded) >= TEXT_BLOCK1_START + 0x8000:
                 new_text_address = TEXT_BLOCK1_START + 0x8000
             f.seek(new_text_address)
@@ -98,7 +95,6 @@ def neugier_text_inserter(args):
             f.write(b'\x00')
             next_text_address = f.tell()
             # REPOINTER X
-            pointer_addresses = row[4]
             if pointer_addresses:
                 pvalue = struct.pack('i', pc2snes_lorom(new_text_address))
                 for pointer_address in pointer_addresses.split(';'):
@@ -156,7 +152,7 @@ def neugier_misc_dumper(args):
     with open(source_file, 'rb') as f:
         # Enemy names
         filename = os.path.join(dump_path, 'enemy_names.csv')
-        with open(filename, 'w+') as csv_file:
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             f.seek(0xc06d)
@@ -184,10 +180,10 @@ def neugier_misc_inserter(args):
         # Enemy names
         translation_file = os.path.join(translation_path, 'enemy_names.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for i, (t_address, t_value) in enumerate(translated_texts.items()):
+        for _, (t_address, t_value) in enumerate(translated_texts.items()):
             text = t_value.encode()
             if len(text) != 10:
-                sys.exit("{} exceeds".format(t_value))
+                sys.exit(f'{t_value} exceeds 10')
             write_text(f, t_address, text, length=10)
         # Credits
         insert_binary(f, 0xd0919, 0xd0f37, translation_path, 'credits.bin')
@@ -210,7 +206,7 @@ def neugier_credits_dumper(args):
             p_value = f.read(2)
             text_address = snes2pc_lorom(struct.unpack('H', p_value)[0] + 0x1a0000)
             pointers.setdefault(text_address, []).append(p_address)
-        with open(filename, 'a+') as txt_file:
+        with open(filename, 'a+', encoding='utf-8') as txt_file:
             for i, (text_address, p_addresses) in enumerate(pointers.items()):
                 f.seek(text_address)
                 number_of_lines = int.from_bytes(f.read(1), "little")
