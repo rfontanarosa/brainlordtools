@@ -102,7 +102,7 @@ def gargoyle_misc_dumper(args):
             pointers = {}
             f.seek(MISC_POINTERS1[0])
             while f.tell() < MISC_POINTERS1[1]:
-                pointers[f.tell()] = struct.unpack('H', f.read(2))[0] + 0x10000
+                pointers[f.tell() - 2] = struct.unpack('H', f.read(2))[0] + 0x10000
             for pointer, value in pointers.items():
                 f.seek(value)
                 text = read_text(f, f.tell(), end_byte=b'\x75')
@@ -117,7 +117,7 @@ def gargoyle_misc_dumper(args):
             pointers = {}
             f.seek(MISC_POINTERS2[0])
             while f.tell() < MISC_POINTERS2[1]:
-                pointers[f.tell()] = struct.unpack('H', f.read(2))[0] + 0x10000
+                pointers[f.tell() - 2] = struct.unpack('H', f.read(2))[0] + 0x10000
             for pointer, value in pointers.items():
                 f.seek(value)
                 text = read_text(f, f.tell(), end_byte=b'\x00')
@@ -160,8 +160,8 @@ def gargoyle_text_inserter(args):
                 pointer_address = int(row['pointer_address'], 16)
                 #
                 encoded_trans = table2.encode(trans)
-                f1.write(encoded_trans + b'\x75')
                 pointer_value = struct.pack('H', f1.tell() - 0x10000)
+                f1.write(encoded_trans + b'\x75')
                 f2.seek(pointer_address)
                 f2.write(pointer_value)
         #misc2
@@ -173,8 +173,8 @@ def gargoyle_text_inserter(args):
                 pointer_address = int(row['pointer_address'], 16)
                 #
                 encoded_trans = table2.encode(trans)
-                f1.write(encoded_trans + b'\x00')
                 pointer_value = struct.pack('H', f1.tell() - 0x10000)
+                f1.write(encoded_trans + b'\x00')
                 f2.seek(pointer_address)
                 f2.write(pointer_value)
         #dump
