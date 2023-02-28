@@ -201,7 +201,7 @@ def lufia_text_inserter(args):
     cur = conn.cursor()
     rows = select_most_recent_translation(cur, ['1'])
     for row in rows:
-        _, _, text_decoded, _, _, translation, ref = row
+        _, _, text_decoded, _, _, translation, _, _, ref = row
         splitted_line = ref.split(' ')
         block = int(splitted_line[1].replace(':', ''))
         offset_from = int(splitted_line[2], 16)
