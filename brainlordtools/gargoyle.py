@@ -17,28 +17,25 @@ MISC_POINTERS1 = (0x16114, 0x16122)
 MISC_POINTERS2 = (0x16128, 0x16208)
 BANK1_LIMIT = 0x17fff
 
-# MISC_POINTERS3 = (0xff73, 0xff82)
-# MISC_POINTERS = (0xfd74, )
-
-def gargoyle_read_text(f, offset, cmd_list={b'\x71': 1, b'\x74': 1, b'\x77': 1, b'\x78': 1, b'\x79': 1, b'\x7b': 1}):
-    text = b''
-    f.seek(offset)
-    while True:
-        byte = f.read(1)
-        if cmd_list and byte in cmd_list.keys():
-            text += byte
-            bytes_to_read = cmd_list.get(byte)
-            text += f.read(bytes_to_read)
-        elif byte in b'\x7f':
-            text += byte
-            break
-        elif byte in (b'\x72', b'\x73', b'\x7e'):
-            text += byte
-            text += f.read(1)
-            break
-        else:
-            text += byte
-    return text
+# def gargoyle_read_text(f, offset, cmd_list={b'\x71': 1, b'\x74': 1, b'\x77': 1, b'\x78': 1, b'\x79': 1, b'\x7b': 1}):
+#     text = b''
+#     f.seek(offset)
+#     while True:
+#         byte = f.read(1)
+#         if cmd_list and byte in cmd_list.keys():
+#             text += byte
+#             bytes_to_read = cmd_list.get(byte)
+#             text += f.read(bytes_to_read)
+#         elif byte in b'\x7f':
+#             text += byte
+#             break
+#         elif byte in (b'\x72', b'\x73', b'\x7e'):
+#             text += byte
+#             text += f.read(1)
+#             break
+#         else:
+#             text += byte
+#     return text
 
 def gargoyle_text_dumper(args):
     source_file = args.source_file
@@ -50,9 +47,8 @@ def gargoyle_text_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        id = 1
-        start, end = TEXT_POINTERS
         # READ POINTERS BLOCK
+        start, end = TEXT_POINTERS
         pointers = {}
         f.seek(start)
         while f.tell() <= end:
@@ -60,6 +56,7 @@ def gargoyle_text_dumper(args):
             p_value = struct.unpack('H', f.read(2))[0] + 0x10000
             pointers.setdefault(p_value, []).append(p_offset)
         # READ TEXT BLOCK
+        text_id = 1
         for i, (taddress, paddresses) in enumerate(list(pointers.items())[:-1]):
             # pointer_addresses = ';'.join(hex(x) for x in paddresses)
             # text = gargoyle_read_text(f, taddress)
@@ -70,17 +67,17 @@ def gargoyle_text_dumper(args):
             # with open(filename, 'a+', encoding='utf-8') as out:
             #     out.write(f'{ref}\n{text_decoded}\n\n')
             # id += 1
-            taddress2, _ = list(pointers.items())[i + 1]
             pointer_addresses = ';'.join(hex(x) for x in paddresses)
             f.seek(taddress)
-            text = f.read(taddress2 - taddress)
+            next_taddress, _ = list(pointers.items())[i + 1]
+            text = f.read(next_taddress - taddress)
             text_decoded = table.decode(text)
-            ref = f'[ID {id} - TEXT {hex(taddress)} - POINTER {pointer_addresses}]'
+            ref = f'[ID {text_id} - TEXT {hex(taddress)} - POINTER {pointer_addresses}]'
             # dump - txt
             filename = os.path.join(dump_path, 'dump_eng.txt')
             with open(filename, 'a+', encoding='utf-8') as out:
                 out.write(f'{ref}\n{text_decoded}\n\n')
-            id += 1
+            text_id += 1
 
 def gargoyle_misc_dumper(args):
     source_file = args.source_file
@@ -89,7 +86,7 @@ def gargoyle_misc_dumper(args):
     dump_path = args.dump_path
     if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
-    table = Table(table1_file)
+    table1 = Table(table1_file)
     table2 = Table(table2_file)
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
@@ -106,7 +103,7 @@ def gargoyle_misc_dumper(args):
             for pointer, value in pointers.items():
                 f.seek(value)
                 text = read_text(f, f.tell(), end_byte=b'\x75')
-                text_decoded = table.decode(text)
+                text_decoded = table1.decode(text)
                 fields = [hex(pointer), hex(value), text_decoded]
                 csv_writer.writerow(fields)
         # misc2
@@ -121,9 +118,39 @@ def gargoyle_misc_dumper(args):
             for pointer, value in pointers.items():
                 f.seek(value)
                 text = read_text(f, f.tell(), end_byte=b'\x00')
-                text_decoded = table.decode(text)
+                text_decoded = table1.decode(text)
                 fields = [hex(pointer), hex(value), text_decoded]
                 csv_writer.writerow(fields)
+        # misc3
+        filename = os.path.join(dump_path, 'misc3.csv')
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
+            #
+            pointers = (0x829a, 0x82a6, 0x82af)
+            for pointer in pointers:
+                f.seek(pointer)
+                text_address = struct.unpack('H', f.read(2))[0] + 0x4000
+                text = read_text(f, text_address, end_byte=b'\x7f')
+                text_decoded = table2.decode(text)
+                fields = [hex(pointer), hex(text_address), text_decoded]
+                csv_writer.writerow(fields)
+            #
+            pointers = (0x853b, 0x8530)
+            for pointer in pointers:
+                f.seek(pointer)
+                text_address = struct.unpack('H', f.read(2))[0] + 0x4000
+                text = read_text(f, text_address, length=16+3)
+                text_decoded = table2.decode(text)
+                fields = [hex(pointer), hex(text_address), text_decoded]
+                csv_writer.writerow(fields)
+            #
+            f.seek(0x8440)
+            text_address = struct.unpack('H', f.read(2))[0] + 0x4000
+            text = read_text(f, text_address, length=37)
+            text_decoded = table2.decode(text)
+            fields = [hex(pointer), hex(text_address), text_decoded]
+            csv_writer.writerow(fields)
 
 def gargoyle_text_inserter(args):
     source_file = args.source_file
@@ -132,7 +159,6 @@ def gargoyle_text_inserter(args):
     table2_file = args.table2
     translation_dump_path = args.translation_path1
     translation_misc_path = args.translation_path2
-    print(translation_misc_path)
     if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table1 = Table(table1_file)
@@ -178,7 +204,7 @@ def gargoyle_text_inserter(args):
                 f2.seek(pointer_address)
                 f2.write(pointer_value)
         #dump
-        print(hex(f1.tell()))
+        print('Text starts from {}'.format(hex(f1.tell())))
         new_text_offset = f1.tell()
         for i, (text, pointers) in buffer.items():
             for pointer in pointers.split(';'):
