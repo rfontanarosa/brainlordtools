@@ -8,7 +8,7 @@ import csv, os, shutil, sqlite3, struct, sys
 from collections import OrderedDict
 
 from rhtools3.Table import Table
-from rhutils.db import insert_text, select_translation_by_author, select_most_recent_translation
+from rhutils.db import insert_text, select_most_recent_translation
 from rhutils.dump import read_text, write_text, dump_binary, insert_binary, get_csv_translated_texts
 from rhutils.rom import crc32, expand_rom
 from rhutils.snes import snes2pc_lorom, pc2snes_lorom
@@ -201,10 +201,7 @@ def lufia_text_inserter(args):
     cur = conn.cursor()
     rows = select_most_recent_translation(cur, ['1'])
     for row in rows:
-        address = row[3]
-        text_decoded = row[2]
-        translation = row[5]
-        ref = row[8]
+        _, _, text_decoded, _, _, translation, ref = row
         splitted_line = ref.split(' ')
         block = int(splitted_line[1].replace(':', ''))
         offset_from = int(splitted_line[2], 16)
@@ -302,7 +299,7 @@ def lufia_misc_inserter(args):
         for i, (t_address, t_value) in enumerate(translated_texts.items()):
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
             if len(text) != 10:
-                sys.exit("{} exceeds".format(t_value))
+                sys.exit(f'{t_value} exceeds')
             write_text(f1, t_address, text, length=10)
         # Items
         translation_file = os.path.join(translation_path, 'items.csv')
@@ -310,7 +307,7 @@ def lufia_misc_inserter(args):
         for i, (t_address, t_value) in enumerate(translated_texts.items()):
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
             if len(text) != 12:
-                sys.exit("{} exceeds".format(t_value))
+                sys.exit(f'{t_value} exceeds')
             write_text(f1, t_address, text, length=12)
         # Magic
         translation_file = os.path.join(translation_path, 'magic.csv')
@@ -318,7 +315,7 @@ def lufia_misc_inserter(args):
         for i, (t_address, t_value) in enumerate(translated_texts.items()):
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
             if len(text) != 8:
-                sys.exit("{} exceeds".format(t_value))
+                sys.exit(f'{t_value} exceeds')
             write_text(f1, t_address, text, length=8)
         # Magic descriptions
         pointers_addresses = []
