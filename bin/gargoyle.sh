@@ -24,5 +24,5 @@ python "$TOOLS_PATH/_utils.py" file_copy -s "$SOURCE" -d "$DESTINATION"
 python "$TOOLS_PATH/gargoyle.py" --no_crc32_check dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH"
 python "$TOOLS_PATH/gargoyle.py" --no_crc32_check dump_misc -s "$SOURCE" -t1 "$TABLE1" -t2 "$TABLE2" -dp "$DUMP_MISC_PATH"
 
-python "$TOOLS_PATH/gargoyle.py" --no_crc32_check insert_text -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE4" -t2 "$TABLE3" -tp1 "$TRANSLATION_TEXT_PATH"  -tp2 "$TRANSLATION_MISC_PATH"
-
+python "$TOOLS_PATH/gargoyle.py" --no_crc32_check insert_text -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE4" -t2 "$TABLE3" -tp1 "$TRANSLATION_TEXT_PATH" -tp2 "$TRANSLATION_MISC_PATH"
+python "$TOOLS_PATH/gargoyle.py" --no_crc32_check insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2" -tp "$TRANSLATION_MISC_PATH"
