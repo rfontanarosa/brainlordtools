@@ -12,17 +12,24 @@ TABLE1="$RESOURCE_PATH/tables/gargoyle_eng_dte.tbl"
 TABLE2="$RESOURCE_PATH/tables/gargoyle_eng_menu.tbl"
 TABLE3="$RESOURCE_PATH/tables/gargoyle_eng_without_dte.tbl"
 TABLE4="$RESOURCE_PATH/tables/gargoyle_ita_dte.tbl"
+TABLE5="$RESOURCE_PATH/tables/gargoyle_eng_initial_screen.tbl"
 
 DUMP_TEXT_PATH="$RESOURCE_PATH/dump_text"
 DUMP_MISC_PATH="$RESOURCE_PATH/dump_misc"
+DUMP_GFX_PATH="$RESOURCE_PATH/dump_gfx"
 
 TRANSLATION_TEXT_PATH="$RESOURCE_PATH/translation_text"
 TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
+TANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
 
 python "$TOOLS_PATH/_utils.py" file_copy -s "$SOURCE" -d "$DESTINATION"
 
 python "$TOOLS_PATH/gargoyle.py" --no_crc32_check dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH"
-python "$TOOLS_PATH/gargoyle.py" --no_crc32_check dump_misc -s "$SOURCE" -t1 "$TABLE1" -t2 "$TABLE2" -dp "$DUMP_MISC_PATH"
+python "$TOOLS_PATH/gargoyle.py" --no_crc32_check dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
+python "$TOOLS_PATH/gargoyle.py" --no_crc32_check dump_misc -s "$SOURCE" -t1 "$TABLE1" -t2 "$TABLE2" -t3 "$TABLE5" -dp "$DUMP_MISC_PATH"
 
 python "$TOOLS_PATH/gargoyle.py" --no_crc32_check insert_text -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE4" -t2 "$TABLE3" -tp1 "$TRANSLATION_TEXT_PATH" -tp2 "$TRANSLATION_MISC_PATH"
-python "$TOOLS_PATH/gargoyle.py" --no_crc32_check insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2" -tp "$TRANSLATION_MISC_PATH"
+python "$TOOLS_PATH/gargoyle.py" --no_crc32_check insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
+python "$TOOLS_PATH/gargoyle.py" --no_crc32_check insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2" -t3 "$TABLE5" -tp "$TRANSLATION_MISC_PATH"
+
+bass "$RESOURCE_PATH/asm/accents_hack.asm" -m "$DESTINATION"
