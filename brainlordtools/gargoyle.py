@@ -63,7 +63,7 @@ def gargoyle_misc_dumper(args):
     table3 = Table(table3_file)
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
-    with open(source_file, 'rb') as f:
+    with open(source_file, 'rb') as f, open(source_file, 'rb') as f2:
         # misc1
         filename = os.path.join(dump_path, 'misc1.csv')
         with open(filename, 'w+', encoding='utf-8') as csv_file:
@@ -172,17 +172,43 @@ def gargoyle_misc_dumper(args):
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             #
-            pointers = (0xfd74, 0xfd95)
-            for pointer in pointers:
+            pointers = [(0xfd74, 8), (0xfd95, 1), (0xfdd5, 4)]
+            for p_offset, n in pointers:
                 # 0xfd74 # puntatore a level fino a darkfire
-                # 0xfd95 # puntatore ad item
-                text_address = 0xff35
-                while f.tell() < 0xffe8:
-                    text = read_text(f, text_address, end_byte=b'\x00')
-                    text_decoded = table2.decode(text)
+                # 0xfd95 # puntatore ad item 1
+                # 0xfda1 # puntatore ai puntatori
+                # 0xfdd5 # puntatore ad item 2
+                f.seek(p_offset)
+                text_address = struct.unpack('H', f.read(2))[0] + 0x8000
+                f.seek(text_address)
+                for _ in range(n):
+                    first_byte = f.read(1)
+                    byte_with_length = f.read(1)
+                    if byte_with_length == b'\x00':
+                        first_byte += b'\x00'
+                        byte_with_length = f.read(1)
+                    bytes_to_read = int.from_bytes(byte_with_length, byteorder='big') & 0x0F
+                    text = read_text(f, length=bytes_to_read)
+                    text_decoded = table2.decode(first_byte + byte_with_length + text)
                     fields = [hex(text_address), text_decoded]
                     csv_writer.writerow(fields)
                     text_address = f.tell()
+            f2.seek(0xfda1)
+            pointers_address = struct.unpack('H', f2.read(2))[0] + 0x8000
+            f2.seek(pointers_address)
+            for _ in range(8):
+                text_address = struct.unpack('H', f2.read(2))[0] + 0x8000
+                f.seek(text_address)
+                f.read(1)
+                byte_with_length = f.read(1)
+                if byte_with_length == b'\x00':
+                    byte_with_length = f.read(1)
+                bytes_to_read = int.from_bytes(byte_with_length, byteorder='big') & 0x0F
+                text = read_text(f, length=bytes_to_read)
+                text_decoded = table2.decode(b'\x00' + byte_with_length + text)
+                fields = [hex(text_address), text_decoded]
+                csv_writer.writerow(fields)
+                text_address = f.tell()
 
 def gargoyle_text_inserter(args):
     source_file = args.source_file
@@ -309,7 +335,48 @@ def gargoyle_misc_inserter(args):
             f1.seek(t_address)
             f1.write(text)
         # misc7
-        # f1.seek(0xfd34)
+        translation_file = os.path.join(translation_path, 'misc7.csv')
+        translated_texts = get_csv_translated_texts(translation_file)
+        translated_items = list(translated_texts.items())
+        f1.seek(0xff34)
+        # 0xfd74, 8
+        for _, (t_address, t_value) in enumerate(translated_items[:8]):
+            text = table2.encode(t_value)
+            if f1.tell() + len(text) > 0xffff:
+                sys.exit('Text overflow')
+            f1.write(text)
+        # 0xfd95, 1
+        pointer_value = struct.pack('H', f1.tell() - 0x8000)
+        write_text(f2, 0xfd95, pointer_value)
+        _, t_value = translated_items[8]
+        text = table2.encode(t_value)
+        if f1.tell() + len(text) > 0xffff:
+            sys.exit('Text overflow')
+        f1.write(text)
+        # 0xfdd5, 4
+        pointer_value = struct.pack('H', f1.tell() - 0x8000)
+        write_text(f2, 0xfdd5, pointer_value)
+        _, t_value = translated_items[9]
+        for _, (t_address, t_value) in enumerate(translated_items[9:13]):
+            text = table2.encode(t_value)
+            if f1.tell() + len(text) > 0xffff:
+                sys.exit('Text overflow')
+            f1.write(text)
+        # 0xfda1, 8
+        pointer_value = struct.pack('H', f1.tell() - 0x8000)
+        write_text(f2, 0xfda1, pointer_value)
+        pointers_address = f1.tell() # pointers
+        f1.seek(pointers_address + 16) # text
+        bank_limit = 0xffff
+        for i, (t_address, t_value) in enumerate(translated_items[13:]):
+            text = table2.encode(t_value)
+            if f1.tell() + len(text) > bank_limit:
+                f1.seek(0xefb0)
+                bank_limit = 0xefff
+                # sys.exit('Text overflow')
+            pointer_value = struct.pack('H', f1.tell() - 0x8000)
+            write_text(f2, pointers_address + (i*2), pointer_value)
+            f1.write(text)
 
 def gargoyle_gfx_dumper(args):
     source_file = args.source_file
