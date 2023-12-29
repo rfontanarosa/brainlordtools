@@ -1,4 +1,10 @@
 import sqlite3
+from enum import IntEnum
+
+class TranslationStatus(IntEnum):
+    UNDONE = 0
+    PARTIALLY = 1
+    DONE = 2
 
 def insert_text(cur, id, text, decoded_text, address, pointer_adresses, block, ref):
     cur.execute('INSERT OR REPLACE INTO texts VALUES (?, ?, ?, ?, ?, ?, ?, ?)', (id, sqlite3.Binary(text), decoded_text, address, pointer_adresses, len(text), block, ref))

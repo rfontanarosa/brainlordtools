@@ -5,7 +5,7 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import os, sqlite3, time
-from rhutils.db import insert_translation, select_translation_by_author
+from rhutils.db import insert_translation, select_translation_by_author, TranslationStatus
 
 user_name = 'clomax'
 resources_path = '/Users/robertofontanarosa/git/brainlordresources/ignition'
@@ -29,7 +29,7 @@ if import_user_translation:
       if '[ID ' in line or i == len(lines) - 1:
         if buffer != '':
           text_decoded = buffer.rstrip('\n\r')
-          insert_translation(cur, id, 'TEST', user_name, text_decoded, 2, time.time(), '', '')
+          insert_translation(cur, id, 'TEST', user_name, text_decoded, TranslationStatus.DONE, time.time(), '', '')
           id += 1
           buffer = ''
         else:

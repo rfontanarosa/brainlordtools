@@ -26,3 +26,4 @@ python "$TOOLS_PATH/ignition.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 
 
 asar "$RESOURCE_PATH/asm/font_expansion.asm" "$DESTINATION"
 asar "$RESOURCE_PATH/asm/mission_select.asm" "$DESTINATION"
+asar "$RESOURCE_PATH/asm/menu.asm" "$DESTINATION"
