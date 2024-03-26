@@ -5,7 +5,6 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import sys, os, struct, sqlite3, shutil, csv
-from collections import OrderedDict
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_most_recent_translation
@@ -87,7 +86,7 @@ def dump_blocks(f, table, dump_path):
             csv_writer.writerow(fields)
 
 def get_pointers(f, start, count, step):
-    pointers = OrderedDict()
+    pointers = {}
     end = start + (count * step)
     f.seek(start)
     while f.tell() < end:
@@ -104,7 +103,7 @@ def get_pointer_value(f, start, step, third_byte_index=2):
     return p_value
 
 def get_translated_texts(filename):
-    translated_texts = OrderedDict()
+    translated_texts = {}
     with open(filename, 'r') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         for row in csv_reader:
@@ -238,7 +237,7 @@ def brainlord_misc_inserter(args):
         p_b_offsets.append(0x2b803) # Guard
         p_b_offsets.append(0x141219) # Free
         p_b_offsets.append(0x1412d3) # Free
-        p_b_1 = OrderedDict()
+        p_b_1 = {}
         for p_offset in p_b_offsets:
             p_value = get_pointer_value(f, p_offset, 8, 7)
             p_b_1.setdefault(p_value, []).append(p_offset)
@@ -249,7 +248,7 @@ def brainlord_misc_inserter(args):
         # reading misc1.csv and writing texts
         translation_file = os.path.join(translation_path, 'misc1.csv')
         translated_texts = get_translated_texts(translation_file)
-        new_pointers = OrderedDict()
+        new_pointers = {}
         t_new_address = 0x180000
         for i, (t_address, t_value) in enumerate(translated_texts.items()):
             new_pointers[t_address] = t_new_address
@@ -261,7 +260,7 @@ def brainlord_misc_inserter(args):
         # reading misc2.csv and writing texts
         translation_file = os.path.join(translation_path, 'misc2.csv')
         translated_texts = get_translated_texts(translation_file)
-        new_pointers = OrderedDict()
+        new_pointers = {}
         t_new_address = 0x182000
         for i, (t_address, t_value) in enumerate(translated_texts.items()):
             new_pointers[t_address] = t_new_address
@@ -275,7 +274,7 @@ def brainlord_misc_inserter(args):
         # reading misc3.csv and writing texts
         translation_file = os.path.join(translation_path, 'misc3.csv')
         translated_texts = get_translated_texts(translation_file)
-        new_pointers = OrderedDict()
+        new_pointers = {}
         t_new_address = 0x184000
         for i, (t_address, t_value) in enumerate(translated_texts.items()):
             new_pointers[t_address] = t_new_address
@@ -358,7 +357,7 @@ def brainlord_text_inserter(args):
     cur = conn.cursor()
     # find pointers
     NEW_TEXT_BLOCK1_START = NEW_TEXT_BLOCK1_END = 0x190000
-    new_pointers = OrderedDict()
+    new_pointers = {}
     with open(dest_file, 'r+b') as fw:
         fw.seek(NEW_TEXT_BLOCK1_START)
         # db
