@@ -92,18 +92,14 @@ if export_user_translation:
   with open(dialogues_user_fullpath, 'a') as f:
     rows = select_translation_by_author(cur, user_name, ['1'])
     for row in rows:
-      text_decoded = row[2]
-      translation = row[5]
-      ref = row[6]
+      _, _, text_decoded, _, _, translation, ref = row
       text = translation if translation else text_decoded
       f.write('{' + ref + '}' + '\t' + text)
       f.write('\n')
   with open(battle_dialogues_user_fullpath, 'a') as f:
     rows = select_translation_by_author(cur, user_name, ['2'])
     for row in rows:
-      text_decoded = row[2]
-      translation = row[5]
-      ref = row[6]
+      _, _, text_decoded, _, _, translation, ref = row
       text = translation if translation else text_decoded
       f.write('{' + ref + '}' + '\t' + text)
       f.write('\n')

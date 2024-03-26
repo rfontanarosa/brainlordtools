@@ -67,8 +67,7 @@ if export_user_translation:
   with open(dump_user_fullpath, 'a') as f:
     rows = select_translation_by_author(cur, user_name, ['1'])
     for row in rows:
-      text_decoded = row[2]
-      translation = row[5]
+      _, _, text_decoded, _, _, translation, _ = row
       text = translation if translation else text_decoded
       f.write(text)
       f.write('<End>\n')
