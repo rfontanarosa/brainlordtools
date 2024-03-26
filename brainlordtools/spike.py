@@ -113,10 +113,7 @@ def spike_text_inserter(args):
         rows = select_translation_by_author(cur, user_name, ['1'])
         for row in rows:
             # INSERTER X
-            id = row[0]
-            address = row[3]
-            text_decoded = row[2]
-            translation = row[5]
+            _, _, text_decoded, _, pointer_addresses, translation, _ = row
             text = translation if translation else text_decoded
             text_encoded = table.encode(text)
             f.seek(new_text_address)
@@ -124,7 +121,6 @@ def spike_text_inserter(args):
             f.write(b'\xf0')
             next_text_address = f.tell()
             # REPOINTER X
-            pointer_addresses = row[4]
             if pointer_addresses:
                 pvalue = struct.pack('i', pc2snes_lorom(new_text_address) + 0x800000)
                 for pointer_address in pointer_addresses.split(';'):
@@ -138,10 +134,7 @@ def spike_text_inserter(args):
         rows = select_translation_by_author(cur, user_name, ['2', '3', '4', '5', '6', '7', '8'])
         for row in rows:
             # INSERTER X
-            id = row[0]
-            address = row[3]
-            text_decoded = row[2]
-            translation = row[5]
+            _, _, text_decoded, _, pointer_addresses, translation, _ = row
             text = translation if translation else text_decoded
             text_encoded = table.encode(text)
             f.seek(new_text_address)
@@ -149,7 +142,6 @@ def spike_text_inserter(args):
             f.write(b'\xf0')
             next_text_address = f.tell()
             # REPOINTER X
-            pointer_addresses = row[4]
             if pointer_addresses:
                 pvalue = struct.pack('i', pc2snes_lorom(new_text_address) + 0x800000)
                 for pointer_address in pointer_addresses.split(';'):

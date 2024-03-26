@@ -123,9 +123,7 @@ def ys3_text_inserter(args):
         rows = select_translation_by_author(cur, user_name, ['1'])
         for row in rows:
             # INSERTER 1
-            id = row[0]
-            text_decoded = row[2]
-            translation = row[5]
+            id, _, text_decoded, _, pointer_addresses, translation, _ = row
             text = translation if translation else text_decoded
             text_encoded = table2.encode(text)
             new_text_address = f.tell()
@@ -136,7 +134,6 @@ def ys3_text_inserter(args):
             if next_text_address > TEXT_BLOCK1_LIMIT:
                 sys.exit('CRITICAL ERROR! TEXT_BLOCK_LIMIT! %s > %s (%s)' % (next_text_address, TEXT_BLOCK1_LIMIT, (TEXT_BLOCK1_LIMIT - next_text_address)))
             # REPOINTER 1
-            pointer_addresses = row[4]
             if pointer_addresses:
                 pvalue = struct.pack('i', pc2snes_lorom(new_text_address))[:2]
                 for pointer_address in pointer_addresses.split(';'):
@@ -150,11 +147,9 @@ def ys3_text_inserter(args):
         rows = select_translation_by_author(cur, user_name, ['2'])
         for row in rows:
             # INSERTER 2
-            id = row[0]
+            id, _, text_decoded, _, pointer_addresses, translation, _ = row
             if id in (547, 718):
                 continue
-            text_decoded = row[2]
-            translation = row[5]
             text = translation if translation else text_decoded
             text_encoded = table2.encode(text)
             new_text_address = f.tell()
@@ -165,7 +160,6 @@ def ys3_text_inserter(args):
             if next_text_address > TEXT_BLOCK2_LIMIT:
                 sys.exit('CRITICAL ERROR! 1TEXT_BLOCK_LIMIT! %s > %s (%s)' % (next_text_address, TEXT_BLOCK2_LIMIT, (TEXT_BLOCK2_LIMIT - next_text_address)))
             # REPOINTER 2
-            pointer_addresses = row[4]
             if pointer_addresses:
                 for pointer_address in pointer_addresses.split(';'):
                     if pointer_address:
