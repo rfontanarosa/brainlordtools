@@ -12,10 +12,17 @@ db = os.path.join(resources_path, 'db/starocean.sqlite3')
 dump_path = os.path.join(resources_path, 'dump_text')
 translation_path = os.path.join(resources_path, 'translation_text')
 dump_fullpath = os.path.join(dump_path, 'dump_eng.txt')
-dump_amazon_fullpath = os.path.join(translation_path, f'dump_ita_amazon.txt')
 
-import_dump = True
-translate_dump_amazom = False
+dump_amazon_fullpath = os.path.join(translation_path, 'dump_ita_amazon.txt')
+
+dump1_fullpath = os.path.join(dump_path, 'dump_eng_1.txt')
+dump2_fullpath = os.path.join(dump_path, 'dump_eng_2.txt')
+dump1_deepl_fullpath = os.path.join(translation_path, 'dump_ita_deepl_1.txt')
+dump2_deepl_fullpath = os.path.join(translation_path, 'dump2_ita_deepl_2.txt')
+
+import_dump = False
+translate_dump_amazon = False
+translate_dump_deepl = False
 
 def starocean_dump_reader(dump_fullpath):
   buff = {}
@@ -48,7 +55,7 @@ if import_dump:
   conn.commit()
   conn.close()
 
-if translate_dump_amazom:
+if translate_dump_amazon:
   import boto3
   client = boto3.client('translate')
   with open(dump_amazon_fullpath, 'a') as f:
@@ -67,3 +74,27 @@ if translate_dump_amazom:
       f.write(ref)
       f.write('\n')
       f.write(translated_text)
+
+if translate_dump_deepl:
+  import deepl
+  auth_key = "708b1cef-565d-499b-8e0a-81871821c2a0:fx"  # Replace with your key
+  translator = deepl.Translator(auth_key)
+  try:
+    # translator.translate_document_from_filepath(
+    #     dump1_fullpath,
+    #     dump1_deepl_fullpath,
+    #     target_lang="IT",
+    #     formality="more"
+    # )
+    translator.translate_document_from_filepath(
+        dump2_fullpath,
+        dump2_deepl_fullpath,
+        target_lang="IT",
+        formality="more"
+    )
+  except deepl.DocumentTranslationException as error:
+      doc_id = error.document_handle.id
+      doc_key = error.document_handle.key
+      print(f"Error after uploading ${error}, id: ${doc_id} key: ${doc_key}")
+  except deepl.DeepLException as error:
+      print(error)
