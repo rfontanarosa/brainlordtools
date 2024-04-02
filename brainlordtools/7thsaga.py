@@ -25,7 +25,7 @@ TEXT_BLOCK3 = (0x741f7, 0x75343)
 MISC_BLOCK1 = (0x733c2, 0x741f6)
 MISC_BLOCK2 = (0x75345, 0x7545f)
 
-POINTER_BLOCK = (0x425db, 0x4269b)
+POINTER_BLOCKS = [(0x425db, 0x4269b)]
 
 FONT1_BLOCK = (0x13722d, 0x13B22d)
 
@@ -104,7 +104,40 @@ def seventhsaga_text_inserter(args):
     conn = sqlite3.connect(db)
     conn.text_factory = str
     cur = conn.cursor()
-
+    # find pointers
+    NEW_TEXT_BLOCK1_START = NEW_TEXT_BLOCK1_END = 0x300000
+    new_pointers = {}
+    with open(dest_file, 'r+b') as fw:
+        fw.seek(NEW_TEXT_BLOCK1_START)
+        # db
+        rows = select_most_recent_translation(cur, ['1', '2', '3', '4', '5', '6', '7'])
+        for row in rows:
+            id, _, text_decoded, address, _, translation, _, _, _ = row
+            text = translation if translation else text_decoded
+            if id == 66:
+                print(text)
+            encoded_text = table.encode(text, mte_resolver=True, dict_resolver=False)
+            if fw.tell() < 0x310000 and fw.tell() + len(encoded_text) > 0x30ffff:
+                fw.seek(0x310000)
+            new_pointers[int(address)] = fw.tell()
+            fw.write(encoded_text)
+            fw.write(b'\xf7')
+        NEW_TEXT_BLOCK1_END = fw.tell()
+    # pointer block 1
+    with open(dest_file, 'r+b') as fw:
+        fw.seek(POINTER_BLOCKS[0][0])
+        while (fw.tell() < POINTER_BLOCKS[0][1]):
+            repoint_text(fw, fw.tell(), new_pointers)
+    # text block pointers
+    with open(dest_file, 'r+b') as fw:
+        fw.seek(NEW_TEXT_BLOCK1_START)
+        while (fw.tell() < NEW_TEXT_BLOCK1_END):
+            byte = fw.read(1)
+            if byte in (b'\xfb', b'\xfc'):
+                fw.read(2)
+                repoint_text(fw, fw.tell(), new_pointers)
+            elif byte == b'\xff':
+                repoint_text(fw, fw.tell(), new_pointers)
     cur.close()
     conn.commit()
     conn.close()
@@ -136,6 +169,23 @@ def seventhsaga_misc_dumper(args):
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
         dump_blocks(f, table, dump_path)
+
+def repoint_text(fw, offset, new_pointers):
+    fw.seek(offset)
+    pointer = fw.read(3)
+    unpacked = struct.unpack('i', pointer + b'\x00')[0] - 0xc00000
+    new_pointer = new_pointers.get(unpacked)
+    if new_pointer:
+        fw.seek(-3, os.SEEK_CUR)
+        packed = struct.pack('i', new_pointer + 0xc00000)
+        fw.write(packed[:-1])
+    else:
+        if unpacked == 0x173419:
+            fw.seek(-3, os.SEEK_CUR)
+            packed = struct.pack('i', fw.tell() + 3 + 0xc00000)
+            fw.write(packed[:-1])
+        else:
+            print('TEXT - Pointer offset: ' + hex(offset) + ' Text offset: ' + hex(unpacked))
 
 import argparse
 parser = argparse.ArgumentParser()
