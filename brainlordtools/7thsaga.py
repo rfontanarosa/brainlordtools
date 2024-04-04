@@ -25,7 +25,7 @@ TEXT_BLOCK3 = (0x741f7, 0x75343)
 MISC_BLOCK1 = (0x733c2, 0x741f6)
 MISC_BLOCK2 = (0x75345, 0x7545f)
 
-POINTER_BLOCKS = [(0x425db, 0x4269b)]
+POINTER_BLOCKS = [(0x1a0ad, 0x1a0c1), (0x425db, 0x4269b)]
 
 FONT1_BLOCK = (0x13722d, 0x13B22d)
 
@@ -114,8 +114,6 @@ def seventhsaga_text_inserter(args):
         for row in rows:
             id, _, text_decoded, address, _, translation, _, _, _ = row
             text = translation if translation else text_decoded
-            if id == 66:
-                print(text)
             encoded_text = table.encode(text, mte_resolver=True, dict_resolver=False)
             if fw.tell() < 0x310000 and fw.tell() + len(encoded_text) > 0x30ffff:
                 fw.seek(0x310000)
@@ -125,9 +123,10 @@ def seventhsaga_text_inserter(args):
         NEW_TEXT_BLOCK1_END = fw.tell()
     # pointer block 1
     with open(dest_file, 'r+b') as fw:
-        fw.seek(POINTER_BLOCKS[0][0])
-        while (fw.tell() < POINTER_BLOCKS[0][1]):
-            repoint_text(fw, fw.tell(), new_pointers)
+        for POINTER_BLOCK in POINTER_BLOCKS:
+            fw.seek(POINTER_BLOCK[0])
+            while (fw.tell() < POINTER_BLOCK[1]):
+                repoint_text(fw, fw.tell(), new_pointers)
     # text block pointers
     with open(dest_file, 'r+b') as fw:
         fw.seek(NEW_TEXT_BLOCK1_START)
@@ -138,6 +137,10 @@ def seventhsaga_text_inserter(args):
                 repoint_text(fw, fw.tell(), new_pointers)
             elif byte == b'\xff':
                 repoint_text(fw, fw.tell(), new_pointers)
+    # sparse pointers
+    with open(dest_file, 'r+b') as fw:
+        repoint_text(fw, 0x15905f, new_pointers)
+        repoint_text(fw, 0x1590f5, new_pointers)
     cur.close()
     conn.commit()
     conn.close()
