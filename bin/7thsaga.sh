@@ -18,7 +18,7 @@ DUMP_MISC_PATH="$RESOURCE_PATH/dump_misc"
 
 TANSLATION_TEXT_PATH="$RESOURCE_PATH/translation_text"
 TANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
-# TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
+TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
 
 python "$TOOLS_PATH/_utils.py" file_copy -s "$SOURCE" -d "$DESTINATION"
 
@@ -28,4 +28,4 @@ python "$TOOLS_PATH/7thsaga.py" dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_
 
 python "$TOOLS_PATH/7thsaga.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE2" -tp "$TANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
 python "$TOOLS_PATH/7thsaga.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
-# python "$TOOLS_PATH/7thsaga.py" insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2" -tp "$TRANSLATION_MISC_PATH"
+python "$TOOLS_PATH/7thsaga.py" insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2" -tp "$TRANSLATION_MISC_PATH"

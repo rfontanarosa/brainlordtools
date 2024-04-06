@@ -16,7 +16,7 @@ from rhutils.snes import snes2pc_lorom, pc2snes_lorom
 # CRC32 = 'B3ABDDE6'
 
 # UNPACKED GFX
-CRC32 = '21AFD8C7'
+CRC32 = '2979C59'
 
 TEXT_BLOCK1 = (0x60000, 0x6fdde)
 TEXT_BLOCK2 = (0x70000, 0x733c1)
@@ -25,25 +25,9 @@ TEXT_BLOCK3 = (0x741f7, 0x75343)
 MISC_BLOCK1 = (0x733c2, 0x741f6)
 MISC_BLOCK2 = (0x75345, 0x7545f)
 
-POINTER_BLOCKS = [(0x1a0ad, 0x1a0c1), (0x425db, 0x4269b)]
+POINTER_BLOCKS = [(0x1a0ad, 0x1a0c1), (0x425db, 0x4269a)]
 
 FONT1_BLOCK = (0x13722d, 0x13B22d)
-
-def seventhsaga_bank_dumper(f, dump_path, table, id, block, cur, start=0x0, end=0x0):
-    f.seek(start)
-    while f.tell() < end:
-        text_address = f.tell()
-        text = read_text(f, text_address, end_byte=b'\xf7', cmd_list={b'\xfc': 5})
-        text_decoded = table.decode(text, mte_resolver=True, dict_resolver=False, cmd_list={0xf6: 1, 0xfb: 5, 0xfc: 5, 0xfd: 2, 0xfe: 2, 0xff: 3})
-        ref = '[BLOCK {}: {} to {}]'.format(str(id), hex(text_address), hex(f.tell()))
-        # dump - db
-        insert_text(cur, id, text, text_decoded, text_address, '', block, '')
-        # dump - txt
-        filename = os.path.join(dump_path, 'dump_eng.txt')
-        with open(filename, 'a+') as out:
-            out.write(ref + '\n' + text_decoded + "\n\n")
-        id += 1
-    return id
 
 def dump_blocks(f, table, dump_path):
     filename = os.path.join(dump_path, 'misc1.csv')
@@ -68,6 +52,33 @@ def dump_blocks(f, table, dump_path):
             text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
             fields = [hex(text_address), text_decoded]
             csv_writer.writerow(fields)
+
+def get_pointers(f, start, count, step):
+    pointers = {}
+    end = start + (count * step)
+    f.seek(start)
+    while f.tell() < end:
+        p_offset = f.tell()
+        pointer = f.read(step)
+        p_value = struct.unpack('i', pointer[:3] + b'\x00')[0] - 0xc00000
+        pointers.setdefault(p_value, []).append(p_offset)
+    return pointers
+
+def seventhsaga_bank_dumper(f, dump_path, table, id, block, cur, start=0x0, end=0x0):
+    f.seek(start)
+    while f.tell() < end:
+        text_address = f.tell()
+        text = read_text(f, text_address, end_byte=b'\xf7', cmd_list={b'\xfc': 5})
+        text_decoded = table.decode(text, mte_resolver=True, dict_resolver=False, cmd_list={0xf6: 1, 0xfb: 5, 0xfc: 5, 0xfd: 2, 0xfe: 2, 0xff: 3})
+        ref = '[BLOCK {}: {} to {}]'.format(str(id), hex(text_address), hex(f.tell()))
+        # dump - db
+        insert_text(cur, id, text, text_decoded, text_address, '', block, '')
+        # dump - txt
+        filename = os.path.join(dump_path, 'dump_eng.txt')
+        with open(filename, 'a+') as out:
+            out.write(ref + '\n' + text_decoded + "\n\n")
+        id += 1
+    return id
 
 def seventhsaga_text_dumper(args):
     source_file = args.source_file
@@ -104,15 +115,15 @@ def seventhsaga_text_inserter(args):
     conn = sqlite3.connect(db)
     conn.text_factory = str
     cur = conn.cursor()
-    # find pointers
+    # collect pointers
     NEW_TEXT_BLOCK1_START = NEW_TEXT_BLOCK1_END = 0x300000
     new_pointers = {}
     with open(dest_file, 'r+b') as fw:
         fw.seek(NEW_TEXT_BLOCK1_START)
         # db
-        rows = select_most_recent_translation(cur, ['1', '2', '3', '4', '5', '6', '7'])
+        rows = select_most_recent_translation(cur, ['1', '2', '3'])
         for row in rows:
-            id, _, text_decoded, address, _, translation, _, _, _ = row
+            _, _, text_decoded, address, _, translation, _, _, _ = row
             text = translation if translation else text_decoded
             encoded_text = table.encode(text, mte_resolver=True, dict_resolver=False)
             if fw.tell() < 0x310000 and fw.tell() + len(encoded_text) > 0x30ffff:
@@ -121,6 +132,18 @@ def seventhsaga_text_inserter(args):
             fw.write(encoded_text)
             fw.write(b'\xf7')
         NEW_TEXT_BLOCK1_END = fw.tell()
+    # find pointers
+    address = 0x626ca
+    if address:
+        pointer = new_pointers.get(address)
+        with open(dest_file, 'r+b') as fw:
+            file = fw.read()
+            packed = struct.pack('i', address + 0xc00000)[:-1]
+            print(packed)
+            print(hex(pointer))
+            offsets = [i for i in range(len(file)) if file.startswith(packed, i)]
+            hex_offsets = list(map(lambda x: hex(x), offsets))
+            print(hex_offsets)
     # pointer block 1
     with open(dest_file, 'r+b') as fw:
         for POINTER_BLOCK in POINTER_BLOCKS:
@@ -139,8 +162,35 @@ def seventhsaga_text_inserter(args):
                 repoint_text(fw, fw.tell(), new_pointers)
     # sparse pointers
     with open(dest_file, 'r+b') as fw:
-        repoint_text(fw, 0x15905f, new_pointers)
-        repoint_text(fw, 0x1590f5, new_pointers)
+        sparse_pointers = (0x56f0a, 0x56f10, 0x56f16, 0x56f1c, 0x56f22, 0x56f28)
+        sparse_pointers = sparse_pointers + (0x56f88, 0x56f8e, 0x56f94, 0x56f9a, 0x56fa0, 0x56fa6, 0x56fac, 0x56fb2, 0x56fb8)
+        sparse_pointers = sparse_pointers + (0x57012, 0x57018, 0x5701e, 0x57024, 0x5702a)
+        sparse_pointers = sparse_pointers + (0x158fd5, 0x158fe7, 0x158fff, 0x15901d, 0x159035, 0x15903b, 0x15905f, 0x159065, 0x15906b, 0x1590bf, 0x1590c5, 0x1590d7, 0x1590f5, 0x159131, 0x159149, 0x15914f, 0x159167, 0x159185, 0x15918b, 0x15919d, 0x1591af, 0x1591c1, 0x1591d3, 0x1591d9, 0x1591eb, 0x1591f1)
+        sparse_pointers = sparse_pointers + (0x15920f, 0x15924b, 0x159251)
+        sparse_pointers = sparse_pointers + (0x159347, 0x1593cb, 0x15936b, 0x159371, 0x159389, 0x15938f, 0x159395)
+        sparse_pointers = sparse_pointers + (0x159515, 0x159629, 0x1596fb, 0x159737, 0x1598d5, 0x159a13, 0x159bbd, 0x159deb, 0x15a151, 0x15a2ad, 0x15a59b, 0x15a89b, 0x15ab8f, 0x15ac0d, 0x15af1f, 0x15af61, 0x15b057, 0x15b11d, 0x15b25b, 0x15b453, 0x15baa7, 0x15bafb, 0x15bc21, 0x15d0f1)
+        sparse_pointers = sparse_pointers + (0x159017, 0x159233, 0x159329) # welcome to our store (0x60003)
+        for sparse_pointer in sparse_pointers:
+            repoint_text(fw, sparse_pointer, new_pointers)
+    # # two bytes pointers
+    with open(dest_file, 'r+b') as fw:
+        repoint_two_bytes_pointers(fw, 0x8eb2, new_pointers, b'\xc6')
+        repoint_two_bytes_pointers(fw, 0x8f9b, new_pointers, b'\xc6')
+        repoint_two_bytes_pointers(fw, 0x9134, new_pointers, b'\xc6')
+        repoint_two_bytes_pointers(fw, 0x9962, new_pointers, b'\xc6')
+        repoint_two_bytes_pointers(fw, 0x9a44, new_pointers, b'\xc6')
+        repoint_two_bytes_pointers(fw, 0x9b99, new_pointers, b'\xc6')
+        repoint_two_bytes_pointers(fw, 0x9e7d, new_pointers, b'\xc6')
+        repoint_two_bytes_pointers(fw, 0xa0b7, new_pointers, b'\xc6')
+        repoint_two_bytes_pointers(fw, 0xa1a0, new_pointers, b'\xc6')
+        repoint_two_bytes_pointers(fw, 0xa339, new_pointers, b'\xc6')
+        repoint_two_bytes_pointers(fw, 0xaafb, new_pointers, b'\xc6')
+        repoint_two_bytes_pointers(fw, 0xac1c, new_pointers, b'\xc6')
+        repoint_two_bytes_pointers(fw, 0xacef, new_pointers, b'\xc6') # 0x600a9
+        repoint_two_bytes_pointers(fw, 0xad25, new_pointers, b'\xc6')
+        repoint_two_bytes_pointers(fw, 0xb097, new_pointers, b'\xc6')
+        repoint_two_bytes_pointers(fw, 0xb1d1, new_pointers, b'\xc6')
+        repoint_two_bytes_pointers(fw, 0xb42a, new_pointers, b'\xc6')
     cur.close()
     conn.commit()
     conn.close()
@@ -173,6 +223,49 @@ def seventhsaga_misc_dumper(args):
     with open(source_file, 'rb') as f:
         dump_blocks(f, table, dump_path)
 
+def seventhsaga_misc_inserter(args):
+    source_file = args.source_file
+    dest_file = args.dest_file
+    table1_file = args.table1
+    table2_file = args.table2
+    translation_path = args.translation_path
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
+        sys.exit('SOURCE ROM CHECKSUM FAILED!')
+    table = Table(table1_file)
+    table2 = Table(table2_file)
+    # get pointers
+    with open(source_file, 'rb') as f:
+        # get misc1 pointers
+        pointers_1_1 = get_pointers(f, 0x18a0f, 40, 13)
+    # repoint text
+    with open(dest_file, 'r+b') as f1:
+        # reading misc1.csv and writing texts
+        translation_file = os.path.join(translation_path, 'misc1.csv')
+        translated_texts = get_translated_texts(translation_file)
+        new_pointers = {}
+        t_new_address = 0x400000
+        for i, (t_address, t_value) in enumerate(translated_texts.items()):
+            new_pointers[t_address] = t_new_address
+            text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
+            t_new_address = write_text(f1, t_new_address, text, end_byte=b'\xf7')
+        # repointing misc1
+        for curr_pointers in pointers_1_1:
+            repoint_misc(f1, curr_pointers, new_pointers)
+
+def repoint_two_bytes_pointers(fw, offset, new_pointers, third_byte):
+    fw.seek(offset)
+    pointer = fw.read(2)
+    unpacked = struct.unpack('i', pointer + third_byte + b'\x00')[0] - 0xc00000
+    new_pointer = new_pointers.get(unpacked)
+    if new_pointer:
+        fw.seek(-2, os.SEEK_CUR)
+        packed = struct.pack('i', new_pointer + 0xc00000)
+        fw.write(packed[:-2])
+        fw.seek(6, os.SEEK_CUR)
+        fw.write(packed[2:3])
+    else:
+        print(f'CHOICE - Pointer offset: {hex(offset)} - Pointer value: {hex(unpacked)}')
+
 def repoint_text(fw, offset, new_pointers):
     fw.seek(offset)
     pointer = fw.read(3)
@@ -188,7 +281,7 @@ def repoint_text(fw, offset, new_pointers):
             packed = struct.pack('i', fw.tell() + 3 + 0xc00000)
             fw.write(packed[:-1])
         else:
-            print('TEXT - Pointer offset: ' + hex(offset) + ' Text offset: ' + hex(unpacked))
+            print(f'TEXT - Pointer offset: {hex(offset)} - Pointer value: {hex(unpacked)}')
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -228,7 +321,7 @@ dump_misc_parser.set_defaults(func=seventhsaga_misc_dumper)
 # insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
 # insert_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
 # insert_misc_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-# insert_misc_parser.set_defaults(func=brainlord_misc_inserter)
+# insert_misc_parser.set_defaults(func=seventhsaga_misc_inserter)
 
 if __name__ == "__main__":
     args = parser.parse_args()
