@@ -166,7 +166,7 @@ def seventhsaga_text_inserter(args):
         sparse_pointers = sparse_pointers + (0x56f88, 0x56f8e, 0x56f94, 0x56f9a, 0x56fa0, 0x56fa6, 0x56fac, 0x56fb2, 0x56fb8)
         sparse_pointers = sparse_pointers + (0x57012, 0x57018, 0x5701e, 0x57024, 0x5702a)
         sparse_pointers = sparse_pointers + (0x158fd5, 0x158fe7, 0x158fff, 0x15901d, 0x159035, 0x15903b, 0x15905f, 0x159065, 0x15906b, 0x1590bf, 0x1590c5, 0x1590d7, 0x1590f5, 0x159131, 0x159149, 0x15914f, 0x159167, 0x159185, 0x15918b, 0x15919d, 0x1591af, 0x1591c1, 0x1591d3, 0x1591d9, 0x1591eb, 0x1591f1)
-        sparse_pointers = sparse_pointers + (0x15920f, 0x15924b, 0x159251)
+        sparse_pointers = sparse_pointers + (0x15920f, 0x159215, 0x15921b, 0x15924b, 0x159251, 0x159269, 0x15926f, 0x159281, 0x159287, 0x15928d, 0x15929f, 0x1592b7, 0x1592bd, 0x1592c3, 0x1592c9, 0x1592cf, 0x1592e1, 0x1592e7, 0x1592ed, 0x1592f3, 0x1592f9, 0x1592ff)
         sparse_pointers = sparse_pointers + (0x159347, 0x1593cb, 0x15936b, 0x159371, 0x159389, 0x15938f, 0x159395)
         sparse_pointers = sparse_pointers + (0x159515, 0x159629, 0x1596fb, 0x159737, 0x1598d5, 0x159a13, 0x159bbd, 0x159deb, 0x15a151, 0x15a2ad, 0x15a59b, 0x15a89b, 0x15ab8f, 0x15ac0d, 0x15af1f, 0x15af61, 0x15b057, 0x15b11d, 0x15b25b, 0x15b453, 0x15baa7, 0x15bafb, 0x15bc21, 0x15d0f1)
         sparse_pointers = sparse_pointers + (0x159017, 0x159233, 0x159329) # welcome to our store (0x60003)
@@ -174,18 +174,18 @@ def seventhsaga_text_inserter(args):
             repoint_text(fw, sparse_pointer, new_pointers)
     # # two bytes pointers
     with open(dest_file, 'r+b') as fw:
-        repoint_two_bytes_pointers(fw, 0x8eb2, new_pointers, b'\xc6')
-        repoint_two_bytes_pointers(fw, 0x8f9b, new_pointers, b'\xc6')
+        repoint_two_bytes_pointers(fw, 0x8eb2, new_pointers, b'\xc6') # 0x604a7 # What else would you like?
+        repoint_two_bytes_pointers(fw, 0xa0b7, new_pointers, b'\xc6') # 0x604a7 # What else would you like?
+        repoint_two_bytes_pointers(fw, 0xaafb, new_pointers, b'\xc6') # 0x604a7 # What else would you like?
+        repoint_two_bytes_pointers(fw, 0x8f9b, new_pointers, b'\xc6') # 0x604bc # Thank you. Come back again.
+        repoint_two_bytes_pointers(fw, 0xa1a0, new_pointers, b'\xc6') # 0x604bc # Thank you. Come back again.
+        repoint_two_bytes_pointers(fw, 0xac1c, new_pointers, b'\xc6') # 0x604bc # Thank you. Come back again.
         repoint_two_bytes_pointers(fw, 0x9134, new_pointers, b'\xc6')
         repoint_two_bytes_pointers(fw, 0x9962, new_pointers, b'\xc6')
         repoint_two_bytes_pointers(fw, 0x9a44, new_pointers, b'\xc6')
         repoint_two_bytes_pointers(fw, 0x9b99, new_pointers, b'\xc6')
         repoint_two_bytes_pointers(fw, 0x9e7d, new_pointers, b'\xc6')
-        repoint_two_bytes_pointers(fw, 0xa0b7, new_pointers, b'\xc6')
-        repoint_two_bytes_pointers(fw, 0xa1a0, new_pointers, b'\xc6')
         repoint_two_bytes_pointers(fw, 0xa339, new_pointers, b'\xc6')
-        repoint_two_bytes_pointers(fw, 0xaafb, new_pointers, b'\xc6')
-        repoint_two_bytes_pointers(fw, 0xac1c, new_pointers, b'\xc6')
         repoint_two_bytes_pointers(fw, 0xacef, new_pointers, b'\xc6') # 0x600a9
         repoint_two_bytes_pointers(fw, 0xad25, new_pointers, b'\xc6')
         repoint_two_bytes_pointers(fw, 0xb097, new_pointers, b'\xc6')
@@ -261,8 +261,8 @@ def repoint_two_bytes_pointers(fw, offset, new_pointers, third_byte):
         fw.seek(-2, os.SEEK_CUR)
         packed = struct.pack('i', new_pointer + 0xc00000)
         fw.write(packed[:-2])
-        fw.seek(6, os.SEEK_CUR)
-        fw.write(packed[2:3])
+        fw.seek(5, os.SEEK_CUR)
+        fw.write(packed[2])
     else:
         print(f'CHOICE - Pointer offset: {hex(offset)} - Pointer value: {hex(unpacked)}')
 
