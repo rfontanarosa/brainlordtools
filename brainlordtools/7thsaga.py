@@ -64,6 +64,33 @@ def get_pointers(f, start, count, step):
         pointers.setdefault(p_value, []).append(p_offset)
     return pointers
 
+def get_translated_texts(filename):
+    translated_texts = {}
+    with open(filename, 'r') as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        for row in csv_reader:
+            trans = row.get('trans') or row.get('text')
+            text_address = int(row['text_address'], 16)
+            translated_texts[text_address] = trans
+    return translated_texts
+
+def repoint_misc(f, pointers, new_pointers, table=None):
+    for i, (p_value, p_addresses) in enumerate(pointers.items()):
+        p_new_value = new_pointers.get(p_value)
+        if not p_new_value:
+            print('repoint_misc - Text not found - Text offset: ' + hex(p_value))
+        else:
+            a = f.tell()
+            text = read_text(f, p_new_value, end_byte=b'\xf7')
+            t2 = table.decode(text, mte_resolver=True, dict_resolver=False)
+            print(f'repoint_misc - {t2} - Text offset: {hex(p_value)}' + ' - Pointer offset: ' + hex(f.tell()))
+            f.seek(p_new_value)
+            f.seek(a)
+            for p_address in p_addresses:
+                f.seek(p_address)
+                packed = struct.pack('i', p_new_value + 0xc00000)
+                f.write(packed[:-1])
+
 def seventhsaga_bank_dumper(f, dump_path, table, id, block, cur, start=0x0, end=0x0):
     f.seek(start)
     while f.tell() < end:
@@ -180,17 +207,16 @@ def seventhsaga_text_inserter(args):
         repoint_two_bytes_pointers(fw, 0x8f9b, new_pointers, b'\xc6') # 0x604bc # Thank you. Come back again.
         repoint_two_bytes_pointers(fw, 0xa1a0, new_pointers, b'\xc6') # 0x604bc # Thank you. Come back again.
         repoint_two_bytes_pointers(fw, 0xac1c, new_pointers, b'\xc6') # 0x604bc # Thank you. Come back again.
-        repoint_two_bytes_pointers(fw, 0x9134, new_pointers, b'\xc6')
-        repoint_two_bytes_pointers(fw, 0x9962, new_pointers, b'\xc6')
-        repoint_two_bytes_pointers(fw, 0x9a44, new_pointers, b'\xc6')
-        repoint_two_bytes_pointers(fw, 0x9b99, new_pointers, b'\xc6')
-        repoint_two_bytes_pointers(fw, 0x9e7d, new_pointers, b'\xc6')
-        repoint_two_bytes_pointers(fw, 0xa339, new_pointers, b'\xc6')
-        repoint_two_bytes_pointers(fw, 0xacef, new_pointers, b'\xc6') # 0x600a9
-        repoint_two_bytes_pointers(fw, 0xad25, new_pointers, b'\xc6')
-        repoint_two_bytes_pointers(fw, 0xb097, new_pointers, b'\xc6')
-        repoint_two_bytes_pointers(fw, 0xb1d1, new_pointers, b'\xc6')
-        repoint_two_bytes_pointers(fw, 0xb42a, new_pointers, b'\xc6')
+        repoint_two_bytes_pointers(fw, 0x9134, new_pointers, b'\xc6') # 0x600e1 # Which would you like?
+        repoint_two_bytes_pointers(fw, 0xa339, new_pointers, b'\xc6') # 0x600e1 # Which would you like?
+        repoint_two_bytes_pointers(fw, 0xb1d1, new_pointers, b'\xc6') # 0x600e1 # Which would you like?
+        repoint_two_bytes_pointers(fw, 0x9962, new_pointers, b'\xc6') # 0x60762 # Do you need any other help?
+        repoint_two_bytes_pointers(fw, 0x9a44, new_pointers, b'\xc6') # 0x60776 # Come back anytime you need my help.
+        repoint_two_bytes_pointers(fw, 0x9b99, new_pointers, b'\xc6') # 0x6079f # You don't need the service.
+        repoint_two_bytes_pointers(fw, 0x9e7d, new_pointers, b'\xc6') # 0x6079f # You don't need the service.
+        repoint_two_bytes_pointers(fw, 0xad25, new_pointers, b'\xc6') # 0x60247 # What would you like to sell?
+        repoint_two_bytes_pointers(fw, 0xb097, new_pointers, b'\xc6') # 0x60294 # I will buy
+        repoint_two_bytes_pointers(fw, 0xb42a, new_pointers, b'\xc6') # 0x60277 # I will buy
     cur.close()
     conn.commit()
     conn.close()
@@ -236,21 +262,24 @@ def seventhsaga_misc_inserter(args):
     # get pointers
     with open(source_file, 'rb') as f:
         # get misc1 pointers
-        pointers_1_1 = get_pointers(f, 0x18a0f, 40, 13)
+        pointers_1_1 = get_pointers(f, 0x8320, 38, 27) # Lemele...
+        pointers_1_2 = get_pointers(f, 0x8209, 7, 42) # Guanta...
+        pointers_1_3 = get_pointers(f, 0x6c9a, 99, 9) # Exigate, Watr Rn, Potn [1], MHerb [1]...
+        pointers_1_4 = get_pointers(f, 0x7015, 61, 12) # FIRE [1]
     # repoint text
     with open(dest_file, 'r+b') as f1:
         # reading misc1.csv and writing texts
         translation_file = os.path.join(translation_path, 'misc1.csv')
         translated_texts = get_translated_texts(translation_file)
         new_pointers = {}
-        t_new_address = 0x400000
+        t_new_address = 0x350000
         for i, (t_address, t_value) in enumerate(translated_texts.items()):
             new_pointers[t_address] = t_new_address
             text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
             t_new_address = write_text(f1, t_new_address, text, end_byte=b'\xf7')
         # repointing misc1
-        for curr_pointers in pointers_1_1:
-            repoint_misc(f1, curr_pointers, new_pointers)
+        for curr_pointers in (pointers_1_1, pointers_1_2, pointers_1_3, pointers_1_4):
+            repoint_misc(f1, curr_pointers, new_pointers, table)
 
 def repoint_two_bytes_pointers(fw, offset, new_pointers, third_byte):
     fw.seek(offset)
@@ -262,7 +291,7 @@ def repoint_two_bytes_pointers(fw, offset, new_pointers, third_byte):
         packed = struct.pack('i', new_pointer + 0xc00000)
         fw.write(packed[:-2])
         fw.seek(5, os.SEEK_CUR)
-        fw.write(packed[2])
+        fw.write(packed[2:3])
     else:
         print(f'CHOICE - Pointer offset: {hex(offset)} - Pointer value: {hex(unpacked)}')
 
@@ -315,13 +344,13 @@ dump_misc_parser.add_argument('-s', '--source', action='store', dest='source_fil
 dump_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
 dump_misc_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
 dump_misc_parser.set_defaults(func=seventhsaga_misc_dumper)
-# insert_misc_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
-# insert_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-# insert_misc_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-# insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-# insert_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
-# insert_misc_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-# insert_misc_parser.set_defaults(func=seventhsaga_misc_inserter)
+insert_misc_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
+insert_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+insert_misc_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+insert_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+insert_misc_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+insert_misc_parser.set_defaults(func=seventhsaga_misc_inserter)
 
 if __name__ == "__main__":
     args = parser.parse_args()
