@@ -274,12 +274,12 @@ def seventhsaga_misc_inserter(args):
     with open(source_file, 'rb') as f:
         # get misc1 pointers
         pointers_1_1 = get_pointers(f, 0x8320, 38, 27) # Lemele...
-        pointers_1_2 = get_pointers(f, 0x8209, 7, 42) # Guanta...
-        pointers_1_3 = get_pointers(f, 0x6c9a, 99, 9) # Exigate, Watr Rn, Potn [1], MHerb [1]...
+        pointers_1_2 = get_pointers(f, 0x8209, 7, 42)  # Guanta...
+        pointers_1_3 = get_pointers(f, 0x6c9a, 99, 9)  # Exigate, Watr Rn, Potn [1], MHerb [1]...
         pointers_1_4 = get_pointers(f, 0x7015, 61, 12) # FIRE [1]
-        pointers_1_5 = get_pointers(f, 0x45f1c, 7, 3) # Town menu
-        pointers_1_6 = get_pointers(f, 0x45f46, 7, 3) # Map menu
-        pointers_1_7 = get_pointers(f, 0x45f70, 7, 3) # Battle menu
+        pointers_1_5 = get_pointers(f, 0x45f1c, 7, 3)  # Town menu
+        pointers_1_6 = get_pointers(f, 0x45f46, 7, 3)  # Map menu
+        pointers_1_7 = get_pointers(f, 0x45f70, 7, 3)  # Battle menu
     # repoint text
     with open(dest_file, 'r+b') as f1:
         # reading misc1.csv and writing texts
@@ -292,7 +292,7 @@ def seventhsaga_misc_inserter(args):
             text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
             t_new_address = write_text(f1, t_new_address, text, end_byte=b'\xf7')
         # repointing misc1
-        for curr_pointers in (pointers_1_1, pointers_1_2, pointers_1_3, pointers_1_4):
+        for curr_pointers in (pointers_1_1, pointers_1_2, pointers_1_3, pointers_1_4, pointers_1_5, pointers_1_6, pointers_1_7):
             repoint_misc(f1, curr_pointers, new_pointers, table)
 
 def repoint_two_bytes_pointer(fw, offset, new_pointers, third_byte):
