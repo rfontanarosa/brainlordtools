@@ -91,7 +91,7 @@ def repoint_misc(f, pointers, new_pointers, table=None):
                 packed = struct.pack('i', p_new_value + 0xc00000)
                 f.write(packed[:-1])
 
-def seventhsaga_bank_dumper(f, dump_path, table, id, block, cur, start=0x0, end=0x0):
+def seventhsaga_text_segment_dumper(f, dump_path, table, id, block, cur, start=0x0, end=0x0):
     f.seek(start)
     while f.tell() < end:
         text_address = f.tell()
@@ -122,9 +122,9 @@ def seventhsaga_text_dumper(args):
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
         id = 1
-        id = seventhsaga_bank_dumper(f, dump_path, table, id, 1, cur, TEXT_BLOCK1[0], TEXT_BLOCK1[1])
-        id = seventhsaga_bank_dumper(f, dump_path, table, id, 2, cur, TEXT_BLOCK2[0], TEXT_BLOCK2[1])
-        id = seventhsaga_bank_dumper(f, dump_path, table, id, 3, cur, TEXT_BLOCK3[0], TEXT_BLOCK3[1])
+        id = seventhsaga_text_segment_dumper(f, dump_path, table, id, 1, cur, TEXT_SEGMENT_1[0], TEXT_SEGMENT_1[1])
+        id = seventhsaga_text_segment_dumper(f, dump_path, table, id, 2, cur, TEXT_SEGMENT_2[0], TEXT_SEGMENT_2[1])
+        id = seventhsaga_text_segment_dumper(f, dump_path, table, id, 3, cur, TEXT_SEGMENT_3[0], TEXT_SEGMENT_3[1])
     cur.close()
     conn.commit()
     conn.close()
@@ -201,34 +201,33 @@ def seventhsaga_text_inserter(args):
         sparse_pointers = sparse_pointers + (0x159515, 0x159629, 0x1596fb, 0x159737, 0x1598d5, 0x159a13, 0x159bbd, 0x159deb, 0x15a151, 0x15a2ad, 0x15a59b, 0x15a89b, 0x15ab8f, 0x15ac0d, 0x15af1f, 0x15af61, 0x15b057, 0x15b11d, 0x15b25b, 0x15b453, 0x15baa7, 0x15bafb, 0x15bc21, 0x15d0f1)
         sparse_pointers = sparse_pointers + (0x159017, 0x159233, 0x159329) # Welcome to our store! (0x60003)
         sparse_pointers = sparse_pointers + (0x159167, 0x15926f, 0x15938f, 0x15943d, 0x1595f9, 0x159791, 0x159881, 0x1599f5) # Hello! I sell armor. (0x6005a)
-        sparse_pointers = sparse_pointers + (0x15d57d)
+        sparse_pointers = sparse_pointers + (0x15d57d,)
         for sparse_pointer in sparse_pointers:
             repoint_text(fw, sparse_pointer, new_pointers)
     # # two bytes pointers
     with open(dest_file, 'r+b') as fw:
-        repoint_two_bytes_pointers(fw, 0x8eb2, new_pointers, b'\xc6') # 0x604a7 # What else would you like?
-        repoint_two_bytes_pointers(fw, 0xa0b7, new_pointers, b'\xc6') # 0x604a7 # What else would you like?
-        repoint_two_bytes_pointers(fw, 0xaafb, new_pointers, b'\xc6') # 0x604a7 # What else would you like?
-        repoint_two_bytes_pointers(fw, 0x8f9b, new_pointers, b'\xc6') # 0x604bc # Thank you. Come back again.
-        repoint_two_bytes_pointers(fw, 0xa1a0, new_pointers, b'\xc6') # 0x604bc # Thank you. Come back again.
-        repoint_two_bytes_pointers(fw, 0xac1c, new_pointers, b'\xc6') # 0x604bc # Thank you. Come back again.
-        repoint_two_bytes_pointers(fw, 0x9134, new_pointers, b'\xc6') # 0x600e1 # Which would you like?
-        repoint_two_bytes_pointers(fw, 0xa339, new_pointers, b'\xc6') # 0x600e1 # Which would you like?
-        repoint_two_bytes_pointers(fw, 0xb1d1, new_pointers, b'\xc6') # 0x600e1 # Which would you like?
-        repoint_two_bytes_pointers(fw, 0x9962, new_pointers, b'\xc6') # 0x60762 # Do you need any other help?
-        repoint_two_bytes_pointers(fw, 0x9a44, new_pointers, b'\xc6') # 0x60776 # Come back anytime you need my help.
-        repoint_two_bytes_pointers(fw, 0x9b99, new_pointers, b'\xc6') # 0x6079f # You don't need the service.
-        repoint_two_bytes_pointers(fw, 0x9e7d, new_pointers, b'\xc6') # 0x6079f # You don't need the service.
-        repoint_two_bytes_pointers(fw, 0xad25, new_pointers, b'\xc6') # 0x60247 # What would you like to sell?
-        repoint_two_bytes_pointers(fw, 0xb097, new_pointers, b'\xc6') # 0x60294 # I will buy
-        repoint_two_bytes_pointers(fw, 0xb42a, new_pointers, b'\xc6') # 0x60277 # I will buy
-        repoint_two_bytes_pointers(fw, 0xb5a5, new_pointers, b'\xc6') # 0x6058b # Welcome to my Inn!
-        repoint_two_bytes_pointers(fw, 0x668, new_pointers, b'\xc6') # 0x6085e # Intro 1
-        repoint_two_bytes_pointers(fw, 0x7d8, new_pointers, b'\xc6') # 0x60 # Intro 2
-        repoint_two_bytes_pointers(fw, 0x8d3, new_pointers, b'\xc6') # 0x60 # Intro 3
-        repoint_two_bytes_pointers(fw, 0xa39, new_pointers, b'\xc6') # 0x60 # Intro 4
-        repoint_two_bytes_pointers(fw, 0xb34, new_pointers, b'\xc6') # 0x60 # Intro 5
-
+        repoint_two_bytes_pointer(fw, 0x8eb2, new_pointers, b'\xc6') # 0x604a7 # What else would you like?
+        repoint_two_bytes_pointer(fw, 0xa0b7, new_pointers, b'\xc6') # 0x604a7 # What else would you like?
+        repoint_two_bytes_pointer(fw, 0xaafb, new_pointers, b'\xc6') # 0x604a7 # What else would you like?
+        repoint_two_bytes_pointer(fw, 0x8f9b, new_pointers, b'\xc6') # 0x604bc # Thank you. Come back again.
+        repoint_two_bytes_pointer(fw, 0xa1a0, new_pointers, b'\xc6') # 0x604bc # Thank you. Come back again.
+        repoint_two_bytes_pointer(fw, 0xac1c, new_pointers, b'\xc6') # 0x604bc # Thank you. Come back again.
+        repoint_two_bytes_pointer(fw, 0x9134, new_pointers, b'\xc6') # 0x600e1 # Which would you like?
+        repoint_two_bytes_pointer(fw, 0xa339, new_pointers, b'\xc6') # 0x600e1 # Which would you like?
+        repoint_two_bytes_pointer(fw, 0xb1d1, new_pointers, b'\xc6') # 0x600e1 # Which would you like?
+        repoint_two_bytes_pointer(fw, 0x9962, new_pointers, b'\xc6') # 0x60762 # Do you need any other help?
+        repoint_two_bytes_pointer(fw, 0x9a44, new_pointers, b'\xc6') # 0x60776 # Come back anytime you need my help.
+        repoint_two_bytes_pointer(fw, 0x9b99, new_pointers, b'\xc6') # 0x6079f # You don't need the service.
+        repoint_two_bytes_pointer(fw, 0x9e7d, new_pointers, b'\xc6') # 0x6079f # You don't need the service.
+        repoint_two_bytes_pointer(fw, 0xad25, new_pointers, b'\xc6') # 0x60247 # What would you like to sell?
+        repoint_two_bytes_pointer(fw, 0xb097, new_pointers, b'\xc6') # 0x60294 # I will buy
+        repoint_two_bytes_pointer(fw, 0xb42a, new_pointers, b'\xc6') # 0x60277 # I will buy
+        repoint_two_bytes_pointer(fw, 0xb5a5, new_pointers, b'\xc6') # 0x6058b # Welcome to my Inn!
+        repoint_two_bytes_pointer(fw, 0x668, new_pointers, b'\xc6') # 0x6085e # Intro 1
+        repoint_two_bytes_pointer(fw, 0x7d8, new_pointers, b'\xc6') # 0x60 # Intro 2
+        repoint_two_bytes_pointer(fw, 0x8d3, new_pointers, b'\xc6') # 0x60 # Intro 3
+        repoint_two_bytes_pointer(fw, 0xa39, new_pointers, b'\xc6') # 0x60 # Intro 4
+        repoint_two_bytes_pointer(fw, 0xb34, new_pointers, b'\xc6') # 0x60 # Intro 5
     cur.close()
     conn.commit()
     conn.close()
@@ -296,7 +295,7 @@ def seventhsaga_misc_inserter(args):
         for curr_pointers in (pointers_1_1, pointers_1_2, pointers_1_3, pointers_1_4):
             repoint_misc(f1, curr_pointers, new_pointers, table)
 
-def repoint_two_bytes_pointers(fw, offset, new_pointers, third_byte):
+def repoint_two_bytes_pointer(fw, offset, new_pointers, third_byte):
     fw.seek(offset)
     pointer = fw.read(2)
     unpacked = struct.unpack('i', pointer + third_byte + b'\x00')[0] - 0xc00000
