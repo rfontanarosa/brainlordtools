@@ -202,6 +202,7 @@ def seventhsaga_text_inserter(args):
         sparse_pointers = sparse_pointers + (0x159017, 0x159233, 0x159329) # Welcome to our store! (0x60003)
         sparse_pointers = sparse_pointers + (0x159167, 0x15926f, 0x15938f, 0x15943d, 0x1595f9, 0x159791, 0x159881, 0x1599f5) # Hello! I sell armor. (0x6005a)
         sparse_pointers = sparse_pointers + (0x15d57d,)
+        sparse_pointers = sparse_pointers + (0x15d697, 0x15d69d)
         for sparse_pointer in sparse_pointers:
             repoint_text(fw, sparse_pointer, new_pointers)
     # # two bytes pointers
@@ -223,6 +224,9 @@ def seventhsaga_text_inserter(args):
         repoint_two_bytes_pointer(fw, 0xb097, new_pointers, b'\xc6') # 0x60294 # I will buy
         repoint_two_bytes_pointer(fw, 0xb42a, new_pointers, b'\xc6') # 0x60277 # I will buy
         repoint_two_bytes_pointer(fw, 0xb5a5, new_pointers, b'\xc6') # 0x6058b # Welcome to my Inn!
+        repoint_two_bytes_pointer(fw, 0xb604, new_pointers, b'\xc6') # 0x60658 # Your room is ready
+        repoint_two_bytes_pointer(fw, 0x9c45, new_pointers, b'\xc6') # 0x607b4 # It costs
+        repoint_two_bytes_pointer(fw, 0x9f60, new_pointers, b'\xc6') # 0x607b4 # It costs
         repoint_two_bytes_pointer(fw, 0x668, new_pointers, b'\xc6') # 0x6085e # Intro 1
         repoint_two_bytes_pointer(fw, 0x7d8, new_pointers, b'\xc6') # 0x60 # Intro 2
         repoint_two_bytes_pointer(fw, 0x8d3, new_pointers, b'\xc6') # 0x60 # Intro 3
@@ -280,6 +284,12 @@ def seventhsaga_misc_inserter(args):
         pointers_1_5 = get_pointers(f, 0x45f1c, 7, 3)  # Town menu
         pointers_1_6 = get_pointers(f, 0x45f46, 7, 3)  # Map menu
         pointers_1_7 = get_pointers(f, 0x45f70, 7, 3)  # Battle menu
+        pointers_1_8 = get_pointers(f, 0x1e76d, 7, 3)  # Human...
+        pointers_1_9 = get_pointers(f, 0x48fbb, 2, 3)  # Use...
+        pointers_1_a = get_pointers(f, 0x4f329, 6, 3)  # Use...
+        pointers_1_b = get_pointers(f, 0x4fbe0, 5, 3)  # Use...
+        pointers_1_c = get_pointers(f, 0x262d, 7, 3)   # begin...
+        pointers_1_d = get_pointers(f, 0x72f1, 99, 42) # Monsters
     # repoint text
     with open(dest_file, 'r+b') as f1:
         # reading misc1.csv and writing texts
@@ -292,7 +302,7 @@ def seventhsaga_misc_inserter(args):
             text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
             t_new_address = write_text(f1, t_new_address, text, end_byte=b'\xf7')
         # repointing misc1
-        for curr_pointers in (pointers_1_1, pointers_1_2, pointers_1_3, pointers_1_4, pointers_1_5, pointers_1_6, pointers_1_7):
+        for curr_pointers in (pointers_1_1, pointers_1_2, pointers_1_3, pointers_1_4, pointers_1_5, pointers_1_6, pointers_1_7, pointers_1_8, pointers_1_9, pointers_1_a, pointers_1_b, pointers_1_c, pointers_1_d):
             repoint_misc(f1, curr_pointers, new_pointers, table)
 
 def repoint_two_bytes_pointer(fw, offset, new_pointers, third_byte):
