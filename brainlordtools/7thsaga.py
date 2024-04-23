@@ -188,21 +188,23 @@ def seventhsaga_text_inserter(args):
             elif byte == b'\xff':
                 repoint_text(fw, fw.tell(), new_pointers)
     #
-    write_byte(fw, 0x1a2dc, b'\xf0')
-    write_byte(fw, 0x1a31b, b'\xf0')
-    write_byte(fw, 0x21898, b'\xf0')
-    write_byte(fw, 0x21723, b'\xf0')
-    # hardcoded pointers
-    repoint_two_bytes_pointer(fw, 0x1d412, new_pointers, b'\xc6') # 0x6e18e
-    repoint_two_bytes_pointer(fw, 0x2bd2d, new_pointers, b'\xc6') # 0x6d6ca
-    repoint_two_bytes_pointer(fw, 0x2be96, new_pointers, b'\xc6') # 0x6dd59
-    repoint_two_bytes_pointer(fw, 0x2c1f5, new_pointers, b'\xc6') # 0x6b049
-    repoint_two_bytes_pointer(fw, 0x2d6fb, new_pointers, b'\xc6') # 0x65a3f
-    repoint_two_bytes_pointer(fw, 0x2d7b5, new_pointers, b'\xc6') # 0x63bfe
-    repoint_two_bytes_pointer(fw, 0x2f3da, new_pointers, b'\xc6') # 0x64809
-    # hardcoded internal pointers (not at the beginning of text)
-    # repoint_two_bytes_pointer(fw, 0x2b9a5, new_pointers, b'\xc6') # 0x6e3bf
-    # repoint_two_bytes_pointer(fw, 0x2bb64, new_pointers, b'\xc6') # 0x6e447
+    with open(dest_file, 'r+b') as fw:
+        #
+        write_byte(fw, 0x1a2dc, b'\xf0')
+        write_byte(fw, 0x1a31b, b'\xf0')
+        write_byte(fw, 0x21898, b'\xf0')
+        write_byte(fw, 0x21723, b'\xf0')
+        # hardcoded pointers
+        repoint_two_bytes_pointer(fw, 0x1d412, new_pointers, b'\xc6') # 0x6e18e
+        repoint_two_bytes_pointer(fw, 0x2bd2d, new_pointers, b'\xc6') # 0x6d6ca
+        repoint_two_bytes_pointer(fw, 0x2be96, new_pointers, b'\xc6') # 0x6dd59
+        repoint_two_bytes_pointer(fw, 0x2c1f5, new_pointers, b'\xc6') # 0x6b049
+        repoint_two_bytes_pointer(fw, 0x2d6fb, new_pointers, b'\xc6') # 0x65a3f
+        repoint_two_bytes_pointer(fw, 0x2d7b5, new_pointers, b'\xc6') # 0x63bfe
+        repoint_two_bytes_pointer(fw, 0x2f3da, new_pointers, b'\xc6') # 0x64809
+        # hardcoded internal pointers (not at the beginning of text)
+        # repoint_two_bytes_pointer(fw, 0x2b9a5, new_pointers, b'\xc6') # 0x6e3bf
+        # repoint_two_bytes_pointer(fw, 0x2bb64, new_pointers, b'\xc6') # 0x6e447
     # sparse pointers
     with open(dest_file, 'r+b') as fw:
         sparse_pointers = (0x56f0a, 0x56f10, 0x56f16, 0x56f1c, 0x56f22, 0x56f28)
@@ -210,15 +212,20 @@ def seventhsaga_text_inserter(args):
         sparse_pointers = sparse_pointers + (0x57012, 0x57018, 0x5701e, 0x57024, 0x5702a)
         sparse_pointers = sparse_pointers + (0x57090, 0x57096, 0x5709c, 0x570a2, 0x570a8)
         sparse_pointers = sparse_pointers + (0x57114, 0x5711a, 0x57120, 0x57126, 0x5712c, 0x57132, 0x57138, 0x5713e, 0x57144, 0x57192, 0x57198)
+        sparse_pointers = sparse_pointers + (0x57204, 0x5720a, 0x57210, 0x57216, 0x5721c, 0x57222, 0x57228) # Guntz
+        sparse_pointers = sparse_pointers + (0x57288, 0x5728e, 0x5729a) # Patrof
         sparse_pointers = sparse_pointers + (0x158fd5, 0x158fe7, 0x158fff, 0x15901d, 0x159035, 0x15903b, 0x15905f, 0x159065, 0x15906b, 0x1590bf, 0x1590c5, 0x1590d7, 0x1590f5, 0x159131, 0x159149, 0x15914f, 0x159185, 0x15918b, 0x15919d, 0x1591af, 0x1591c1, 0x1591d3, 0x1591d9, 0x1591eb, 0x1591f1)
         sparse_pointers = sparse_pointers + (0x15920f, 0x159215, 0x15921b, 0x15924b, 0x159251, 0x159269, 0x159281, 0x159287, 0x15928d, 0x15929f, 0x1592a5, 0x1592b7, 0x1592bd, 0x1592c3, 0x1592c9, 0x1592cf, 0x1592e1, 0x1592e7, 0x1592ed, 0x1592f3, 0x1592f9, 0x1592ff)
         sparse_pointers = sparse_pointers + (0x159347, 0x15934d, 0x15936b, 0x159371, 0x159389, 0x159395, 0x1593cb, 0x1593e9, 0x1593ef)
         sparse_pointers = sparse_pointers + (0x15940d, 0x159413, 0x159419, 0x15941f, 0x15943d, 0x159455, 0x159485, 0x159497, 0x15949d, 0x1594b5, 0x1594d9, 0x1594eb, 0x1594fd)
-        sparse_pointers = sparse_pointers + (0x159515, 0x159629, 0x1596fb, 0x159737, 0x1598d5, 0x159a13, 0x159bbd, 0x159deb, 0x15a151, 0x15a2ad, 0x15a59b, 0x15a89b, 0x15ab8f, 0x15ac0d, 0x15af1f, 0x15af61, 0x15b057, 0x15b11d, 0x15b25b, 0x15b453, 0x15baa7, 0x15bafb, 0x15bc21, 0x15d0f1)
+        sparse_pointers = sparse_pointers + (0x159515, 0x15954b, 0x15957b, 0x15958d, 0x15959f, 0x1595b1, 0x1595c3, 0x1595d5)
+        sparse_pointers = sparse_pointers + (0x159629, 0x15964d, 0x159653, 0x159665, 0x15966b, 0x159671, 0x159683, 0x159695, 0x1596a7, 0x1596bf, 0x1596dd, 0x1596fb)
+        sparse_pointers = sparse_pointers + (0x159701, 0x159737, 0x1598d5, 0x159a13, 0x159bbd, 0x159deb, 0x15a151, 0x15a2ad, 0x15a59b, 0x15a89b, 0x15ab8f, 0x15ac0d, 0x15af1f, 0x15af61, 0x15b057, 0x15b11d, 0x15b25b, 0x15b453, 0x15baa7, 0x15bafb, 0x15bc21, 0x15d0f1)
         sparse_pointers = sparse_pointers + (0x159017, 0x159233, 0x159329) # Welcome to our store! (0x60003)
         sparse_pointers = sparse_pointers + (0x159167, 0x15926f, 0x15938f, 0x15952d, 0x1595f9, 0x159791, 0x159881, 0x1599f5) # Hello! I sell armor. (0x6005a)
         sparse_pointers = sparse_pointers + (0x15d57d,)
         sparse_pointers = sparse_pointers + (0x15d697, 0x15d69d)
+        sparse_pointers = sparse_pointers + (0x15e5a3,)
         for sparse_pointer in sparse_pointers:
             repoint_text(fw, sparse_pointer, new_pointers)
     # two bytes pointers
