@@ -12,11 +12,9 @@ from rhutils.dump import read_text, write_byte, write_text, dump_binary, insert_
 from rhutils.rom import crc32
 from rhutils.snes import snes2pc_lorom, pc2snes_lorom
 
-# ORIGINAL
 # CRC32 = 'B3ABDDE6'
+CRC32 = '2979C59' # UNPACKED GFX
 
-# UNPACKED GFX
-CRC32 = '2979C59'
 
 TEXT_BLOCK1 = (0x60000, 0x6fdde)
 TEXT_BLOCK2 = (0x70000, 0x733c1)
@@ -25,7 +23,7 @@ TEXT_BLOCK3 = (0x741f7, 0x75343)
 MISC_BLOCK1 = (0x733c2, 0x741f6)
 MISC_BLOCK2 = (0x75345, 0x7545f)
 
-POINTER_BLOCKS = [(0x1a0ad, 0x1a0c1), (0x425db, 0x4269a)]
+POINTER_BLOCKS = ((0x1a0ad, 0x1a0c1), (0x425db, 0x4269a))
 
 FONT1_BLOCK = (0x13722d, 0x13B22d)
 
@@ -207,25 +205,32 @@ def seventhsaga_text_inserter(args):
         # repoint_two_bytes_pointer(fw, 0x2bb64, new_pointers, b'\xc6') # 0x6e447
     # sparse pointers
     with open(dest_file, 'r+b') as fw:
-        sparse_pointers = (0x56f0a, 0x56f10, 0x56f16, 0x56f1c, 0x56f22, 0x56f28)
-        sparse_pointers = sparse_pointers + (0x56f88, 0x56f8e, 0x56f94, 0x56f9a, 0x56fa0, 0x56fa6, 0x56fac, 0x56fb2, 0x56fb8)
-        sparse_pointers = sparse_pointers + (0x57012, 0x57018, 0x5701e, 0x57024, 0x5702a)
-        sparse_pointers = sparse_pointers + (0x57090, 0x57096, 0x5709c, 0x570a2, 0x570a8)
-        sparse_pointers = sparse_pointers + (0x57114, 0x5711a, 0x57120, 0x57126, 0x5712c, 0x57132, 0x57138, 0x5713e, 0x57144, 0x57192, 0x57198)
+        sparse_pointers = (0x56f0a, 0x56f10, 0x56f16, 0x56f1c, 0x56f22, 0x56f28) # Lemele
+        sparse_pointers = sparse_pointers + (0x56f88, 0x56f8e, 0x56f94, 0x56f9a, 0x56fa0, 0x56fa6, 0x56fac, 0x56fb2, 0x56fb8) # Reblesk
+        sparse_pointers = sparse_pointers + (0x57012, 0x57018, 0x5701e, 0x57024, 0x5702a) # Bonro
+        sparse_pointers = sparse_pointers + (0x57090, 0x57096, 0x5709c, 0x570a2, 0x570a8) # Zellis
+        sparse_pointers = sparse_pointers + (0x57114, 0x5711a, 0x57120, 0x57126, 0x5712c, 0x57132, 0x57138, 0x5713e, 0x57144) # Eygus
+        sparse_pointers = sparse_pointers + (0x57192, 0x57198) # Pell
         sparse_pointers = sparse_pointers + (0x57204, 0x5720a, 0x57210, 0x57216, 0x5721c, 0x57222, 0x57228) # Guntz
-        sparse_pointers = sparse_pointers + (0x57288, 0x5728e, 0x5729a) # Patrof
-        sparse_pointers = sparse_pointers + (0x158fd5, 0x158fe7, 0x158fff, 0x15901d, 0x159035, 0x15903b, 0x15905f, 0x159065, 0x15906b, 0x1590bf, 0x1590c5, 0x1590d7, 0x1590f5, 0x159131, 0x159149, 0x15914f, 0x159185, 0x15918b, 0x15919d, 0x1591af, 0x1591c1, 0x1591d3, 0x1591d9, 0x1591eb, 0x1591f1)
-        sparse_pointers = sparse_pointers + (0x15920f, 0x159215, 0x15921b, 0x15924b, 0x159251, 0x159269, 0x159281, 0x159287, 0x15928d, 0x15929f, 0x1592a5, 0x1592b7, 0x1592bd, 0x1592c3, 0x1592c9, 0x1592cf, 0x1592e1, 0x1592e7, 0x1592ed, 0x1592f3, 0x1592f9, 0x1592ff)
-        sparse_pointers = sparse_pointers + (0x159347, 0x15934d, 0x15936b, 0x159371, 0x159389, 0x159395, 0x1593cb, 0x1593e9, 0x1593ef)
+        sparse_pointers = sparse_pointers + (0x57288, 0x5728e, 0x5729a, 0x572dc, 0x572e2, 0x572e8, 0x572ee, 0x572f4) # Patrof 0x572f4
+        sparse_pointers = sparse_pointers + (0x5731e, 0x57324, 0x5732a, 0x57330, 0x57336, 0x5733c, 0x5737e, 0x57384, 0x5738a, 0x57390, 0x57396, 0x5739c) # Bone
+        #
+        sparse_pointers = sparse_pointers + (0x158fd5, 0x158fe7, 0x158fff, 0x15901d, 0x159035, 0x15903b, 0x15905f, 0x159065, 0x15906b, 0x1590bf, 0x1590c5, 0x1590d7, 0x1590f5)
+        sparse_pointers = sparse_pointers + (0x159131, 0x15914f, 0x159185, 0x15918b, 0x15919d, 0x1591af, 0x1591c1, 0x1591d3, 0x1591d9, 0x1591eb, 0x1591f1)
+        sparse_pointers = sparse_pointers + (0x15920f, 0x159215, 0x15921b, 0x15924b, 0x159251, 0x159281, 0x159287, 0x15928d, 0x15929f, 0x1592a5, 0x1592b7, 0x1592bd, 0x1592c3, 0x1592c9, 0x1592cf, 0x1592e1, 0x1592e7, 0x1592ed, 0x1592f3, 0x1592f9, 0x1592ff)
+        sparse_pointers = sparse_pointers + (0x159347, 0x15934d, 0x15936b, 0x159371, 0x159395, 0x1593cb, 0x1593e9, 0x1593ef)
         sparse_pointers = sparse_pointers + (0x15940d, 0x159413, 0x159419, 0x15941f, 0x15943d, 0x159455, 0x159485, 0x159497, 0x15949d, 0x1594b5, 0x1594d9, 0x1594eb, 0x1594fd)
         sparse_pointers = sparse_pointers + (0x159515, 0x15954b, 0x15957b, 0x15958d, 0x15959f, 0x1595b1, 0x1595c3, 0x1595d5)
         sparse_pointers = sparse_pointers + (0x159629, 0x15964d, 0x159653, 0x159665, 0x15966b, 0x159671, 0x159683, 0x159695, 0x1596a7, 0x1596bf, 0x1596dd, 0x1596fb)
-        sparse_pointers = sparse_pointers + (0x159701, 0x159737, 0x1598d5, 0x159a13, 0x159bbd, 0x159deb, 0x15a151, 0x15a2ad, 0x15a59b, 0x15a89b, 0x15ab8f, 0x15ac0d, 0x15af1f, 0x15af61, 0x15b057, 0x15b11d, 0x15b25b, 0x15b453, 0x15baa7, 0x15bafb, 0x15bc21, 0x15d0f1)
-        sparse_pointers = sparse_pointers + (0x159017, 0x159233, 0x159329) # Welcome to our store! (0x60003)
-        sparse_pointers = sparse_pointers + (0x159167, 0x15926f, 0x15938f, 0x15952d, 0x1595f9, 0x159791, 0x159881, 0x1599f5) # Hello! I sell armor. (0x6005a)
-        sparse_pointers = sparse_pointers + (0x15d57d,)
-        sparse_pointers = sparse_pointers + (0x15d697, 0x15d69d)
+        sparse_pointers = sparse_pointers + (0x159701, 0x159737, 0x1597fd, 0x159a13, 0x159bbd, 0x159deb, 0x15a151, 0x15a2ad, 0x15a59b, 0x15a89b, 0x15ab8f, 0x15ac0d, 0x15af1f, 0x15af61, 0x15b057, 0x15b11d, 0x15b25b, 0x15b453, 0x15baa7, 0x15bafb, 0x15bc21, 0x15d0f1)
+        sparse_pointers = sparse_pointers + (0x15988c, 0x15989f, 0x1598a4, 0x1598b7, 0x1598c2, 0x1598d5, 0x1598da, 0x1598e7, 0x1598ec, 0x159911, 0x159917, 0x15991d, 0x159922, 0x159935, 0x15993a, 0x159970, 0x159982, 0x159995, 0x1599a7, 0x1599ac) # Bone
+        sparse_pointers = sparse_pointers + (0x15aceb, 0x15acf1, 0x15ad09, 0x15ad0f, 0x15ad15, 0x15ad1b, 0x15ad39)
+        sparse_pointers = sparse_pointers + (0x15d57d, 0x15d697, 0x15d69d, 0x15d967, 0x15d96d)
         sparse_pointers = sparse_pointers + (0x15e5a3,)
+        #
+        sparse_pointers = sparse_pointers + (0x159017, 0x159233, 0x159329, 0x15946d, 0x159611, 0x15975b, 0x159965, 0x159a6d, 0x159ba5, 0x159e39, 0x15a187, 0x15a21d, 0x15a511, 0x15a87d, 0x15abc5, 0x15abef) # Welcome to our store! (0x60003)
+        sparse_pointers = sparse_pointers + (0x159149, 0x159269, 0x159389, 0x1593b3, 0x1595f3, 0x15973d, 0x15976d, 0x15978b, 0x1597a9, 0x1597bb, 0x1597cd, 0x1597d3, 0x15987b, 0x159a4f, 0x159aa9, 0x159ac7, 0x159adf, 0x159af7, 0x159e21, 0x15a19f) # Hello! I have a large selection of weapons here. (0x6002d)
+        sparse_pointers = sparse_pointers + (0x159167, 0x15926f, 0x15938f, 0x15952d, 0x1595f9, 0x159791, 0x159881, 0x1599f5) # Hello! I sell armor. (0x6005a)
         for sparse_pointer in sparse_pointers:
             repoint_text(fw, sparse_pointer, new_pointers)
     # two bytes pointers
@@ -255,6 +260,7 @@ def seventhsaga_text_inserter(args):
         repoint_two_bytes_pointer(fw, 0x8d3, new_pointers, b'\xc6') # 0x60 # Intro 3
         repoint_two_bytes_pointer(fw, 0xa39, new_pointers, b'\xc6') # 0x60 # Intro 4
         repoint_two_bytes_pointer(fw, 0xb34, new_pointers, b'\xc6') # 0x60 # Intro 5
+        repoint_two_bytes_pointer(fw, 0x28b78, new_pointers, b'\xc6')
     cur.close()
     conn.commit()
     conn.close()
@@ -300,19 +306,23 @@ def seventhsaga_misc_inserter(args):
     # get pointers
     with open(source_file, 'rb') as f:
         # get misc1 pointers
-        pointers_1_1 = get_pointers(f, 0x8320, 38, 27) # Lemele...
-        pointers_1_2 = get_pointers(f, 0x8209, 7, 42)  # Guanta...
-        pointers_1_3 = get_pointers(f, 0x6c9a, 99, 9)  # Exigate, Watr Rn, Potn [1], MHerb [1]...
-        pointers_1_4 = get_pointers(f, 0x7015, 61, 12) # FIRE [1]
-        pointers_1_5 = get_pointers(f, 0x45f1c, 7, 3)  # Town menu
-        pointers_1_6 = get_pointers(f, 0x45f46, 7, 3)  # Map menu
-        pointers_1_7 = get_pointers(f, 0x45f70, 7, 3)  # Battle menu
-        pointers_1_8 = get_pointers(f, 0x1e76d, 7, 3)  # Human...
-        pointers_1_9 = get_pointers(f, 0x48fbb, 2, 3)  # Use...
-        pointers_1_a = get_pointers(f, 0x4f329, 6, 3)  # Use...
-        pointers_1_b = get_pointers(f, 0x4fbe0, 5, 3)  # Use...
-        pointers_1_c = get_pointers(f, 0x262d, 7, 3)   # begin...
-        pointers_1_d = get_pointers(f, 0x72f1, 99, 42) # Monsters
+        pointers = (
+            get_pointers(f, 0x8320, 38, 27), # Lemele...
+            get_pointers(f, 0x8209, 7, 42),  # Guanta...
+            get_pointers(f, 0x6c9a, 99, 9),  # Exigate, Watr Rn, Potn [1], MHerb [1]...
+            get_pointers(f, 0x7015, 61, 12), # FIRE [1]
+            get_pointers(f, 0x45f1c, 7, 3),  # Town menu
+            get_pointers(f, 0x45f46, 7, 3),  # Map menu
+            get_pointers(f, 0x45f70, 7, 3),  # Battle menu
+            get_pointers(f, 0x1e76d, 7, 3),  # Human...
+            get_pointers(f, 0x48fbb, 2, 3),  # Use...
+            get_pointers(f, 0x4f329, 6, 3),  # Use...
+            get_pointers(f, 0x4fbe0, 5, 3),  # Use...
+            get_pointers(f, 0x262d, 7, 3),   # begin...
+            get_pointers(f, 0x72f1, 99, 42), # Monsters
+            get_pointers(f, 0xac6b, 3, 3),   # buy
+            get_pointers(f, 0x999b, 3, 3),   # Cure
+        )
     # repoint text
     with open(dest_file, 'r+b') as f1:
         # reading misc1.csv and writing texts
@@ -325,7 +335,7 @@ def seventhsaga_misc_inserter(args):
             text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
             t_new_address = write_text(f1, t_new_address, text, end_byte=b'\xf7')
         # repointing misc1
-        for curr_pointers in (pointers_1_1, pointers_1_2, pointers_1_3, pointers_1_4, pointers_1_5, pointers_1_6, pointers_1_7, pointers_1_8, pointers_1_9, pointers_1_a, pointers_1_b, pointers_1_c, pointers_1_d):
+        for curr_pointers in pointers:
             repoint_misc(f1, curr_pointers, new_pointers, table)
 
 def repoint_two_bytes_pointer(fw, offset, new_pointers, third_byte):
