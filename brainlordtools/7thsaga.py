@@ -214,6 +214,8 @@ def seventhsaga_text_inserter(args):
         sparse_pointers = sparse_pointers + (0x57204, 0x5720a, 0x57210, 0x57216, 0x5721c, 0x57222, 0x57228) # Guntz
         sparse_pointers = sparse_pointers + (0x57288, 0x5728e, 0x5729a, 0x572dc, 0x572e2, 0x572e8, 0x572ee, 0x572f4) # Patrof 0x572f4
         sparse_pointers = sparse_pointers + (0x5731e, 0x57324, 0x5732a, 0x57330, 0x57336, 0x5733c, 0x5737e, 0x57384, 0x5738a, 0x57390, 0x57396, 0x5739c) # Bone
+        sparse_pointers = sparse_pointers + (0x573e4, 0x573ea, 0x573f0, 0x573f6, 0x573fc, 0x57402) # Dowaine
+        sparse_pointers = sparse_pointers + (0x5745c, 0x57462, 0x57468, 0x5746e, 0x57474, 0x5747a, 0x57480, 0x57486, 0x5748c) # Belaine
         #
         sparse_pointers = sparse_pointers + (0x158fd5, 0x158fe7, 0x158fff, 0x15901d, 0x159035, 0x15903b, 0x15905f, 0x159065, 0x15906b, 0x1590bf, 0x1590c5, 0x1590d7, 0x1590f5)
         sparse_pointers = sparse_pointers + (0x159131, 0x15914f, 0x159185, 0x15918b, 0x15919d, 0x1591af, 0x1591c1, 0x1591d3, 0x1591d9, 0x1591eb, 0x1591f1)
@@ -223,7 +225,8 @@ def seventhsaga_text_inserter(args):
         sparse_pointers = sparse_pointers + (0x159515, 0x15954b, 0x15957b, 0x15958d, 0x15959f, 0x1595b1, 0x1595c3, 0x1595d5)
         sparse_pointers = sparse_pointers + (0x159629, 0x15964d, 0x159653, 0x159665, 0x15966b, 0x159671, 0x159683, 0x159695, 0x1596a7, 0x1596bf, 0x1596dd, 0x1596fb)
         sparse_pointers = sparse_pointers + (0x159701, 0x159737, 0x1597fd, 0x159a13, 0x159bbd, 0x159deb, 0x15a151, 0x15a2ad, 0x15a59b, 0x15a89b, 0x15ab8f, 0x15ac0d, 0x15af1f, 0x15af61, 0x15b057, 0x15b11d, 0x15b25b, 0x15b453, 0x15baa7, 0x15bafb, 0x15bc21, 0x15d0f1)
-        sparse_pointers = sparse_pointers + (0x15988c, 0x15989f, 0x1598a4, 0x1598b7, 0x1598c2, 0x1598d5, 0x1598da, 0x1598e7, 0x1598ec, 0x159911, 0x159917, 0x15991d, 0x159922, 0x159935, 0x15993a, 0x159970, 0x159982, 0x159995, 0x1599a7, 0x1599ac) # Bone
+        sparse_pointers = sparse_pointers + (0x15989f, 0x1598b7, 0x1598d5, 0x1598e7, 0x159911, 0x159917, 0x15991d, 0x159935, 0x159995) # Bone
+        sparse_pointers = sparse_pointers + (0x1599a7, 0x1599b9, 0x1599cb, 0x1599dd, 0x159a0d) # Dowaine
         sparse_pointers = sparse_pointers + (0x15aceb, 0x15acf1, 0x15ad09, 0x15ad0f, 0x15ad15, 0x15ad1b, 0x15ad39)
         sparse_pointers = sparse_pointers + (0x15d57d, 0x15d697, 0x15d69d, 0x15d967, 0x15d96d)
         sparse_pointers = sparse_pointers + (0x15e5a3,)
@@ -307,21 +310,22 @@ def seventhsaga_misc_inserter(args):
     with open(source_file, 'rb') as f:
         # get misc1 pointers
         pointers = (
-            get_pointers(f, 0x8320, 38, 27), # Lemele...
-            get_pointers(f, 0x8209, 7, 42),  # Guanta...
+            get_pointers(f, 0x262d, 7, 3),   # begin...
             get_pointers(f, 0x6c9a, 99, 9),  # Exigate, Watr Rn, Potn [1], MHerb [1]...
             get_pointers(f, 0x7015, 61, 12), # FIRE [1]
+            get_pointers(f, 0x72f1, 99, 42), # Monsters
+            get_pointers(f, 0x8209, 7, 42),  # Guanta...
+            get_pointers(f, 0x8320, 38, 27), # Lemele...
+            get_pointers(f, 0x999b, 3, 3),   # Cure
+            get_pointers(f, 0xac6b, 3, 3),   # buy
             get_pointers(f, 0x45f1c, 7, 3),  # Town menu
             get_pointers(f, 0x45f46, 7, 3),  # Map menu
             get_pointers(f, 0x45f70, 7, 3),  # Battle menu
-            get_pointers(f, 0x1e76d, 7, 3),  # Human...
             get_pointers(f, 0x48fbb, 2, 3),  # Use...
             get_pointers(f, 0x4f329, 6, 3),  # Use...
             get_pointers(f, 0x4fbe0, 5, 3),  # Use...
-            get_pointers(f, 0x262d, 7, 3),   # begin...
-            get_pointers(f, 0x72f1, 99, 42), # Monsters
-            get_pointers(f, 0xac6b, 3, 3),   # buy
-            get_pointers(f, 0x999b, 3, 3),   # Cure
+            get_pointers(f, 0x4eeb9, 11, 3), # party
+            get_pointers(f, 0x1e76d, 7, 3),  # Human...
         )
     # repoint text
     with open(dest_file, 'r+b') as f1:
@@ -337,6 +341,14 @@ def seventhsaga_misc_inserter(args):
         # repointing misc1
         for curr_pointers in pointers:
             repoint_misc(f1, curr_pointers, new_pointers, table)
+        #
+        repoint_two_bytes_pointer(f1, 0x1eaa5, new_pointers, b'\xc7') # End
+        repoint_two_bytes_pointers(f1, (0x18dad, 0x19b36, 0x1e412), new_pointers, b'\xc7') # Power
+        repoint_two_bytes_pointers(f1, (0x18e03, 0x19b62, 0x1e43e), new_pointers, b'\xc7') # Guard
+        repoint_two_bytes_pointers(f1, (0x18e59, 0x19b8e, 0x1e46a), new_pointers, b'\xc7') # Magic
+        repoint_two_bytes_pointers(f1, (0x18eaf, 0x19bba, 0x1e496), new_pointers, b'\xc7') # Speed
+        repoint_two_bytes_pointers(f1, (0x19be6, 0x1e4c2), new_pointers, b'\xc7') # Weapon
+        repoint_two_bytes_pointers(f1, (0x19c12, 0x1e4ee), new_pointers, b'\xc7') # Defend
 
 def repoint_two_bytes_pointer(fw, offset, new_pointers, third_byte):
     fw.seek(offset)
@@ -351,6 +363,10 @@ def repoint_two_bytes_pointer(fw, offset, new_pointers, third_byte):
         fw.write(packed[2:3])
     else:
         print(f'CHOICE - Pointer offset: {hex(offset)} - Pointer value: {hex(unpacked)}')
+
+def repoint_two_bytes_pointers(fw, offsets, new_pointers, third_byte):
+    for offset in offsets:
+        repoint_two_bytes_pointer(fw, offset, new_pointers, third_byte)
 
 def repoint_text(fw, offset, new_pointers):
     fw.seek(offset)
