@@ -262,7 +262,6 @@ def gargoyle_text_inserter(args):
                 f2.seek(pointer_address)
                 f2.write(pointer_value)
         # dump
-        print(f'Text starts from {hex(f1.tell())}')
         new_text_offset = f1.tell()
         for i, (text, pointers) in buffer.items():
             for pointer in pointers.split(';'):
@@ -387,13 +386,16 @@ def gargoyle_gfx_dumper(args):
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
         dump_binary(f, 0x18000, 0x18800, dump_path, '18000_title.bin')
+        dump_binary(f, 0x14000, 0x14200, dump_path, '14000_font.bin')
 
 def gargoyle_gfx_inserter(args):
     dest_file = args.dest_file
     translation_path = args.translation_path
     with open(dest_file, 'r+b') as f:
-        insert_binary(f, 0x18000, 0x18800, translation_path, '18000_title.bin')
-        insert_binary(f, 0x14000, 0x14200, translation_path, '14000_font.bin')
+        insert_binary(f, 0x18000, 0x18800, translation_path, '18000_title_ita.bin')
+        # insert_binary(f, 0x14000, 0x14200, translation_path, '14000_font_ita.bin')
+        insert_binary(f, 0x1c800, 0x1cba0, translation_path, '1C800_ingame_menu_ita.bin')
+        write_text(f, 0x2341, b'\xa4')
 
 import argparse
 parser = argparse.ArgumentParser()
