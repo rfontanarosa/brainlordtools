@@ -310,6 +310,10 @@ def gargoyle_misc_inserter(args):
         write_text(f1, 0x185e, b'\x08') # number of characters per line
         write_text(f1, 0x186b, b'\x08') # number of characters per line
         write_text(f1, 0x1804, b'\x08') # number of characters per line
+        write_text(f1, 0x164e, b'\xad') # 0xab -> 0xad
+        write_text(f1, 0x1673, b'\xad') # 0xab -> 0xad (to verify)
+        write_text(f1, 0x1695, b'\xad') # 0xab -> 0xad
+        write_text(f1, 0x1699, b'\xad') # 0xab -> 0xad
         write_text(f1, 0x185b, b'\x96\x38') # menu pointer address
         f1.seek(0x3896) # new menu address
         translation_file = os.path.join(translation_path, 'misc4.csv')
