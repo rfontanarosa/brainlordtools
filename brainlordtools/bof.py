@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 __author__ = "Roberto Fontanarosa"
 __license__ = "GPLv2"
 __version__ = ""
@@ -33,7 +31,6 @@ TEXT_BLOCK2_START = 0x68000
 TEXT_BLOCK2_END = TEXT_BLOCK2_LIMIT = 0x76ebf
 
 def bofBlockLimitsResolver(block):
-	""" """
 	blockLimits = (0, 0)
 	if block == 1:
 		blockLimits = (TEXT_BLOCK1_START, TEXT_BLOCK1_LIMIT, POINTER_BLOCK1_START, POINTER_BLOCK1_END, POINTER_BLOCK1_LIMIT)
@@ -62,13 +59,12 @@ def decode_text(text):
 	text = text.replace(u'È', '{16}')
 	return text
 
-def bof_dumper(args):
-	""" DUMP """
+def bof_text_dumper(args):
 	source_file = args.source_file
 	table1_file = args.table1
 	dump_path = args.dump_path
 	db = args.database_file
-	if crc32(source_file) != CRC32:
+	if not args.no_crc32_check and crc32(source_file) != CRC32:
 		sys.exit('SOURCE ROM CHECKSUM FAILED!')
 	table1 = Table(table1_file)
 	conn = sqlite3.connect(db)
@@ -132,8 +128,7 @@ def bof_dumper(args):
 		conn.commit()
 		conn.close()
 
-def bof_inserter(args):
-	""" INSERTER """
+def bof_text_inserter(args):
 	dest_file = args.dest_file
 	table2_file = args.table2
 	db = args.database_file
@@ -212,7 +207,7 @@ def bof_mte_finder(args):
 	""" MTE FINDER """
 	source_file = args.source_file
 	table1_file = args.table1
-	if crc32(source_file) != CRC32:
+	if not args.no_crc32_check and crc32(source_file) != CRC32:
 		sys.exit('SOURCE ROM CHECKSUM FAILED!')
 	table1 = Table(table1_file)
 	with open(source_file, 'rb') as f:
@@ -325,19 +320,21 @@ def bof_mte_optimizer(args):
 
 import argparse
 parser = argparse.ArgumentParser()
+parser.add_argument('--no_crc32_check', action='store_true', dest='no_crc32_check', required=False, default=False, help='CRC32 Check')
+parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
 a_parser = subparsers.add_parser('dump', help='Execute DUMP')
 a_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 a_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
 a_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
 a_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
-a_parser.set_defaults(func=bof_dumper)
+a_parser.set_defaults(func=bof_text_dumper)
 b_parser = subparsers.add_parser('insert', help='Execute INSERTER')
 b_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 b_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
 b_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
 b_parser.add_argument('-u', '--user', action='store', dest='user', help='')
-b_parser.set_defaults(func=bof_inserter)
+b_parser.set_defaults(func=bof_text_inserter)
 c_parser = subparsers.add_parser('mte_finder', help='Execute MTE Finder')
 c_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 c_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
@@ -357,5 +354,10 @@ e_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required
 e_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Base table filename')
 e_parser.add_argument('-m1', '--misc1', action='store', dest='misc_file1', help='MISC filename')
 e_parser.set_defaults(func=bof_misc_inserter)
-args = parser.parse_args()
-args.func(args)
+
+if __name__ == "__main__":
+	args = parser.parse_args()
+	if args.func:
+		args.func(args)
+	else:
+		parser.print_help()
