@@ -67,8 +67,8 @@ if pack_act:
 			with open(file_path, 'rb') as f:
 				file_content = f.read()
 				with open(os.path.join(dummy_path, row[0]), 'w') as out:
-					print file_path
-					print os.path.join(dummy_path, row[0])
+					print(file_path)
+					print(os.path.join(dummy_path, row[0]))
 					out.write(compress_FALCOM3(file_content))
 
 if extract_items:
