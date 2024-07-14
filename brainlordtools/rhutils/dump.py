@@ -1,8 +1,9 @@
 import os, csv
 
-def read_text(f, offset, length=None, end_byte=None, cmd_list=None, append_end_byte=False):
+def read_text(f, offset=None, length=None, end_byte=None, cmd_list=None, append_end_byte=False):
     text = b''
-    f.seek(offset)
+    if offset is not None:
+        f.seek(offset)
     if length:
         text = f.read(length)
     elif end_byte:
