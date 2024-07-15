@@ -4,8 +4,9 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import os, shutil
-from rhutils.dump import dump_binary, insert_binary
+import os, shutil, struct
+from rhutils.dump import dump_binary, get_csv_translated_texts, insert_binary
+from rhutils.table import Table
 
 def starocean_gfx_dumper(args):
     source_file = args.source_file
@@ -25,6 +26,25 @@ def starocean_gfx_inserter(args):
         insert_binary(f, 0x3f0000, 0x3f0000 + 3392, translation_path, '3F0000_font_ita.bin')
         insert_binary(f, 0x3f0d40, 0x3f0d40 + (4 * 13) + 1, translation_path, '3F0d40_font_vwf.bin')
 
+def starocean_misc_inserter(args):
+    dest_file = args.dest_file
+    table1_file = args.table1
+    table2_file = args.table2
+    translation_path = args.translation_path
+    table = Table(table1_file)
+    table2 = Table(table2_file)
+    with open(dest_file, 'r+b') as f1, open(dest_file, 'r+b') as f2:
+        # Items
+        f2.seek(0x3f7a4c)
+        f1.seek(0x3f802a)
+        translation_file = os.path.join(translation_path, 'items.csv')
+        translated_texts = get_csv_translated_texts(translation_file)
+        for i, (t_address, t_value) in enumerate(translated_texts.items()):
+            pointer = struct.pack('H', (f1.tell() - 0x802a) & 0x00FFFF)
+            f2.write(pointer)
+            encoded_text = table2.encode(t_value)
+            f1.write(encoded_text + b'\xff')
+
 import argparse
 parser = argparse.ArgumentParser()
 parser.set_defaults(func=None)
@@ -37,6 +57,12 @@ insert_gfx_parser = subparsers.add_parser('insert_gfx', help='Execute GFX INSERT
 insert_gfx_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 insert_gfx_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
 insert_gfx_parser.set_defaults(func=starocean_gfx_inserter)
+insert_misc_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
+insert_misc_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+insert_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+insert_misc_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+insert_misc_parser.set_defaults(func=starocean_misc_inserter)
 
 if __name__ == "__main__":
     args = parser.parse_args()
