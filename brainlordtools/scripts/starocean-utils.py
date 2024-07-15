@@ -18,7 +18,7 @@ dump_amazon_fullpath = os.path.join(translation_path, 'dump_ita_amazon.txt')
 dump1_fullpath = os.path.join(dump_path, 'dump_eng_1.txt')
 dump2_fullpath = os.path.join(dump_path, 'dump_eng_2.txt')
 dump1_deepl_fullpath = os.path.join(translation_path, 'dump_ita_deepl_1.txt')
-dump2_deepl_fullpath = os.path.join(translation_path, 'dump2_ita_deepl_2.txt')
+dump2_deepl_fullpath = os.path.join(translation_path, 'dump_ita_deepl_2.txt')
 
 import_dump = False
 translate_dump_amazon = False
