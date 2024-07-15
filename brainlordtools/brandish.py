@@ -35,8 +35,7 @@ def get_size(f, taddress):
 		size = TEXT_BLOCK_LIMIT - taddress
 	return size
 
-def brandish_dumper(args):
-	""" DUMP """
+def brandish_text_dumper(args):
 	source_file = args.source_file
 	table1_file = args.table1
 	dump_path = args.dump_path
@@ -47,8 +46,10 @@ def brandish_dumper(args):
 	conn = sqlite3.connect(db)
 	conn.text_factory = str
 	cur = conn.cursor()
+	shutil.rmtree(dump_path, ignore_errors=True)
+	os.mkdir(dump_path)
+	id = 1
 	with open(source_file, 'rb') as f1, open(source_file, 'rb') as f2:
-		id = 1
 		f1.seek(POINTER_BLOCK_START)
 		while (f1.tell() < POINTER_BLOCK_END):
 			paddress = f1.tell()
@@ -73,8 +74,7 @@ def brandish_dumper(args):
 	conn.commit()
 	conn.close()
 
-def brandish_inserter(args):
-	""" INSERT """
+def brandish_text_inserter(args):
 	dest_file = args.dest_file
 	table1_file = args.table1
 	table2_file = args.table2
@@ -122,34 +122,34 @@ def brandish_gfx_dumper(args):
 	shutil.rmtree(dump_path, ignore_errors=True)
 	os.mkdir(dump_path)
 	with open(source_file, 'rb') as f:
-		dump_gfx(f, 0x13400, 0x13800, dump_path, 'gfx_yes-or-no.bin')
-		dump_gfx(f, 0x20000, 0x21400, dump_path, 'gfx_font.bin')
-		dump_gfx(f, 0x40000, 0x4c000, dump_path, 'gfx_zones_h.bin')
+		dump_binary(f, 0x13400, 0x13800, dump_path, 'gfx_yes-or-no.bin')
+		dump_binary(f, 0x20000, 0x21400, dump_path, 'gfx_font.bin')
+		dump_binary(f, 0x40000, 0x4c000, dump_path, 'gfx_zones_h.bin')
 
 def brandish_gfx_inserter(args):
 	dest_file = args.dest_file
 	translation_path = args.translation_path
 	with open(dest_file, 'r+b') as f:
-		insert_gfx(f, 0x13400, 0x13800, translation_path, 'gfx_yes-or-no.bin')
-		insert_gfx(f, 0x20000, 0x21400, translation_path, 'gfx_font.bin')
-		insert_gfx(f, 0x40000, 0x4c000, translation_path, 'gfx_zones_h.bin')
+		insert_binary(f, 0x13400, 0x13800, translation_path, 'gfx_yes-or-no.bin')
+		insert_binary(f, 0x20000, 0x21400, translation_path, 'gfx_font.bin')
+		insert_binary(f, 0x40000, 0x4c000, translation_path, 'gfx_zones_h.bin')
 
 import argparse
 parser = argparse.ArgumentParser()
 subparsers = parser.add_subparsers()
-a_parser = subparsers.add_parser('dump', help='Execute DUMP')
+a_parser = subparsers.add_parser('dump_text', help='Execute DUMP')
 a_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 a_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
 a_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
 a_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
-a_parser.set_defaults(func=brandish_dumper)
-b_parser = subparsers.add_parser('insert', help='Execute INSERTER')
+a_parser.set_defaults(func=brandish_text_dumper)
+b_parser = subparsers.add_parser('insert_text', help='Execute INSERTER')
 b_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 b_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
 b_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
 b_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
 b_parser.add_argument('-u', '--user', action='store', dest='user', help='')
-b_parser.set_defaults(func=brandish_inserter)
+b_parser.set_defaults(func=brandish_text_inserter)
 c_parser = subparsers.add_parser('dump_gfx', help='Execute GFX DUMP')
 c_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 c_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
@@ -158,5 +158,10 @@ d_parser = subparsers.add_parser('insert_gfx', help='Execute GFX INSERTER')
 d_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 d_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
 d_parser.set_defaults(func=brandish_gfx_inserter)
-args = parser.parse_args()
-args.func(args)
+
+if __name__ == "__main__":
+	args = parser.parse_args()
+	if args.func:
+		args.func(args)
+	else:
+		parser.print_help()

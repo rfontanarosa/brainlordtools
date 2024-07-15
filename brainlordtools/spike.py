@@ -39,7 +39,7 @@ def spike_text_dumper(args):
     conn = sqlite3.connect(db)
     conn.text_factory = str
     cur = conn.cursor()
-    shutil.rmtree(dump_path, ignore_errors=False)
+    shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     id = 1
     with open(source_file, 'rb') as f:
