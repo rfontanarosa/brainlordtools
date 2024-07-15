@@ -30,4 +30,4 @@ python "$TOOLS_PATH/neugier.py" dump_credits -s "$SOURCE" -t3 "$TABLE3" -dp "$DU
 
 python "$TOOLS_PATH/neugier.py" insert_text -d "$DESTINATION" -t2 "$TABLE2" -db "$DB" -u "$USER"
 python "$TOOLS_PATH/neugier.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
-python "$TOOLS_PATH/neugier.py" insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE1" -tp "$TRANSLATION_MISC_PATH"
+python "$TOOLS_PATH/neugier.py" insert_misc -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE1" -tp "$TRANSLATION_MISC_PATH"

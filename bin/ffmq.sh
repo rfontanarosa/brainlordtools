@@ -16,4 +16,4 @@ DUMP_MISC_PATH="$RESOURCE_PATH/dump_misc"
 TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
 
 python "$TOOLS_PATH/ffmq.py" dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_MISC_PATH"
-python "$TOOLS_PATH/ffmq.py" insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE1" -tp "$TRANSLATION_MISC_PATH"
+python "$TOOLS_PATH/ffmq.py" insert_misc -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE1" -tp "$TRANSLATION_MISC_PATH"

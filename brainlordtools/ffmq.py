@@ -86,16 +86,13 @@ def ffmq_misc_dumper(args):
                 csv_writer.writerow(fields)
 
 def ffmq_misc_inserter(args):
-    source_file = args.source_file
     dest_file = args.dest_file
     table1_file = args.table1
     table2_file = args.table2
     translation_path = args.translation_path
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     table2 = Table(table2_file)
-    with open(dest_file, 'r+b') as f, open(dest_file, 'r+b') as f1:
+    with open(dest_file, 'r+b') as f:
         # Locations
         translation_file = os.path.join(translation_path, 'locations.csv')
         translated_texts = get_csv_translated_texts(translation_file)
@@ -149,7 +146,6 @@ dump_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', 
 dump_misc_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
 dump_misc_parser.set_defaults(func=ffmq_misc_dumper)
 insert_misc_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
-insert_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 insert_misc_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
 insert_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')

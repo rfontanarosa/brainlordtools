@@ -32,6 +32,6 @@ python "$TOOLS_PATH/spike.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TE
 python "$TOOLS_PATH/spike.py" dump_misc -s "$SOURCE" -t1 "$TABLE2" -dp "$DUMP_MISC_PATH"
 
 python "$TOOLS_PATH/spike.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE1" -tp "$TRANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
-python "$TOOLS_PATH/spike.py" insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE2" -t2 "$TABLE2" -tp "$TRANSLATION_MISC_PATH"
+python "$TOOLS_PATH/spike.py" insert_misc -d "$DESTINATION" -t1 "$TABLE2" -t2 "$TABLE2" -tp "$TRANSLATION_MISC_PATH"
 
 asar "$RESOURCE_PATH/asm/main.asm" "$DESTINATION"
