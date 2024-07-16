@@ -148,37 +148,6 @@ def brainlord_misc_dumper(args):
     with open(source_file, 'rb') as f:
         dump_blocks(f, table, dump_path)
 
-def brainlord_credits_dumper(args):
-    source_file = args.source_file
-    table3_file = args.table3
-    dump_path = args.dump_path
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
-    table = Table(table3_file)
-    shutil.rmtree(dump_path, ignore_errors=True)
-    os.mkdir(dump_path)
-    with open(source_file, 'rb') as f:
-        filename = os.path.join(dump_path, 'credits.txt')
-        with open(filename, 'w+') as txt_file:
-            text = read_text(f, CREDITS_BLOCK_START, length=CREDITS_BLOCK_END - CREDITS_BLOCK_START)
-            text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
-            txt_file.write(text_decoded)
-
-def brainlord_credits_inserter(args):
-    dest_file = args.dest_file
-    table3_file = args.table3
-    translation_path = args.translation_path
-    table = Table(table3_file)
-    translation_file = os.path.join(translation_path, 'credits.txt')
-    with open(translation_file, 'r') as f:
-        text = f.read()
-        text_encoded = table.encode(text, mte_resolver=False, dict_resolver=False)
-        if len(text_encoded) != CREDITS_BLOCK_END - CREDITS_BLOCK_START:
-            raise Exception("Invalid credits file lenght! {} - {}".format(len(text_encoded), CREDITS_BLOCK_END - CREDITS_BLOCK_START))
-        with open(dest_file, 'r+b') as f1:
-            f1.seek(CREDITS_BLOCK_START)
-            f1.write(text_encoded)
-
 def brainlord_misc_inserter(args):
     source_file = args.source_file
     dest_file = args.dest_file
@@ -282,6 +251,37 @@ def brainlord_misc_inserter(args):
             t_new_address = write_text(f1, t_new_address, text, end_byte=b'\xf7')
         # repointing misc3
         repoint_misc(f1, p_3_1, new_pointers)
+
+def brainlord_credits_dumper(args):
+    source_file = args.source_file
+    table3_file = args.table3
+    dump_path = args.dump_path
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
+        sys.exit('SOURCE ROM CHECKSUM FAILED!')
+    table = Table(table3_file)
+    shutil.rmtree(dump_path, ignore_errors=True)
+    os.mkdir(dump_path)
+    with open(source_file, 'rb') as f:
+        filename = os.path.join(dump_path, 'credits.txt')
+        with open(filename, 'w+') as txt_file:
+            text = read_text(f, CREDITS_BLOCK_START, length=CREDITS_BLOCK_END - CREDITS_BLOCK_START)
+            text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
+            txt_file.write(text_decoded)
+
+def brainlord_credits_inserter(args):
+    dest_file = args.dest_file
+    table3_file = args.table3
+    translation_path = args.translation_path
+    table = Table(table3_file)
+    translation_file = os.path.join(translation_path, 'credits.txt')
+    with open(translation_file, 'r') as f:
+        text = f.read()
+        text_encoded = table.encode(text, mte_resolver=False, dict_resolver=False)
+        if len(text_encoded) != CREDITS_BLOCK_END - CREDITS_BLOCK_START:
+            raise Exception("Invalid credits file lenght! {} - {}".format(len(text_encoded), CREDITS_BLOCK_END - CREDITS_BLOCK_START))
+        with open(dest_file, 'r+b') as f1:
+            f1.seek(CREDITS_BLOCK_START)
+            f1.write(text_encoded)
 
 def brainlord_gfx_dumper(args):
     source_file = args.source_file
@@ -701,7 +701,6 @@ def brainlord_text_inserter(args):
         repoint_two_bytes_pointer(fw, 0x140140, new_pointers, b'\xc6')
         repoint_two_bytes_pointer(fw, 0x143902, new_pointers, b'\xd7')
         repoint_two_bytes_pointer(fw, 0x1496f2, new_pointers, b'\xd7')
-
     cur.close()
     conn.commit()
     conn.close()
