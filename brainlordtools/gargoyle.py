@@ -6,11 +6,11 @@ __email__ = "robertofontanarosa@gmail.com"
 
 import csv, os, shutil, struct, sys
 
-from rhutils.rom import crc32
 from rhutils.dump import dump_binary, insert_binary, get_csv_translated_texts, read_text, write_text
+from rhutils.rom import crc32
 from rhutils.table import Table
 
-CRC32 = ''
+CRC32 = '693a'
 
 TEXT_POINTERS = (0x16000, 0x16114)
 MISC_POINTERS1 = (0x16114, 0x16122)
