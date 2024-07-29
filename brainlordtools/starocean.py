@@ -70,7 +70,7 @@ def starocean_misc_inserter(args):
             pointer = struct.pack('H', (already_pointed.get(t_address, f1.tell()) - 0x802a) & 0x00FFFF)
             f2.write(pointer)
         if f1.tell() > 0x3fa4a0:
-            print(f'Text exceeds: {0x3f9433 - f1.tell()}')
+            print(f'Inserted text exceeds by {0x3f9433 - f1.tell()} bytes')
         # Items
         f1.seek(0x3ca393)
         f2.seek(0x3c959d)
@@ -85,7 +85,7 @@ def starocean_misc_inserter(args):
             pointer = struct.pack('H', (already_pointed.get(t_address, f1.tell()) - 0xa393) & 0x00FFFF)
             f2.write(pointer)
         if f1.tell() > 0x3cc48b:
-            print(f'Text exceeds: {f1.tell() - 0x3cc48b}')
+            print(f'Inserted text exceeds by {f1.tell() - 0x3cc48b} bytes')
 
 def starocean_gfx_dumper(args):
     source_file = args.source_file
@@ -95,6 +95,7 @@ def starocean_gfx_dumper(args):
     with open(source_file, 'rb') as f:
         dump_binary(f, 0x3f0000, 0x3f0000 + 3392, dump_path, '3F0000_font.bin')
         dump_binary(f, 0x3f0d40, 0x3f0d40 + (4 * 13) + 1, dump_path, '3F0d40_font_vwf.bin')
+        dump_binary(f, 0xa0268, 0xa0268 + 16, dump_path, 'a0268_menu_hand_pointer.bin')
 
 def starocean_gfx_inserter(args):
     dest_file = args.dest_file
@@ -102,6 +103,7 @@ def starocean_gfx_inserter(args):
     with open(dest_file, 'r+b') as f:
         insert_binary(f, 0x3f0000, 0x3f0000 + 3392, translation_path, '3F0000_font_ita.bin')
         insert_binary(f, 0x3f0d40, 0x3f0d40 + (4 * 13) + 1, translation_path, '3F0d40_font_vwf_ita.bin')
+        insert_binary(f, 0xa0268, 0xa0268 + 16, translation_path, 'a0268_menu_hand_pointer_ita.bin')
 
 import argparse
 parser = argparse.ArgumentParser()
