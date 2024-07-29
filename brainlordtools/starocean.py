@@ -55,8 +55,8 @@ def starocean_misc_inserter(args):
     table2 = Table(table2_file)
     with open(dest_file, 'r+b') as f1, open(dest_file, 'r+b') as f2:
         # Menu
-        f2.seek(0x3f7a4c)
         f1.seek(0x3f802a)
+        f2.seek(0x3f7a4c)
         translation_file = os.path.join(translation_path, 'menu.csv')
         translated_texts = get_csv_translated_texts(translation_file)
         already_pointed = {}
@@ -72,7 +72,20 @@ def starocean_misc_inserter(args):
         if f1.tell() > 0x3fa4a0:
             print(f'Text exceeds: {0x3f9433 - f1.tell()}')
         # Items
-            # limit 0x3cc48b
+        f1.seek(0x3ca393)
+        f2.seek(0x3c959d)
+        translation_file = os.path.join(translation_path, 'items.csv')
+        translated_texts = get_csv_translated_texts(translation_file)
+        already_pointed = {}
+        for i, (t_address, t_value) in enumerate(translated_texts):
+            if not already_pointed.get(t_address):
+                already_pointed[t_address] = f1.tell()
+                encoded_text = table2.encode(t_value) + b'\xff'
+                f1.write(encoded_text)
+            pointer = struct.pack('H', (already_pointed.get(t_address, f1.tell()) - 0xa393) & 0x00FFFF)
+            f2.write(pointer)
+        if f1.tell() > 0x3cc48b:
+            print(f'Text exceeds: {f1.tell() - 0x3cc48b}')
 
 def starocean_gfx_dumper(args):
     source_file = args.source_file
@@ -88,7 +101,7 @@ def starocean_gfx_inserter(args):
     translation_path = args.translation_path
     with open(dest_file, 'r+b') as f:
         insert_binary(f, 0x3f0000, 0x3f0000 + 3392, translation_path, '3F0000_font_ita.bin')
-        insert_binary(f, 0x3f0d40, 0x3f0d40 + (4 * 13) + 1, translation_path, '3F0d40_font_vwf.bin')
+        insert_binary(f, 0x3f0d40, 0x3f0d40 + (4 * 13) + 1, translation_path, '3F0d40_font_vwf_ita.bin')
 
 import argparse
 parser = argparse.ArgumentParser()
