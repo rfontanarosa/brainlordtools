@@ -12,11 +12,11 @@ from collections import OrderedDict
 resources_path = '../resources/sd3'
 dump_path = os.path.join(resources_path, 'magno')
 translation_path = os.path.join(resources_path, 'translation-magno')
-import_path = os.path.join('/Users/rfontanarosa/git/brainlordresources/sd3/Italian/')
+import_path = os.path.join('/Users/robertofontanarosa/git/brainlordresources/sd3/Italian/')
 fileNames = ('Bank0_ita.txt', 'Bank1_ita.txt', 'Bank2_ita.txt', 'Items_ita.txt')
 
 db = os.path.join(resources_path, 'db/sd3-magno.db')
-db2 = os.path.join(resources_path, '/Users/rfontanarosa/git/brainlordtools/resources/db/sd3-magno.db')
+db2 = os.path.join(resources_path, '/Users/robertofontanarosa/git/brainlordtools/resources/db/sd3-magno.db')
 user_name = 'clomax'
 
 if True:

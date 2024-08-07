@@ -8,7 +8,7 @@ import os, sqlite3, time
 from rhutils.db import insert_text, select_translation_by_author, insert_translation
 
 user_name = 'ombra'
-resources_path = '/Users/rfontanarosa/git/brainlordresources/smrpg'
+resources_path = '/Users/robertofontanarosa/git/brainlordresources/smrpg'
 db = os.path.join(resources_path, 'db/smrpg.sqlite3')
 dump_path = os.path.join(resources_path, 'dump_text')
 translation_path = os.path.join(resources_path, 'translation_text')

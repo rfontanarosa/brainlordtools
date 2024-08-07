@@ -8,7 +8,7 @@ import os, sqlite3
 from rhutils.db import insert_text, select_translation_by_author
 
 user_name = 'clomax'
-resources_path = '/Users/rfontanarosa/git/brainlordresources/ffmq'
+resources_path = '/Users/robertofontanarosa/git/brainlordresources/ffmq'
 db = os.path.join(resources_path, 'db/ffmq.sqlite3')
 dump_path = os.path.join(resources_path, 'dump_text')
 translation_path = os.path.join(resources_path, 'translation_text')

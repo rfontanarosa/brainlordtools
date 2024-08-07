@@ -8,7 +8,7 @@ import os, sqlite3, time
 from rhutils.db import insert_text, select_translation_by_author, insert_translation
 
 user_name = 'clomax'
-resources_path = '/Users/rfontanarosa/git/brainlordresources/soe'
+resources_path = '/Users/robertofontanarosa/git/brainlordresources/soe'
 db = os.path.join(resources_path, 'db/soe.sqlite3')
 dump_path = os.path.join(resources_path, 'dump_text')
 translation_path = os.path.join(resources_path, 'translation_text')

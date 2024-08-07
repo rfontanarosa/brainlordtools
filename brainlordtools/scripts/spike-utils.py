@@ -8,7 +8,7 @@ import os, sqlite3
 from rhutils.db import select_translation_by_author
 
 user_name = 'clomax'
-resources_path = '/Users/rfontanarosa/git/brainlordresources/spike'
+resources_path = '/Users/robertofontanarosa/git/brainlordresources/spike'
 db = os.path.join(resources_path, 'db/spike.sqlite3')
 translation_path = os.path.join(resources_path, 'translation_text')
 dump_user_fullpath = os.path.join(translation_path, f'dump_ita_{user_name}.txt')
