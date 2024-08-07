@@ -92,7 +92,7 @@ def ffmq_misc_inserter(args):
     translation_path = args.translation_path
     table = Table(table1_file)
     table2 = Table(table2_file)
-    with open(dest_file, 'r+b') as f:
+    with open(dest_file, 'r+b') as f, open(dest_file, 'r+b') as f1:
         # Locations
         translation_file = os.path.join(translation_path, 'locations.csv')
         translated_texts = get_csv_translated_texts(translation_file)
