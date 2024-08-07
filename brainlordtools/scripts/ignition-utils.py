@@ -14,8 +14,8 @@ translation_path = os.path.join(resources_path, 'translation_text')
 dump_ita_fullpath = os.path.join(translation_path, 'dump_ita.txt')
 dump_user_fullpath = os.path.join(translation_path, f'dump_ita_{user_name}.txt')
 
-import_user_translation = True
-export_user_translation = True
+import_user_translation = False
+export_user_translation = False
 
 if import_user_translation:
   conn = sqlite3.connect(db)

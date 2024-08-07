@@ -13,7 +13,7 @@ db = os.path.join(resources_path, 'db/spike.sqlite3')
 translation_path = os.path.join(resources_path, 'translation_text')
 dump_user_fullpath = os.path.join(translation_path, f'dump_ita_{user_name}.txt')
 
-export_user_translation = True
+export_user_translation = False
 
 if export_user_translation:
   if not os.path.isdir(translation_path):

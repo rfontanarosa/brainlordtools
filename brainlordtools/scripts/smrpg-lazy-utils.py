@@ -19,9 +19,9 @@ battle_dialogues_fullpath = os.path.join(dump_path, 'battleDialogues.txt')
 battle_dialogues_ita_fullpath = os.path.join(translation_path, 'battleDialogues_ita.txt')
 battle_dialogues_user_fullpath = os.path.join(translation_path, f'battleDialogues_ita_{user_name}.txt')
 
-import_dump = True
+import_dump = False
 import_user_translation = False
-export_user_translation = True
+export_user_translation = False
 
 if import_dump:
   conn = sqlite3.connect(db)
