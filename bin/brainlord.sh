@@ -36,11 +36,17 @@ python "$TOOLS_PATH/brainlord.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_
 python "$TOOLS_PATH/brainlord.py" insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2" -tp "$TRANSLATION_MISC_PATH"
 python "$TOOLS_PATH/brainlord.py" insert_credits -d "$DESTINATION" -t3 "$TABLE3" -tp "$TANSLATION_CREDITS_PATH"
 
-asar "$RESOURCE_PATH/asm/main.asm" "$DESTINATION"
-
 # SOURCE="$RESOURCE_PATH/roms/Brain Lord (I) [!] - 0x74000.sfc"
 # DUMP_GFX_PATH="$RESOURCE_PATH/dump_gfx_mog"
 # DESTINATION="$RESOURCE_PATH/roms/Brain Lord (U) [!] - 0x74000.sfc"
 # TANSLATION_GFX_PATH="$RESOURCE_PATH/dump_gfx_mog"
 # python "$TOOLS_PATH/brainlord.py" dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
 # python "$TOOLS_PATH/brainlord.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
+
+if ! command -v asar &> /dev/null
+then
+  echo "Command 'asar' not found."
+  exit
+else
+  asar "$RESOURCE_PATH/asm/main.asm" "$DESTINATION"
+fi

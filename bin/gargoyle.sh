@@ -32,7 +32,13 @@ python "$TOOLS_PATH/gargoyle.py" --no_crc32_check insert_text -s "$SOURCE" -d "$
 python "$TOOLS_PATH/gargoyle.py" --no_crc32_check insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
 python "$TOOLS_PATH/gargoyle.py" --no_crc32_check insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2" -t3 "$TABLE5" -tp "$TRANSLATION_MISC_PATH"
 
-# bass "$RESOURCE_PATH/asm/accents_hack.asm" -m "$DESTINATION"
-bass "$RESOURCE_PATH/asm/various.asm" -m "$DESTINATION"
+if ! command -v bass &> /dev/null
+then
+  echo "Command 'bass' not found."
+  exit
+else
+  # bass "$RESOURCE_PATH/asm/accents_hack.asm" -m "$DESTINATION"
+  bass "$RESOURCE_PATH/asm/various.asm" -m "$DESTINATION"
+fi
 
 # python ../mteOpt.py table -s /Users/robertofontanarosa/git/brainlordresources/gargoyle/translation_text/dump_ita.txt -d dict.txt -c clean.txt -b 1 -M 10 -l 112 -o 128 --game gargoyle

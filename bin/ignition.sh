@@ -24,4 +24,10 @@ python "$TOOLS_PATH/ignition.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP
 
 python "$TOOLS_PATH/ignition.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE1" -tp "$TRANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
 
-asar "$RESOURCE_PATH/asm/main.asm" "$DESTINATION"
+if ! command -v asar &> /dev/null
+then
+  echo "Command 'asar' not found."
+  exit
+else
+  asar "$RESOURCE_PATH/asm/main.asm" "$DESTINATION"
+fi

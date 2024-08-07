@@ -33,6 +33,12 @@ python "$TOOLS_PATH/soe.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PA
 python "$TOOLS_PATH/soe.py" insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -tp "$TRANSLATION_MISC_PATH"
 python "$TOOLS_PATH/soe.py" insert_custom -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -tp "$TRANSLATION_CUSTOM_PATH"
 
-asar "$RESOURCE_PATH/asm/gfx_hack.asm" "$DESTINATION"
-asar "$RESOURCE_PATH/asm/menu_text_ita.asm" "$DESTINATION"
-asar "$RESOURCE_PATH/asm/font.asm" "$DESTINATION"
+if ! command -v asar &> /dev/null
+then
+  echo "Command 'asar' not found."
+  exit
+else
+  asar "$RESOURCE_PATH/asm/gfx_hack.asm" "$DESTINATION"
+  asar "$RESOURCE_PATH/asm/menu_text_ita.asm" "$DESTINATION"
+  asar "$RESOURCE_PATH/asm/font.asm" "$DESTINATION"
+fi

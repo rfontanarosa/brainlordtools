@@ -34,4 +34,10 @@ python "$TOOLS_PATH/spike.py" dump_misc -s "$SOURCE" -t1 "$TABLE2" -dp "$DUMP_MI
 python "$TOOLS_PATH/spike.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE1" -tp "$TRANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
 python "$TOOLS_PATH/spike.py" insert_misc -d "$DESTINATION" -t1 "$TABLE2" -t2 "$TABLE2" -tp "$TRANSLATION_MISC_PATH"
 
-asar "$RESOURCE_PATH/asm/main.asm" "$DESTINATION"
+if ! command -v asar &> /dev/null
+then
+  echo "Command 'asar' not found."
+  exit
+else
+  asar "$RESOURCE_PATH/asm/main.asm" "$DESTINATION"
+fi

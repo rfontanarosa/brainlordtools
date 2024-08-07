@@ -32,9 +32,15 @@ python "$TOOLS_PATH/lufia.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$T
 python "$TOOLS_PATH/lufia.py" insert_misc -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE3" -tp "$TRANSLATION_MISC_PATH"
 python "$TOOLS_PATH/lufia.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
 
-asar "$RESOURCE_PATH/asm/hack.asm" "$DESTINATION"
-asar "$RESOURCE_PATH/asm/various.asm" "$DESTINATION"
-asar "$RESOURCE_PATH/asm/menus.asm" "$DESTINATION"
-asar "$RESOURCE_PATH/asm/battle_msg.asm" "$DESTINATION"
-asar "$RESOURCE_PATH/asm/levelup_msg.asm" "$DESTINATION"
-asar "$RESOURCE_PATH/asm/end_stats.asm" "$DESTINATION"
+if ! command -v asar &> /dev/null
+then
+  echo "Command 'asar' not found."
+  exit
+else
+  asar "$RESOURCE_PATH/asm/hack.asm" "$DESTINATION"
+  asar "$RESOURCE_PATH/asm/various.asm" "$DESTINATION"
+  asar "$RESOURCE_PATH/asm/menus.asm" "$DESTINATION"
+  asar "$RESOURCE_PATH/asm/battle_msg.asm" "$DESTINATION"
+  asar "$RESOURCE_PATH/asm/levelup_msg.asm" "$DESTINATION"
+  asar "$RESOURCE_PATH/asm/end_stats.asm" "$DESTINATION"
+fi
