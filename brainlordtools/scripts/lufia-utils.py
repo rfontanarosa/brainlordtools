@@ -19,24 +19,28 @@ dump_user_fullpath = os.path.join(translation_path, f'dump_ita_{user_name}.txt')
 import_dump = True
 export_user_translation = True
 
-if import_dump:
-  conn = sqlite3.connect(db)
-  conn.text_factory = str
-  cur = conn.cursor()
+def lufia_dump_reader(dump_fullpath):
+  buffer = {}
   with open(dump_fullpath, 'r') as f:
     id = 0
-    buffer = {}
     for line in f:
       if line.startswith('[BLOCK '):
         id += 1
         buffer[id] = ['', line.strip('\n\r')]
       else:
         buffer[id][0] += line
-    for id, value in buffer.items():
-      [text, ref] = value
-      text_length = len(text)
-      text_decoded = text.strip('\n\r')
-      insert_text(cur, id, b'', text_decoded, '', '', 1, ref)
+  return buffer
+
+if import_dump:
+  conn = sqlite3.connect(db)
+  conn.text_factory = str
+  cur = conn.cursor()
+  buffer = lufia_dump_reader(dump_fullpath)
+  for id, value in buffer.items():
+    [text, ref] = value
+    text_length = len(text)
+    text_decoded = text.strip('\n\r')
+    insert_text(cur, id, b'', text_decoded, '', '', 1, ref)
   cur.close()
   conn.commit()
   conn.close()
