@@ -48,8 +48,8 @@ def brandish_text_dumper(args):
 	cur = conn.cursor()
 	shutil.rmtree(dump_path, ignore_errors=True)
 	os.mkdir(dump_path)
-	id = 1
 	with open(source_file, 'rb') as f1, open(source_file, 'rb') as f2:
+		id = 1
 		f1.seek(POINTER_BLOCK_START)
 		while (f1.tell() < POINTER_BLOCK_END):
 			paddress = f1.tell()

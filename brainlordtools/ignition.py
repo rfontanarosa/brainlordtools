@@ -32,8 +32,8 @@ def ignition_text_dumper(args):
     cur = conn.cursor()
     shutil.rmtree(dump_path, ignore_errors=False)
     os.mkdir(dump_path)
-    id = 1
     with open(source_file, 'rb') as f1, open(source_file, 'rb') as f2:
+        id = 1
         block_pointers = []
         f1.seek(BLOCK_BANKS_OFFSETS[0])
         f2.seek(BLOCK_POINTERS_OFFSET[0])

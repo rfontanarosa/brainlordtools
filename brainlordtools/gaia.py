@@ -38,8 +38,8 @@ def gaia_text_dumper(args):
     cur = conn.cursor()
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
-    id = 1
     with open(source_file, 'rb') as f:
+        id = 1
         pointers = {}
         pointer_offsets = [m.start() for m in re.finditer(b'\x02\xbf', f.read())]
         for pointer_offset in pointer_offsets:

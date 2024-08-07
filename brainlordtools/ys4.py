@@ -95,8 +95,8 @@ def ys4_dumper(args):
 	conn = sqlite3.connect(db)
 	conn.text_factory = str
 	cur = conn.cursor()
-	id = 1
 	with open(source_file, 'rb') as f:
+		id = 1
 		# TEXT POINTERS 1
 		pointers = OrderedDict()
 		f.seek(POINTER_BLOCK1_START)

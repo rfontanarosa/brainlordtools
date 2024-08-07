@@ -41,8 +41,8 @@ def spike_text_dumper(args):
     cur = conn.cursor()
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
-    id = 1
     with open(source_file, 'rb') as f:
+        id = 1
         # READ POINTER BLOCKS
         for index, pointer_block in enumerate(POINTER_BLOCKS):
             pointers = {}

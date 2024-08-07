@@ -43,8 +43,8 @@ def ys3_text_dumper(args):
     cur = conn.cursor()
     shutil.rmtree(dump_path, ignore_errors=True)
     os.makedirs(dump_path)
-    id = 1
     with open(source_file, 'rb') as f:
+        id = 1
         # READ POINTER BLOCKS
         for block, pointer_block in enumerate(POINTER_BLOCKS):
             pointers = OrderedDict()

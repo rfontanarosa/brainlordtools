@@ -5,7 +5,6 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import sys, os, struct, sqlite3, csv
-from collections import OrderedDict
 
 from rhtools.utils import byte2int, hex2dec, int2hex, clean_text
 from rhtools.Table import Table
@@ -70,11 +69,11 @@ def bof_text_dumper(args):
 	conn = sqlite3.connect(db)
 	conn.text_factory = str
 	cur = conn.cursor()
-	id = 1
 	with open(source_file, 'rb') as f:
+		id = 1
 		# READ POINTERS BLOCK 1
 		block = 1
-		pointers = OrderedDict()
+		pointers = {}
 		f.seek(POINTER_BLOCK1_START)
 		while (f.tell() < POINTER_BLOCK1_END):
 			paddress = f.tell()
@@ -100,7 +99,7 @@ def bof_text_dumper(args):
 			id += 1
 		block = 2
 		# READ POINTERS BLOCK 2
-		pointers = OrderedDict()
+		pointers = {}
 		f.seek(POINTER_BLOCK2_START)
 		while(f.tell() < POINTER_BLOCK2_END):
 			paddress = f.tell()
