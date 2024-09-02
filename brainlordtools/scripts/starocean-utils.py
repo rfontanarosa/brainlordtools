@@ -4,14 +4,16 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import os, sqlite3, sys
-from rhutils.db import insert_text
+import os, sqlite3, time
+from rhutils.db import insert_text, insert_translation, select_translation_by_author, TranslationStatus
 
+user_name = 'clomax'
 resources_path = '/Users/robertofontanarosa/git/brainlordresources/starocean'
 db = os.path.join(resources_path, 'db/starocean.sqlite3')
 dump_path = os.path.join(resources_path, 'dump_text')
 translation_path = os.path.join(resources_path, 'translation_text')
 dump_fullpath = os.path.join(dump_path, 'dump_eng.txt')
+translation_user_fullpath = os.path.join(translation_path, f'dump_ita_{user_name}.txt')
 
 dump_amazon_fullpath = os.path.join(translation_path, 'dump_ita_amazon.txt')
 
@@ -23,6 +25,7 @@ dump2_deepl_fullpath = os.path.join(translation_path, 'dump_ita_deepl_2.txt')
 import_dump = False
 translate_dump_amazon = False
 translate_dump_deepl = False
+import_user_translation = False
 
 def starocean_dump_reader(dump_fullpath):
   buff = {}
@@ -98,3 +101,18 @@ if translate_dump_deepl:
       print(f"Error after uploading ${error}, id: ${doc_id} key: ${doc_key}")
   except deepl.DeepLException as error:
       print(error)
+
+if import_user_translation:
+  conn = sqlite3.connect(db)
+  conn.text_factory = str
+  cur = conn.cursor()
+  buff = starocean_dump_reader(translation_user_fullpath)
+  for id, value in buff.items():
+    [text, ref] = value
+    text_length = len(text)
+    text_decoded = text.rstrip('\n\r')
+    insert_text(cur, id, b'', text_decoded, '', '', 1, ref)
+    insert_translation(cur, id, 'TEST', user_name, text_decoded, TranslationStatus.DONE, time.time(), '', '')
+  cur.close()
+  conn.commit()
+  conn.close()
