@@ -111,7 +111,6 @@ if import_user_translation:
     [text, ref] = value
     text_length = len(text)
     text_decoded = text.rstrip('\n\r')
-    insert_text(cur, id, b'', text_decoded, '', '', 1, ref)
     insert_translation(cur, id, 'TEST', user_name, text_decoded, TranslationStatus.DONE, time.time(), '', '')
   cur.close()
   conn.commit()
