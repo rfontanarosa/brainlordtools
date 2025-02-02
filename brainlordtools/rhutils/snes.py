@@ -18,7 +18,7 @@ def pc2snes_hirom(offset):
     return None if offset >= 0x400000 else offset | 0xc00000
 
 def snes2pc_hirom(offset):
-    return offset & 0x3ffff if offset >= 0xC00000 and offset <= 0xFFFFFF else None
+    return offset & 0x3FFFFF
 
 def has_smc_header(filename):
     rest = os.stat(filename).st_size % 1024
