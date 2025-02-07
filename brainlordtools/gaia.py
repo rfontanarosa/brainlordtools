@@ -166,8 +166,6 @@ def gaia_text_inserter(args):
         for block, value in buffer.items():
             text, offsets = value
             original_text_offset, _ = offsets
-            if block in (1165,):
-                continue
             encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
             total += len(encoded_text)
             if len(encoded_text) < 5:
@@ -178,8 +176,6 @@ def gaia_text_inserter(args):
             offsets_list.append((original_text_offset, f.tell(), encoded_text[-1]))
             f.write(encoded_text[:-1] + b'\xca')
         for id, offsets in enumerate(offsets_list):
-            if id + 1 in (1165,):
-                continue
             original_text_offset, new_text_offset, end_byte = offsets
             snes_offset = pc2snes_hirom(new_text_offset) - 0x400_000
             new_pointer = struct.pack('<I', snes_offset)
