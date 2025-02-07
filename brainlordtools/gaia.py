@@ -186,6 +186,16 @@ def gaia_text_inserter(args):
             f.seek(original_text_offset)
             f.write(b'\xcd' + new_pointer[:3] + bytes([end_byte]))
 
+def gaia_gfx_inserter(args):
+    dest_file = args.dest_file
+    translation_path = args.translation_path
+    with open(dest_file, 'r+b') as f:
+        insert_binary(f, 0x258_000, 0x258_000 + 4314, translation_path, 'font_ita.bin')
+        f.seek(0xd8008)
+        snes_offset = pc2snes_hirom(0x258_000) - 0x400_000
+        new_pointer = struct.pack('<I', snes_offset)
+        f.write(new_pointer[:3])
+
 def gaia_expander(args):
     dest_file = args.dest_file
     expand_rom(dest_file, EXP_SIZE)
@@ -209,6 +219,15 @@ insert_text_parser.add_argument('-tp', '--translation_path', action='store', des
 insert_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
 insert_text_parser.add_argument('-u', '--user', action='store', dest='user', help='')
 insert_text_parser.set_defaults(func=gaia_text_inserter)
+dump_misc_parser = subparsers.add_parser('dump_misc', help='Execute MISC DUMP')
+dump_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+dump_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+dump_misc_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+dump_misc_parser.set_defaults(func=gaia_misc_dumper)
+insert_gfx_parser = subparsers.add_parser('insert_gfx', help='Execute GFX INSERTER')
+insert_gfx_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_gfx_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+insert_gfx_parser.set_defaults(func=gaia_gfx_inserter)
 expand_parser = subparsers.add_parser('expand', help='Execute EXPANDER')
 expand_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 expand_parser.set_defaults(func=gaia_expander)
