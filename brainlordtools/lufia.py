@@ -5,7 +5,6 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import csv, os, shutil, sqlite3, struct, sys
-from collections import OrderedDict
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_most_recent_translation
@@ -77,7 +76,7 @@ def lufia_misc_dumper(args):
         with open(filename, 'w+') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
-            pointers = OrderedDict()
+            pointers = {}
             f.seek(0x55800)
             while f.tell() < 0x559ff:
                 pointers[f.tell()] = struct.unpack('H', f.read(2))[0] + 0x55800
@@ -92,7 +91,7 @@ def lufia_misc_dumper(args):
         with open(filename, 'w+') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
-            pointers = OrderedDict()
+            pointers = {}
             f.seek(0x5800)
             while f.tell() < 0x5949:
                 pointers[f.tell()] = struct.unpack('H', f.read(2))[0] + 0x5800
@@ -107,7 +106,7 @@ def lufia_misc_dumper(args):
         with open(filename, 'w+') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
-            pointers = OrderedDict()
+            pointers = {}
             f.seek(0xfdb00)
             while f.tell() < (0xfdb6f - (7 * 2)):
                 pointers[f.tell()] = struct.unpack('H', f.read(2))[0] + 0xfdb00
@@ -122,7 +121,7 @@ def lufia_misc_dumper(args):
         with open(filename, 'w+') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
-            pointers = OrderedDict()
+            pointers = {}
             f.seek(0xfdb00)
             while f.tell() < (0xfdb6f - (7 * 2)):
                 pointer_address = struct.unpack('H', f.read(2))[0] + 0xfdb00 + 15
@@ -138,7 +137,7 @@ def lufia_misc_dumper(args):
         with open(filename, 'w+') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
-            pointers = OrderedDict()
+            pointers = {}
             f.seek(0x4150a)
             while f.tell() < 0x4157b:
                 text_address = snes2pc_lorom(struct.unpack('H', f.read(2))[0]) + 0x40000
@@ -154,7 +153,7 @@ def lufia_misc_dumper(args):
         with open(filename, 'w+') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
-            pointers = OrderedDict()
+            pointers = {}
             f.seek(MTE1_POINTERS_OFFSETS[0])
             while f.tell() < MTE1_POINTERS_OFFSETS[1] - 2:
                 text_address_start = snes2pc_lorom(struct.unpack('H', f.read(2))[0]) + 0x50000
@@ -171,7 +170,7 @@ def lufia_misc_dumper(args):
         with open(filename, 'w+') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
-            pointers = OrderedDict()
+            pointers = {}
             f.seek(MTE2_POINTERS_OFFSETS[0])
             while f.tell() < MTE2_POINTERS_OFFSETS[1] - 2:
                 text_address_start = snes2pc_lorom(struct.unpack('H', f.read(2))[0]) + 0x50000
@@ -194,7 +193,7 @@ def lufia_text_inserter(args):
     if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table2_file)
-    buffer = OrderedDict()
+    buffer = {}
     #
     conn = sqlite3.connect(db)
     conn.text_factory = str
@@ -234,11 +233,11 @@ def lufia_text_inserter(args):
         index = 0
 
         for block, value in buffer.items():
-
-            [text, offsets] = value
+            text, offsets = value
+            offset_from, offset_to = offsets
 
             encoded_text = table.encode(text[:-2], mte_resolver=False, dict_resolver=True)  # Encode text
-            [offset_from, offset_to] = offsets
+
             f.seek(offset_from)  # Go the the offset of the original text
 
             if offsets[1] - offsets[0] < 3:
