@@ -13,8 +13,8 @@ def byte2int(b):
 def byte22int(b2):
 	return (ord(b2[0]) << 8) + ord(b2[1])
 
-def byte32int(b3):
-	return (ord(b3[2]) << 16) + (ord(b3[1]) << 8) + ord(b3[0])
+# def byte32int(b3):
+# 	return (ord(b3[2]) << 16) + (ord(b3[1]) << 8) + ord(b3[0])
 
 def int2byte(n):
 	""" convert an integer to a byte """

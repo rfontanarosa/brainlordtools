@@ -10,9 +10,8 @@ def read_text(f, offset=None, length=None, end_byte=None, cmd_list=None, append_
         while True:
             byte = f.read(1)
             if cmd_list and byte in cmd_list.keys():
-                text += byte
                 bytes_to_read = cmd_list.get(byte)
-                text += f.read(bytes_to_read)
+                text += byte + f.read(bytes_to_read)
             elif byte in end_byte:
                 if append_end_byte:
                     text += byte
@@ -60,3 +59,13 @@ def get_csv_translated_texts(filename):
             text_address = int(row['text_address'], 16)
             translated_texts[text_address] = trans
     return translated_texts
+
+# def get_csv_translated_texts(filename):
+#     translated_texts = []
+#     with open(filename, 'r', encoding='utf-8') as csv_file:
+#         csv_reader = csv.DictReader(csv_file)
+#         for row in csv_reader:
+#             trans = row.get('trans') or row.get('text')
+#             text_address = int(row['text_address'], 16)
+#             translated_texts.append((text_address, trans))
+#     return translated_texts
