@@ -93,6 +93,74 @@ def gaia_text_dumper(args):
     conn.commit()
     conn.close()
 
+def gaia_text_inserter(args):
+    source_file = args.source_file
+    dest_file = args.dest_file
+    table2_file = args.table2
+    translation_path = args.translation_path
+    db = args.database_file
+    user_name = args.user
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
+        sys.exit('SOURCE ROM CHECKSUM FAILED!')
+    table = Table(table2_file)
+    buffer = dict()
+    #
+    # conn = sqlite3.connect(db)
+    # conn.text_factory = str
+    # cur = conn.cursor()
+    # rows = select_most_recent_translation(cur, ['1'])
+    # for row in rows:
+    #     _, _, text_decoded, _, _, translation, _, _, ref = row
+    #     splitted_line = ref.split(' ')
+    #     block = int(splitted_line[1].replace(':', ''))
+    #     offset_from = int(splitted_line[2], 16)
+    #     offset_to = int(splitted_line[4].replace(']', ''), 16)
+    #     buffer[block] = ['', [offset_from, offset_to]]
+    #     text = translation if translation else text_decoded
+    #     buffer[block][0] = text + '\n\n'
+    # cur.close()
+    # conn.commit()
+    # conn.close()
+    #
+    translation_file = os.path.join(translation_path, 'dump_ita.txt')
+    with open(translation_file, 'r') as f:
+        for line in f:
+            if '[BLOCK ' in line:
+                splitted_line = line.split(' ')
+                block = int(splitted_line[1].replace(':', ''))
+                offset_from = int(splitted_line[2], 16)
+                offset_to = int(splitted_line[4].replace(']\n', ''), 16)
+                buffer[block] = ['', [offset_from, offset_to]]
+            else:
+                buffer[block][0] += line
+    with open(dest_file, 'rb+') as f:
+        total = 0
+        offsets_list = []
+        new_offset = 0x208_000
+        f.seek(new_offset)
+        for block, value in buffer.items():
+            text, offsets = value
+            original_text_offset, _ = offsets
+            if block in (1165,):
+                continue
+            encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
+            total += len(encoded_text)
+            if len(encoded_text) < 5:
+                continue
+            if f.tell() + len(encoded_text) > new_offset + 0x8_000:
+                new_offset += 0x10_000
+                f.seek(new_offset)
+            offsets_list.append((original_text_offset, f.tell(), encoded_text[-1]))
+            f.write(encoded_text[:-1] + b'\xca')
+        for id, offsets in enumerate(offsets_list):
+            if id + 1 in (1165,):
+                continue
+            original_text_offset, new_text_offset, end_byte = offsets
+            snes_offset = pc2snes_hirom(new_text_offset) - 0x400_000
+            new_pointer = struct.pack('<I', snes_offset)
+            f.seek(original_text_offset)
+            f.write(b'\xcd' + new_pointer[:3] + bytes([end_byte]))
+
 def gaia_expander(args):
     dest_file = args.dest_file
     expand_rom(dest_file, EXP_SIZE)
@@ -108,6 +176,14 @@ dump_text_parser.add_argument('-t1', '--table1', action='store', dest='table1', 
 dump_text_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
 dump_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
 dump_text_parser.set_defaults(func=gaia_text_dumper)
+insert_text_parser = subparsers.add_parser('insert_text', help='Execute TEXT INSERTER')
+insert_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+insert_text_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_text_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+insert_text_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+insert_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+insert_text_parser.add_argument('-u', '--user', action='store', dest='user', help='')
+insert_text_parser.set_defaults(func=gaia_text_inserter)
 expand_parser = subparsers.add_parser('expand', help='Execute EXPANDER')
 expand_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 expand_parser.set_defaults(func=gaia_expander)

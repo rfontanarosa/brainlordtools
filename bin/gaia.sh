@@ -20,3 +20,5 @@ python "$TOOLS_PATH/_utils.py" file_copy -s "$SOURCE" -d "$DESTINATION"
 python "$TOOLS_PATH/gaia.py" expand -d "$DESTINATION"
 
 python "$TOOLS_PATH/gaia.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH" -db "$DB"
+
+python "$TOOLS_PATH/gaia.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE2" -tp "$TRANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
