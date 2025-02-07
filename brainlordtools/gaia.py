@@ -10,7 +10,7 @@ from rhtools3.Table import Table
 from rhutils.db import insert_text, select_translation_by_author, select_most_recent_translation
 from rhutils.dump import write_text, dump_binary, insert_binary, get_csv_translated_texts
 from rhutils.rom import crc32, expand_rom
-from rhutils.snes import snes2pc_hirom
+from rhutils.snes import pc2snes_hirom, snes2pc_hirom
 
 CRC32 = '1C3848C0'
 
@@ -92,6 +92,31 @@ def gaia_text_dumper(args):
     cur.close()
     conn.commit()
     conn.close()
+
+def gaia_misc_dumper(args):
+    source_file = args.source_file
+    table1_file = args.table1
+    dump_path = args.dump_path
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
+        sys.exit('SOURCE ROM CHECKSUM FAILED!')
+    table = Table(table1_file)
+    shutil.rmtree(dump_path, ignore_errors=True)
+    os.mkdir(dump_path)
+    with open(source_file, 'rb') as f:
+        # Attacks
+        filename = os.path.join(dump_path, 'attacks.csv')
+        with open(filename, 'w+') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['text_address', 'text', 'trans'])
+            for pointer_offset in tuple(range(0x8eb8f, 0x8eb9b, 2)) + tuple(range(0x1eba8, 0x1eda7, 2)) + tuple(range(0x1f54f, 0x1f6dc, 2)):
+                f.seek(pointer_offset)
+                pointer = f.read(2)
+                bank_byte = pointer_offset & 0xFF0000
+                taddress = pointer[0] + (pointer[1] << 8) + bank_byte
+                text = gaia_read_text(f, taddress, end_byte=(b'\xc0', b'\xca'), cmd_list=cmd_list, append_end_byte=False)
+                text_decoded = table.decode(text, mte_resolver=True, dict_resolver=True)
+                fields = [hex(pointer_offset), text_decoded]
+                csv_writer.writerow(fields)
 
 def gaia_text_inserter(args):
     source_file = args.source_file
