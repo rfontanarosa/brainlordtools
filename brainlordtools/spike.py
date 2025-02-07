@@ -86,7 +86,7 @@ def spike_misc_dumper(args):
     with open(source_file, 'rb') as f:
         # Monsters
         filename = os.path.join(dump_path, 'monsters.csv')
-        with open(filename, 'w+') as csv_file:
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             f.seek(0x62303)

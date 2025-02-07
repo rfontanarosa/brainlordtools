@@ -64,7 +64,7 @@ def get_pointers(f, start, count, step):
 
 def get_translated_texts(filename):
     translated_texts = {}
-    with open(filename, 'r') as csv_file:
+    with open(filename, 'r', encoding='utf-8') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         for row in csv_reader:
             trans = row.get('trans') or row.get('text')

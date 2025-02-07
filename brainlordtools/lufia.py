@@ -73,7 +73,7 @@ def lufia_misc_dumper(args):
     with open(source_file, 'rb') as f, open(source_file, 'rb') as f1:
         # Items
         filename = os.path.join(dump_path, 'items.csv')
-        with open(filename, 'w+') as csv_file:
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             pointers = {}
@@ -88,7 +88,7 @@ def lufia_misc_dumper(args):
                 csv_writer.writerow(fields)
         # Enemy names
         filename = os.path.join(dump_path, 'enemy_names.csv')
-        with open(filename, 'w+') as csv_file:
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             pointers = {}
@@ -103,7 +103,7 @@ def lufia_misc_dumper(args):
                 csv_writer.writerow(fields)
         # Magic
         filename = os.path.join(dump_path, 'magic.csv')
-        with open(filename, 'w+') as csv_file:
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             pointers = {}
@@ -118,7 +118,7 @@ def lufia_misc_dumper(args):
                 csv_writer.writerow(fields)
         # Magic descriptions
         filename = os.path.join(dump_path, 'magic_descriptions.csv')
-        with open(filename, 'w+') as csv_file:
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             pointers = {}
@@ -134,7 +134,7 @@ def lufia_misc_dumper(args):
                 csv_writer.writerow(fields)
         # Attacks
         filename = os.path.join(dump_path, 'attacks.csv')
-        with open(filename, 'w+') as csv_file:
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             pointers = {}
@@ -150,7 +150,7 @@ def lufia_misc_dumper(args):
                 csv_writer.writerow(fields)
         # MTE 1
         filename = os.path.join(dump_path, 'mte1.csv')
-        with open(filename, 'w+') as csv_file:
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             pointers = {}
@@ -167,7 +167,7 @@ def lufia_misc_dumper(args):
                 f.seek(-2, os.SEEK_CUR)
         # MTE 2
         filename = os.path.join(dump_path, 'mte2.csv')
-        with open(filename, 'w+') as csv_file:
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             pointers = {}

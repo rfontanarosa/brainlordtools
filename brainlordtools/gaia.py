@@ -105,7 +105,7 @@ def gaia_misc_dumper(args):
     with open(source_file, 'rb') as f:
         # Attacks
         filename = os.path.join(dump_path, 'attacks.csv')
-        with open(filename, 'w+') as csv_file:
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             for pointer_offset in tuple(range(0x8eb8f, 0x8eb9b, 2)) + tuple(range(0x1eba8, 0x1eda7, 2)) + tuple(range(0x1f54f, 0x1f6dc, 2)):
