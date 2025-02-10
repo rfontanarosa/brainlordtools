@@ -89,6 +89,28 @@ def gaia_text_dumper(args):
             with open(filename, 'a+', encoding='utf-8') as out:
                 out.write(f'{ref}\n{text_decoded}\n\n')
             id += 1
+        ##
+        id = 1
+        pointers = {}
+        for pointer_offset in tuple(range(0x8eb8f, 0x8eb9b, 2)) + tuple(range(0x8ebd3, 0x8ebdf, 2)):
+            #  + tuple(range(0x1fd26, 0x1fda3, 2))
+            f.seek(pointer_offset)
+            pointer = f.read(2)
+            bank_byte = pointer_offset & 0xFF0000
+            taddress = pointer[0] + (pointer[1] << 8) + bank_byte
+            pointers.setdefault(taddress, []).append(pointer_offset)
+        for i, (taddress, paddresses) in enumerate(pointers.items()):
+            text = gaia_read_text(f, taddress, end_byte=(b'\xc0', b'\xca'), cmd_list=cmd_list, append_end_byte=True)
+            text_decoded = table.decode(text, mte_resolver=True, dict_resolver=True)
+            pointer_addresses = ';'.join(hex(x) for x in paddresses)
+            ref = f'[BLOCK {id}: {hex(taddress)} to {hex(f.tell() - 1)} - {pointer_addresses}]'
+            # dump - db
+            # insert_text(cur, id, text, text_decoded, text_address, '', 2, ref)
+            # dump - txt
+            filename = os.path.join(dump_path, 'dump_attacks_eng.txt')
+            with open(filename, 'a+', encoding='utf-8') as out:
+                out.write(f'{ref}\n{text_decoded}\n\n')
+            id += 1
     cur.close()
     conn.commit()
     conn.close()
@@ -174,6 +196,65 @@ def gaia_text_inserter(args):
             new_pointer = struct.pack('<I', snes_offset)[:3]
             f.seek(original_text_offset)
             f.write(b'\xcd' + new_pointer + bytes([end_byte]))
+    ##
+    translation_file_attacks = os.path.join(translation_path, 'dump_attacks_ita.txt')
+    dump_attacks = read_dump(translation_file_attacks)
+    with open(dest_file, 'rb+') as f:
+        new_offset = 0x248_000
+        #
+        f.seek(new_offset)
+        pointers = b''
+        #
+        for block, value in list(dump_attacks.items())[:6]:
+            text, _ = value
+            pointers += struct.pack('<I', f.tell())[:2]
+            encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
+            f.write(encoded_text)
+        pointer_offset = f.tell()
+        f.write(pointers)
+        #
+        dialog_attacks = dump[1165]
+        text, offsets = dialog_attacks
+        original_text_offset, _ = offsets
+        encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
+        c5_index = encoded_text.find(b'\xc5')
+        encoded_text = encoded_text[:c5_index + 1] + struct.pack('<I', pointer_offset)[:2] + encoded_text[c5_index + 3:]
+        new_text_offset = f.tell()
+        end_byte = encoded_text[-1]
+        f.write(encoded_text[:-1] + b'\xca')
+        #
+        new_offset = f.tell()
+        snes_offset = pc2snes_hirom(new_text_offset) - 0x400_000
+        new_pointer = struct.pack('<I', snes_offset)[:3]
+        f.seek(original_text_offset)
+        f.write(b'\xcd' + new_pointer + bytes([end_byte]))
+        #
+        f.seek(new_offset)
+        pointers = b''
+        #
+        for block, value in list(dump_attacks.items())[6:]:
+            text, _ = value
+            pointers += struct.pack('<I', f.tell())[:2]
+            encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
+            f.write(encoded_text)
+        pointer_offset = f.tell()
+        f.write(pointers)
+        #
+        dialog_attacks = dump[1166]
+        text, offsets = dialog_attacks
+        original_text_offset, _ = offsets
+        encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
+        c5_index = encoded_text.find(b'\xc5')
+        encoded_text = encoded_text[:c5_index + 1] + struct.pack('<I', pointer_offset)[:2] + encoded_text[c5_index + 3:]
+        new_text_offset = f.tell()
+        end_byte = encoded_text[-1]
+        f.write(encoded_text[:-1] + b'\xca')
+        #
+        new_offset = f.tell()
+        snes_offset = pc2snes_hirom(new_text_offset) - 0x400_000
+        new_pointer = struct.pack('<I', snes_offset)[:3]
+        f.seek(original_text_offset)
+        f.write(b'\xcd' + new_pointer + bytes([end_byte]))
 
 def gaia_gfx_inserter(args):
     dest_file = args.dest_file
