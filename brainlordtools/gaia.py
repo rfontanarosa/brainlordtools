@@ -8,7 +8,7 @@ import csv, os, re, shutil, sqlite3, struct, sys
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_translation_by_author, select_most_recent_translation
-from rhutils.dump import write_text, dump_binary, insert_binary, get_csv_translated_texts
+from rhutils.dump import write_text, dump_binary, get_csv_translated_texts, insert_binary, read_dump
 from rhutils.rom import crc32, expand_rom
 from rhutils.snes import pc2snes_hirom, snes2pc_hirom
 
@@ -148,26 +148,17 @@ def gaia_text_inserter(args):
     # conn.close()
     #
     translation_file = os.path.join(translation_path, 'dump_ita.txt')
-    with open(translation_file, 'r') as f:
-        for line in f:
-            if '[BLOCK ' in line:
-                splitted_line = line.split(' ')
-                block = int(splitted_line[1].replace(':', ''))
-                offset_from = int(splitted_line[2], 16)
-                offset_to = int(splitted_line[4].replace(']\n', ''), 16)
-                buffer[block] = ['', [offset_from, offset_to]]
-            else:
-                buffer[block][0] += line
+    dump = read_dump(translation_file)
     with open(dest_file, 'rb+') as f:
-        total = 0
         offsets_list = []
         new_offset = 0x208_000
         f.seek(new_offset)
-        for block, value in buffer.items():
+        for block, value in dump.items():
+            if block in (1165, 1166):
+                continue
             text, offsets = value
             original_text_offset, _ = offsets
             encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
-            total += len(encoded_text)
             if len(encoded_text) < 5:
                 continue
             if f.tell() + len(encoded_text) > new_offset + 0x8_000:
@@ -175,12 +166,14 @@ def gaia_text_inserter(args):
                 f.seek(new_offset)
             offsets_list.append((original_text_offset, f.tell(), encoded_text[-1]))
             f.write(encoded_text[:-1] + b'\xca')
-        for id, offsets in enumerate(offsets_list):
+        for block, offsets in enumerate(offsets_list, start=1):
+            if block in (1165, 1166):
+                continue
             original_text_offset, new_text_offset, end_byte = offsets
             snes_offset = pc2snes_hirom(new_text_offset) - 0x400_000
-            new_pointer = struct.pack('<I', snes_offset)
+            new_pointer = struct.pack('<I', snes_offset)[:3]
             f.seek(original_text_offset)
-            f.write(b'\xcd' + new_pointer[:3] + bytes([end_byte]))
+            f.write(b'\xcd' + new_pointer + bytes([end_byte]))
 
 def gaia_gfx_inserter(args):
     dest_file = args.dest_file

@@ -31,6 +31,20 @@ def write_text(f, offset, text, length=None, end_byte=None, limit=None):
         raise Exception()
     return f.tell()
 
+def read_dump(filename):
+    buffer = {}
+    with open(filename, 'r') as f:
+        for line in f:
+            if '[BLOCK ' in line:
+                splitted_line = line.split(' ')
+                block = int(splitted_line[1].replace(':', ''))
+                offset_from = int(splitted_line[2], 16)
+                offset_to = int(splitted_line[4].replace(']\n', ''), 16)
+                buffer[block] = ['', [offset_from, offset_to]]
+            else:
+                buffer[block][0] += line
+    return buffer
+
 def write_byte(f, offset, byte):
     f.seek(offset)
     f.write(byte)
