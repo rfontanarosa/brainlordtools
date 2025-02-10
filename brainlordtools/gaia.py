@@ -103,19 +103,19 @@ def gaia_misc_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        # Attacks
-        filename = os.path.join(dump_path, 'attacks.csv')
+        # Dictionary
+        filename = os.path.join(dump_path, 'dictionary.csv')
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
-            csv_writer.writerow(['text_address', 'text', 'trans'])
-            for pointer_offset in tuple(range(0x8eb8f, 0x8eb9b, 2)) + tuple(range(0x1eba8, 0x1eda7, 2)) + tuple(range(0x1f54f, 0x1f6dc, 2)):
+            csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
+            for pointer_offset in tuple(range(0x1eba8, 0x1eda7, 2)) + tuple(range(0x1f54f, 0x1f6dc, 2)):
                 f.seek(pointer_offset)
                 pointer = f.read(2)
                 bank_byte = pointer_offset & 0xFF0000
                 taddress = pointer[0] + (pointer[1] << 8) + bank_byte
                 text = gaia_read_text(f, taddress, end_byte=(b'\xc0', b'\xca'), cmd_list=cmd_list, append_end_byte=False)
                 text_decoded = table.decode(text, mte_resolver=True, dict_resolver=True)
-                fields = [hex(pointer_offset), text_decoded]
+                fields = [hex(pointer_offset), hex(taddress), text_decoded]
                 csv_writer.writerow(fields)
 
 def gaia_text_inserter(args):
