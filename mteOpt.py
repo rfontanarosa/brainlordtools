@@ -34,7 +34,7 @@ filename2 = dict_args.get('dest_file')
 offset = dict_args.get('offset')
 
 def clean_file(f, f1, regex_list=None, allow_duplicates=True):
-    """ applica a ogni linea del file delle espressioni regolari, rimuove opzionalmente le linee duplicate """
+    """Cleans a file using regex and removes duplicates (default)."""
     lines_seen = set()
     for line in f.readlines():
         if regex_list:
@@ -46,7 +46,7 @@ def clean_file(f, f1, regex_list=None, allow_duplicates=True):
             f1.write(line)
             lines_seen.add(line)
 
-def clean_string(string, regex_list=None, allow_duplicates=True):
+def clean_string(string, regex_list=None, allow_duplicates=False):
     """ applica a ogni linea del file delle espressioni regolari, rimuove opzionalmente le linee duplicate """
     s = StringIO(string)
     s1 = StringIO()
@@ -71,7 +71,7 @@ def extract_chunks(text, chunk_size, start_index=0):
     return [text[i:(i+chunk_size)] for i in range(start_index, len(text), chunk_size)]
 
 def get_substrings_by_length(text, length):
-    """ estrae tutte le possibili occorrenze di lunghezza n da una stringa """
+    """Extracts all possible substrings of a given length from a string."""
     chunks = []
     if length > 0:
         for i in range (0, length):
@@ -79,7 +79,7 @@ def get_substrings_by_length(text, length):
     return list(filter(lambda x: len(x) == length, chunks))
 
 def get_occurrences_by_length(f, length):
-    """ genera un dizionario con le occorrenze di lunghezza n """
+    """Generates a dictionary of substring occurrences of a specific length from a file."""
     dictionary = defaultdict(int)
     for line in f.readlines():
         if line:
@@ -90,7 +90,7 @@ def get_occurrences_by_length(f, length):
     return dictionary
 
 def get_occurrences(f, min_length, max_length):
-    """ genera un dizionario con le occorrenze di un range di lunghezza """
+    """Generates a dictionary of string occurrences within a length range."""
     dictionary = Counter()
     for length in range(min_length, max_length + 1):
         buff = StringIO(f.getvalue())
@@ -99,14 +99,15 @@ def get_occurrences(f, min_length, max_length):
     return dictionary
 
 def calculate_weight(dictionary):
-    """ crea un dizionario pesato sulla lunghezza delle parole """
-    return {k: v * (len(k) - 2) for k, v in dictionary.items()}
+    """Calculates weights based on string length."""
+    return {k: v * (len(k) - BYTES) for k, v in dictionary.items()}
 
 def sort_dict_by_value(dictionary, reverse=True):
-    """ reversa il dizionario e lo ordina per valore """
+    """Sorts a dictionary by value (and then key)."""
     return sorted(list(dictionary.items()), key=lambda x: (x[1], x[0]), reverse=reverse)
 
 def export_table(filename, dictionary, offset):
+    """Exports the dictionary to a table with optional offset."""
     with io.open(filename, mode='w', encoding="utf-8") as out:
         for i, v in enumerate(dictionary):
             line = v
@@ -118,6 +119,7 @@ def export_table(filename, dictionary, offset):
             out.write(f'{line}\n')
 
 def calculate_weighted_sum(dictionary):
+    """Calculates the weighted sum of values in a dictionary based on key length."""
     return sum(value * (len(key) - BYTES) for key, value in dictionary.items())
 
 regex_list = None
