@@ -1,4 +1,4 @@
-import re, io
+import io, re
 from collections import defaultdict, Counter
 from io import StringIO
 
@@ -6,14 +6,14 @@ import argparse
 parent_parser = argparse.ArgumentParser()
 parser = argparse.ArgumentParser(add_help=False)
 subparsers = parser.add_subparsers(dest='cmd')
-parent_parser.add_argument('-m', '--min', action='store', dest='min', type=int, default=3, help='')
-parent_parser.add_argument('-M', '--max', action='store', dest='max', type=int, default=8, help='')
-parent_parser.add_argument('-l', '--limit', action='store', dest='limit', type=int, default=5, help='')
-parent_parser.add_argument('-b', '--bytes', action='store', dest='bytes', type=int, default=2, help='')
+parent_parser.add_argument('-m', '--min', action='store', dest='min', type=int, default=3, help='Minimum string length')
+parent_parser.add_argument('-M', '--max', action='store', dest='max', type=int, default=8, help='Maximum string length')
+parent_parser.add_argument('-l', '--limit', action='store', dest='limit', type=int, default=5, help='Dictionary number of entries')
+parent_parser.add_argument('-b', '--bytes', action='store', dest='bytes', type=int, default=2, help='Dictionary key lenght')
 parent_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 parent_parser.add_argument('-c', '--clean', action='store', dest='clean_file', required=True, help='Clean filename')
 parent_parser.add_argument('--game', choices=['bof', 'gargoyle', 'smrpg', 'ys4'], help='Game specific cleaning rules')
-parent_parser.add_argument('--debug', action='store_true', help='Enable DEBUG')
+parent_parser.add_argument('--debug', action='store_true', help='Enable debug output')
 parser0 = subparsers.add_parser('print' , parents=[parent_parser], add_help=False)
 parser1 = subparsers.add_parser('table', parents=[parent_parser], add_help=False)
 parser1.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
@@ -156,5 +156,4 @@ with io.open(filename1, mode='r', encoding="utf-8") as f:
 if cmd == 'print':
     print(dictionary)
 elif cmd == 'table':
-    print(dictionary)
     export_table(filename2, dictionary, offset)
