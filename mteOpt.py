@@ -122,31 +122,34 @@ def string_to_file(filename, s):
     with io.open(filename, mode='w', encoding="utf-8") as f:
         f.write(s)
 
-regex_list = None
+def get_regex_list(game):
+    if game == 'bof':
+        return None
+    elif game == 'gargoyle':
+        return [
+            (re.compile(r'<WAIT>\n'), '\n'),
+            (re.compile(r'{..}'), ''),
+            (re.compile(r'\[.+?\]'), '\n')
+        ]
+    elif game == 'smrpg':
+        return [
+            (re.compile(r'^.{7}'), ''),
+            (re.compile(r' {5,}'), ''),
+            (re.compile(r'[.]{3,}'), '\n'),
+            (re.compile(r'\[.+?\]'), '\n')
+        ]
+    elif game == 'starocean':
+        return [
+            (re.compile(r'^<TEXT .*?>\n'), ''),
+            (re.compile(r'^</TEXT>\n'), ''),
+            (re.compile(r'<\$..>'), '')
+        ]
+    elif game == 'ys4':
+        return None
+    else:
+        return None
 
-if game == 'bof':
-    pass
-elif game == 'gargoyle':
-    regex_list = [
-        (re.compile(r'<WAIT>\n'), '\n'),
-        (re.compile(r'{..}'), ''),
-        (re.compile(r'\[.+?\]'), '\n')
-    ]
-elif game == 'smrpg':
-    regex_list = [
-        (re.compile(r'^.{7}'), ''),
-        (re.compile(r' {5,}'), ''),
-        (re.compile(r'[.]{3,}'), '\n'),
-        (re.compile(r'\[.+?\]'), '\n')
-    ]
-elif game == 'starocean':
-    regex_list = [
-        (re.compile(r'^<TEXT .*?>\n'), ''),
-        (re.compile(r'^</TEXT>\n'), ''),
-        (re.compile(r'<\$..>'), '')
-    ]
-elif game == 'ys4':
-    pass
+regex_list = get_regex_list(game)
 
 with io.open(filename, mode='r', encoding="utf-8") as f, io.open(filename1, mode='w', encoding="utf-8") as f1:
     clean_file(f, f1, regex_list=regex_list, allow_duplicates=False)
