@@ -12,7 +12,7 @@ parent_parser.add_argument('-l', '--limit', action='store', dest='limit', type=i
 parent_parser.add_argument('-b', '--bytes', action='store', dest='bytes', type=int, default=2, help='Dictionary key lenght')
 parent_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 parent_parser.add_argument('-c', '--clean', action='store', dest='clean_file', required=True, help='Clean filename')
-parent_parser.add_argument('--game', choices=['bof', 'gargoyle', 'smrpg', 'ys4'], help='Game specific cleaning rules')
+parent_parser.add_argument('--game', choices=['bof', 'gargoyle', 'smrpg', 'starocean', 'ys4'], help='Game specific cleaning rules')
 parent_parser.add_argument('--debug', action='store_true', help='Enable debug output')
 parser0 = subparsers.add_parser('print' , parents=[parent_parser], add_help=False)
 parser1 = subparsers.add_parser('table', parents=[parent_parser], add_help=False)
@@ -133,6 +133,12 @@ elif game == 'smrpg':
         (re.compile(r' {5,}'), ''),
         (re.compile(r'[.]{3,}'), '\n'),
         (re.compile(r'\[.+?\]'), '\n')
+    ]
+elif game == 'starocean':
+    regex_list = [
+        (re.compile(r'^<TEXT .*?>\n'), ''),
+        (re.compile(r'^</TEXT>\n'), ''),
+        (re.compile(r'<\$..>'), '')
     ]
 elif game == 'ys4':
     pass
