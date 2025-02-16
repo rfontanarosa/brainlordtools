@@ -1,5 +1,5 @@
 import io, re
-from collections import defaultdict, Counter
+from collections import Counter
 from io import StringIO
 
 import argparse
@@ -47,40 +47,36 @@ def clean_file(f, f1, regex_list=None, allow_duplicates=True):
             lines_seen.add(line)
 
 def clean_string(string, regex_list=None, allow_duplicates=False):
-    """ applica a ogni linea del file delle espressioni regolari, rimuove opzionalmente le linee duplicate """
-    s = StringIO(string)
-    s1 = StringIO()
-    lines_seen = set()
-    for line in s.readlines():
-        if regex_list:
-            for regex in regex_list:
-                line = regex[0].sub(regex[1], line)
-        if allow_duplicates:
-            s1.write(line)
-        elif line not in lines_seen:
-            s1.write(line)
-            lines_seen.add(line)
-    return s1.getvalue()
+    """Applies regular expressions to a string and optionally removes duplicate lines."""
+    if regex_list:
+        for regex, replacement in regex_list:
+            string = regex.sub(replacement, string)
+    if not allow_duplicates:
+        lines = string.splitlines()
+        unique_lines = []
+        seen = set()
+        for line in lines:
+            if line not in seen:
+                unique_lines.append(line)
+                seen.add(line)
+        string = "\n".join(unique_lines)
+    return string
 
-def string_to_file(filename, s):
-    with io.open(filename, mode='w', encoding="utf-8") as f:
-        f.write(s)
-
-def extract_chunks(text, chunk_size, start_index=0):
-    """ estrae le occorrenze di lunghezza n da una stringa """
-    return [text[i:(i+chunk_size)] for i in range(start_index, len(text), chunk_size)]
+def extract_substrings(text, substring_length, start_index=0):
+    """Extracts substrings of a given length from a string, starting at a given index."""
+    return [text[i:(i+substring_length)] for i in range(start_index, len(text), substring_length)]
 
 def get_substrings_by_length(text, length):
     """Extracts all possible substrings of a given length from a string."""
-    chunks = []
+    substrings = []
     if length > 0:
         for i in range (0, length):
-            chunks += extract_chunks(text, length, i)
-    return list(filter(lambda x: len(x) == length, chunks))
+            substrings += extract_substrings(text, length, i)
+    return list(filter(lambda x: len(x) == length, substrings))
 
 def get_occurrences_by_length(f, length):
     """Generates a dictionary of substring occurrences of a specific length from a file."""
-    dictionary = defaultdict(int)
+    dictionary = Counter()
     for line in f.readlines():
         if line:
             line = line.replace('\n', '').replace('\r', '')
@@ -104,7 +100,7 @@ def calculate_weight(dictionary):
 
 def sort_dict_by_value(dictionary, reverse=True):
     """Sorts a dictionary by value (and then key)."""
-    return sorted(list(dictionary.items()), key=lambda x: (x[1], x[0]), reverse=reverse)
+    return sorted(dictionary.items(), key=lambda item: (item[1], item[0]), reverse=reverse)
 
 def export_table(filename, dictionary, offset):
     """Exports the dictionary to a table with optional offset."""
@@ -121,6 +117,10 @@ def export_table(filename, dictionary, offset):
 def calculate_weighted_sum(dictionary):
     """Calculates the weighted sum of values in a dictionary based on key length."""
     return sum(value * (len(key) - BYTES) for key, value in dictionary.items())
+
+def string_to_file(filename, s):
+    with io.open(filename, mode='w', encoding="utf-8") as f:
+        f.write(s)
 
 regex_list = None
 
