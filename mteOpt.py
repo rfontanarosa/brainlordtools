@@ -117,6 +117,9 @@ def export_table(filename, dictionary, offset):
                 line = f'{b}={v}'
             out.write(f'{line}\n')
 
+def calculate_weighted_sum(dictionary):
+    return sum(value * (len(key) - BYTES) for key, value in dictionary.items())
+
 regex_list = None
 
 if game == 'bof':
@@ -161,5 +164,6 @@ with io.open(filename1, mode='r', encoding="utf-8") as f:
 
 if cmd == 'print':
     print(dictionary)
+    print(calculate_weighted_sum(dictionary))
 elif cmd == 'table':
     export_table(filename2, dictionary, offset)
