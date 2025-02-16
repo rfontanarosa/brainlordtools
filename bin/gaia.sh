@@ -10,7 +10,7 @@ SOURCE="$RESOURCE_PATH/roms/Illusion of Gaia (U) [!].sfc"
 DESTINATION="$RESOURCE_PATH/roms/Illusion of Gaia (I) [!].sfc"
 
 TABLE1="$RESOURCE_PATH/tables/Illusion of Gaia (U) [!].tbl"
-TABLE2="$RESOURCE_PATH/tables/Illusion of Gaia (U) [!].tbl"
+TABLE2="$RESOURCE_PATH/tables/Illusion of Gaia (I) [!].tbl"
 
 DUMP_TEXT_PATH="$RESOURCE_PATH/dump_text"
 DUMP_MISC_PATH="$RESOURCE_PATH/dump_misc"
