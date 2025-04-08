@@ -368,7 +368,7 @@ def gaia_misc_inserter(args):
         # Locations
         translation_file = os.path.join(translation_path, 'locations.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        f1.seek(0x208_000)
+        f1.seek(0x268_000)
         for i, (taddress, tvalue) in enumerate(translated_texts.items()):
             if len(tvalue) < 4:
                 continue
