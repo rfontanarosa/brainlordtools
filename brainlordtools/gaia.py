@@ -21,6 +21,8 @@ pointers_offsets_to_exclude = (0x5c94, 0x64e1c, 0xa0f3e, 0xaf75e, 0xdbdc, 0x1131
 
 locations_offsets = (0xc8216, 0xc831e, 0xc8357, 0xc8382, 0xc83bb, 0xc83ed, 0xc8450, 0xc84b5, 0xc8601, 0xc866e, 0xc8749, 0xc8b56, 0xc8b98, 0xc8c23, 0xc8cb2, 0xc8d7d, 0xc968b, 0xc9700, 0xc9829, 0xc9913, 0xc9bed, 0xc9cd6, 0xc9d38, 0xc9da8, 0xc9e87, 0xc9f47, 0xca00f, 0xca0bf, 0xca187, 0xca23b, 0xca32a, 0xca42f, 0xca7ea, 0xcab3e, 0xcad90, 0Xcaea8, 0xcb295, 0xcb569, 0xcb626, 0xcb836, 0xcbf5b, 0xcbfcc, 0xcc008, 0xcc03d, 0xcc182, 0xcc213, 0xccbc6, 0xccc92, 0xccffe, 0xcd080, 0xcd188, 0xcd1ea, 0xcd28f, 0xcd32f, 0xcd387, 0xcd446, 0xcd584, 0xce1fa, 0xce3e3, 0xce401, 0xce41f, 0xce43d, 0xce45b, 0xce54e)
 
+intro_offsets = (0x0BCA80, 0x0BCAA2, 0x0BCB7E, 0x0BCBA8, 0x0BCBD2, 0x0BCBFC, 0x0BCC1F, 0x0BCDD9, 0x0BCE50, 0x0BCE8E)
+
 cmd_list = {b'\xc1': 2, b'\xc3': 1, b'\xc5': 4, b'\xc6': 4, b'\xc7': 2, b'\xc9': 1, b'\xcd': 3, b'\xd1': 2, b'\xd2': 1, b'\xd5': 1, b'\xd6': 1, b'\xd7': 1,}
 
 def gaia_read_text(f, offset=None, length=None, end_byte=None, cmd_list=None, append_end_byte=False):
@@ -94,6 +96,7 @@ def gaia_text_dumper(args):
         pointers[0x1ff1f] = []
         pointers[0x1ff36] = []
         pointers[0x1ff48] = []
+        pointers[0x1cb66] = []
         for i, (taddress, paddresses) in enumerate(pointers.items()):
             text = gaia_read_text(f, taddress, end_byte=(b'\xc0', b'\xca'), cmd_list=cmd_list, append_end_byte=True)
             text_decoded = table.decode(text, mte_resolver=True, dict_resolver=True)
@@ -155,11 +158,13 @@ def gaia_misc_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
     table2_file = args.table2
+    table3_file = args.table3
     dump_path = args.dump_path
     if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     table2 = Table(table2_file)
+    table3 = Table(table3_file)
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
@@ -187,8 +192,8 @@ def gaia_misc_dumper(args):
                 text_decoded = table.decode(text, mte_resolver=False, dict_resolver=True)
                 fields = [hex(taddress), text_decoded]
                 csv_writer.writerow(fields)
-        # Misc1
-        filename = os.path.join(dump_path, 'misc1.csv')
+        # Misc
+        filename = os.path.join(dump_path, 'misc.csv')
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
@@ -206,6 +211,20 @@ def gaia_misc_dumper(args):
                 taddress = pointer[0] + (pointer[1] << 8) + bank_byte
                 text = gaia_read_text(f, taddress, end_byte=(b'\x00'), cmd_list=cmd_list, append_end_byte=False)
                 text_decoded = table2.decode(text, mte_resolver=True, dict_resolver=True)
+                fields = [hex(pointer_offset), hex(taddress), text_decoded]
+                csv_writer.writerow(fields)
+        # Intro
+        filename = os.path.join(dump_path, 'intro.csv')
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
+            for pointer_offset in intro_offsets:
+                f.seek(pointer_offset)
+                pointer = f.read(2)
+                bank_byte = pointer_offset & 0xFF0000
+                taddress = pointer[0] + (pointer[1] << 8) + bank_byte
+                text = gaia_read_text(f, taddress, end_byte=(b'\xca'), cmd_list=cmd_list, append_end_byte=False)
+                text_decoded = table3.decode(text, mte_resolver=False, dict_resolver=False)
                 fields = [hex(pointer_offset), hex(taddress), text_decoded]
                 csv_writer.writerow(fields)
 
@@ -364,9 +383,11 @@ def gaia_misc_inserter(args):
     dest_file = args.dest_file
     table1_file = args.table1
     table2_file = args.table2
+    table3_file = args.table3
     translation_path = args.translation_path
     table = Table(table1_file)
     table2 = Table(table2_file)
+    table3 = Table(table3_file)
     with open(dest_file, 'r+b') as f1, open(dest_file, 'r+b') as f2:
         # Locations
         translation_file = os.path.join(translation_path, 'locations.csv')
@@ -382,6 +403,18 @@ def gaia_misc_inserter(args):
             f2.write(b'\xcd' + new_pointer + b'\xca')
             # text
             encoded_text = table.encode(tvalue, mte_resolver=True, dict_resolver=True)
+            f1.write(encoded_text + b'\xca')
+        # Intro
+        translation_file = os.path.join(translation_path, 'intro.csv')
+        translated_texts = get_csv_translated_texts(translation_file)
+        f1.seek(0xbfa80)
+        for i, (_, tvalue) in enumerate(translated_texts.items()):
+            # jump
+            new_pointer = struct.pack('<H', f1.tell() & 0x00FFFF)
+            f2.seek(intro_offsets[i])
+            f2.write(new_pointer)
+            # text
+            encoded_text = table3.encode(tvalue, mte_resolver=False, dict_resolver=False)
             f1.write(encoded_text + b'\xca')
 
 def gaia_gfx_inserter(args):
@@ -429,12 +462,14 @@ dump_misc_parser = subparsers.add_parser('dump_misc', help='Execute MISC DUMP')
 dump_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 dump_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
 dump_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Menu table filename')
+dump_misc_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Intro table filename')
 dump_misc_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
 dump_misc_parser.set_defaults(func=gaia_misc_dumper)
 insert_misc_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
 insert_misc_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
 insert_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Menu table filename')
+insert_misc_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Intro table filename')
 insert_misc_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
 insert_misc_parser.set_defaults(func=gaia_misc_inserter)
 insert_gfx_parser = subparsers.add_parser('insert_gfx', help='Execute GFX INSERTER')
