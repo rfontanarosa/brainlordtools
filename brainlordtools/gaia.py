@@ -11,6 +11,7 @@ from rhutils.db import insert_text, select_translation_by_author, select_most_re
 from rhutils.dump import write_text, dump_binary, get_csv_translated_texts, insert_binary, read_dump
 from rhutils.rom import crc32, expand_rom
 from rhutils.snes import pc2snes_hirom, snes2pc_hirom
+from quintettools.quintet_comp import compress as quintet_compress
 
 CRC32 = '1C3848C0'
 
@@ -384,12 +385,20 @@ def gaia_misc_inserter(args):
 def gaia_gfx_inserter(args):
     dest_file = args.dest_file
     translation_path = args.translation_path
-    with open(dest_file, 'r+b') as f:
-        insert_binary(f, 0x258_000, 0x258_000 + 4314, translation_path, 'font_ita.bin')
-        f.seek(0xd8008)
-        snes_offset = pc2snes_hirom(0x258_000) - 0x400_000
-        new_pointer = struct.pack('<I', snes_offset)
-        f.write(new_pointer[:3])
+    with open (dest_file, 'r+b') as out:
+        offset = 0x268_000
+        files = (('01146a8_font_ita.bin', 0xd8008), ('0117325_intro.bin', 0xdaf1d))
+        for filename, pointer_offset in files:
+            out.seek(pointer_offset)
+            snes_offset = pc2snes_hirom(offset) - 0x400_000
+            new_pointer = struct.pack('<I', snes_offset)
+            out.write(new_pointer[:3])
+            with open(os.path.join(translation_path, filename), 'rb') as f:
+                out.seek(offset)
+                decompressed_data = f.read()
+                compressed_data = quintet_compress(decompressed_data)
+                out.write(compressed_data)
+                offset = out.tell()
 
 def gaia_expander(args):
     dest_file = args.dest_file
