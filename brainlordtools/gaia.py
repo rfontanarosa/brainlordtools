@@ -219,8 +219,8 @@ def gaia_text_inserter(args):
     if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table2_file)
-    buffer = dict()
     #
+    # buffer = dict()
     # conn = sqlite3.connect(db)
     # conn.text_factory = str
     # cur = conn.cursor()
@@ -254,6 +254,8 @@ def gaia_text_inserter(args):
                 continue
             if f.tell() + len(encoded_text) > new_offset + 0x8_000:
                 new_offset += 0x10_000
+                if new_offset > 0x258_000:
+                    sys.exit('Text size exceeds!')
                 f.seek(new_offset)
             offsets_list.append((block_id, original_text_offset, f.tell(), encoded_text[-1]))
             f.write(encoded_text[:-1] + b'\xca')
@@ -263,7 +265,7 @@ def gaia_text_inserter(args):
             f.seek(original_text_offset)
             f.write(b'\xcd' + new_pointer + bytes([end_byte]))
     ###
-    new_offset = 0x248_000
+    new_offset = 0x258_000
     translation_file_attacks = os.path.join(translation_path, 'dump_attacks_ita.txt')
     dump_attacks = read_dump(translation_file_attacks)
     with open(dest_file, 'rb+') as f:
@@ -369,7 +371,7 @@ def gaia_misc_inserter(args):
         # Locations
         translation_file = os.path.join(translation_path, 'locations.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        f1.seek(0x268_000)
+        f1.seek(0x2f_200)
         for i, (taddress, tvalue) in enumerate(translated_texts.items()):
             if len(tvalue) < 4:
                 continue
