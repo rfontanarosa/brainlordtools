@@ -65,21 +65,12 @@ def insert_binary(f, start, end, path, filename):
             raise Exception()
 
 def get_csv_translated_texts(filename):
-    translated_texts = {}
+    translated_texts = []
     with open(filename, 'r', encoding='utf-8') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         for row in csv_reader:
             trans = row.get('trans') or row.get('text')
-            text_address = int(row['text_address'], 16)
-            translated_texts[text_address] = trans
+            pointer_address = int(row.get('pointer_address', '0'), 16)
+            text_address = int(row.get('text_address', '0'), 16)
+            translated_texts.append((pointer_address, text_address, trans))
     return translated_texts
-
-# def get_csv_translated_texts(filename):
-#     translated_texts = []
-#     with open(filename, 'r', encoding='utf-8') as csv_file:
-#         csv_reader = csv.DictReader(csv_file)
-#         for row in csv_reader:
-#             trans = row.get('trans') or row.get('text')
-#             text_address = int(row['text_address'], 16)
-#             translated_texts.append((text_address, trans))
-#     return translated_texts

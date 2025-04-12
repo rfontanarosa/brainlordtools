@@ -277,14 +277,11 @@ def gargoyle_text_inserter(args):
         f1.write(b'\x00' * (BANK1_LIMIT - f1.tell()))
 
 def gargoyle_misc_inserter(args):
-    source_file = args.source_file
     dest_file = args.dest_file
     table1_file = args.table1
     table2_file = args.table2
     table3_file = args.table3
     translation_path = args.translation_path
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table1 = Table(table1_file)
     table2 = Table(table2_file)
     table3 = Table(table3_file)
@@ -318,7 +315,7 @@ def gargoyle_misc_inserter(args):
         f1.seek(0x3896) # new menu address
         translation_file = os.path.join(translation_path, 'misc4.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for _, (_, t_value) in enumerate(translated_texts.items()):
+        for _, (_, _, t_value) in enumerate(translated_texts):
             text = table2.encode(t_value)
             if len(text) > 8:
                 sys.exit(f'{t_value} exceeds')
@@ -326,24 +323,23 @@ def gargoyle_misc_inserter(args):
         # misc5
         translation_file = os.path.join(translation_path, 'misc5.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for _, (t_address, t_value) in enumerate(translated_texts.items()):
+        for _, (_, t_address, t_value) in enumerate(translated_texts):
             text = table2.encode(t_value)
             f1.seek(t_address)
             f1.write(text)
         # misc6
         translation_file = os.path.join(translation_path, 'misc6.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for _, (t_address, t_value) in enumerate(translated_texts.items()):
+        for _, (_, t_address, t_value) in enumerate(translated_texts):
             text = table3.encode(t_value)
             f1.seek(t_address)
             f1.write(text)
         # misc7
         translation_file = os.path.join(translation_path, 'misc7.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        translated_items = list(translated_texts.items())
         f1.seek(0xff34)
         # 0xfd74, 8
-        for _, (t_address, t_value) in enumerate(translated_items[:8]):
+        for _, (_, t_address, t_value) in enumerate(translated_texts[:8]):
             text = table2.encode(t_value)
             if f1.tell() + len(text) > 0xffff:
                 sys.exit('Text overflow')
@@ -351,7 +347,7 @@ def gargoyle_misc_inserter(args):
         # 0xfd95, 1
         pointer_value = struct.pack('H', f1.tell() - 0x8000)
         write_text(f2, 0xfd95, pointer_value)
-        _, t_value = translated_items[8]
+        _, _, t_value = translated_texts[8]
         text = table2.encode(t_value)
         if f1.tell() + len(text) > 0xffff:
             sys.exit('Text overflow')
@@ -359,8 +355,7 @@ def gargoyle_misc_inserter(args):
         # 0xfdd5, 4
         pointer_value = struct.pack('H', f1.tell() - 0x8000)
         write_text(f2, 0xfdd5, pointer_value)
-        _, t_value = translated_items[9]
-        for _, (t_address, t_value) in enumerate(translated_items[9:13]):
+        for _, (_, t_address, t_value) in enumerate(translated_texts[9:13]):
             text = table2.encode(t_value)
             if f1.tell() + len(text) > 0xffff:
                 sys.exit('Text overflow')
@@ -371,7 +366,7 @@ def gargoyle_misc_inserter(args):
         pointers_address = f1.tell() # pointers
         f1.seek(pointers_address + 16) # text
         bank_limit = 0xffff
-        for i, (t_address, t_value) in enumerate(translated_items[13:]):
+        for i, (_, t_address, t_value) in enumerate(translated_texts[13:]):
             text = table2.encode(t_value)
             if f1.tell() + len(text) > bank_limit:
                 f1.seek(0xefb0)
@@ -427,7 +422,6 @@ dump_misc_parser.add_argument('-t3', '--table3', action='store', dest='table3', 
 dump_misc_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
 dump_misc_parser.set_defaults(func=gargoyle_misc_dumper)
 insert_misc_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERT')
-insert_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 insert_misc_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
 insert_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')

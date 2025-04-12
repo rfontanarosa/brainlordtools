@@ -393,28 +393,28 @@ def gaia_misc_inserter(args):
         translation_file = os.path.join(translation_path, 'locations.csv')
         translated_texts = get_csv_translated_texts(translation_file)
         f1.seek(0x2f_200)
-        for i, (taddress, tvalue) in enumerate(translated_texts.items()):
-            if len(tvalue) < 4:
+        for i, (_, t_address, t_value) in enumerate(translated_texts):
+            if len(t_value) < 4:
                 continue
             # jump
             snes_offset = pc2snes_hirom(f1.tell()) - 0x400_000
             new_pointer = struct.pack('<I', snes_offset)[:3]
-            f2.seek(taddress)
+            f2.seek(t_address)
             f2.write(b'\xcd' + new_pointer + b'\xca')
             # text
-            encoded_text = table.encode(tvalue, mte_resolver=True, dict_resolver=True)
+            encoded_text = table.encode(t_value, mte_resolver=True, dict_resolver=True)
             f1.write(encoded_text + b'\xca')
         # Intro
         translation_file = os.path.join(translation_path, 'intro.csv')
         translated_texts = get_csv_translated_texts(translation_file)
         f1.seek(0xbfa80)
-        for i, (_, tvalue) in enumerate(translated_texts.items()):
+        for i, (_, _, t_value) in enumerate(translated_texts):
             # jump
             new_pointer = struct.pack('<H', f1.tell() & 0x00FFFF)
             f2.seek(intro_offsets[i])
             f2.write(new_pointer)
             # text
-            encoded_text = table3.encode(tvalue, mte_resolver=False, dict_resolver=False)
+            encoded_text = table3.encode(t_value, mte_resolver=False, dict_resolver=False)
             f1.write(encoded_text + b'\xca')
 
 def gaia_gfx_inserter(args):

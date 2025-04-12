@@ -292,7 +292,7 @@ def lufia_misc_inserter(args):
         # Enemy Names
         translation_file = os.path.join(translation_path, 'enemy_names.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for i, (t_address, t_value) in enumerate(translated_texts.items()):
+        for i, (_, t_address, t_value) in enumerate(translated_texts):
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
             if len(text) != 10:
                 sys.exit(f'{t_value} exceeds')
@@ -300,7 +300,7 @@ def lufia_misc_inserter(args):
         # Items
         translation_file = os.path.join(translation_path, 'items.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for i, (t_address, t_value) in enumerate(translated_texts.items()):
+        for i, (_, t_address, t_value) in enumerate(translated_texts):
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
             if len(text) != 12:
                 sys.exit(f'{t_value} exceeds')
@@ -308,7 +308,7 @@ def lufia_misc_inserter(args):
         # Magic
         translation_file = os.path.join(translation_path, 'magic.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for i, (t_address, t_value) in enumerate(translated_texts.items()):
+        for i, (_, t_address, t_value) in enumerate(translated_texts):
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
             if len(text) != 8:
                 sys.exit(f'{t_value} exceeds')
@@ -321,7 +321,7 @@ def lufia_misc_inserter(args):
         f1.seek(0x138000)
         translation_file = os.path.join(translation_path, 'magic_descriptions.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for i, (t_address, t_value) in enumerate(translated_texts.items()):
+        for i, (_, t_address, t_value) in enumerate(translated_texts):
             pointer = struct.pack('H', f1.tell() - 0x130000)
             f2.seek(pointers_addresses[i])
             f2.write(pointer)
@@ -332,7 +332,7 @@ def lufia_misc_inserter(args):
         f1.seek(0x140000)
         translation_file = os.path.join(translation_path, 'attacks.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for i, (t_address, t_value) in enumerate(translated_texts.items()):
+        for i, (_, t_address, t_value) in enumerate(translated_texts):
             pointer = struct.pack('H', f1.tell() - 0x138000)
             f2.write(pointer)
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
@@ -342,7 +342,7 @@ def lufia_misc_inserter(args):
         f1.seek(0x54a72)
         translation_file = os.path.join(translation_path, 'mte1.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for i, (t_address, t_value) in enumerate(translated_texts.items()):
+        for i, (_, t_address, t_value) in enumerate(translated_texts):
             pointer = struct.pack('H', pc2snes_lorom(f1.tell() & 0x00FFFF))
             f2.write(pointer)
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
@@ -356,7 +356,7 @@ def lufia_misc_inserter(args):
         f1.seek(0x54b42)
         translation_file = os.path.join(translation_path, 'mte2.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for i, (t_address, t_value) in enumerate(translated_texts.items()):
+        for i, (_, t_address, t_value) in enumerate(translated_texts):
             pointer = struct.pack('H', pc2snes_lorom(f1.tell() & 0x00FFFF))
             f2.write(pointer)
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)

@@ -164,7 +164,7 @@ def spike_misc_inserter(args):
         # Enemies
         translation_file = os.path.join(translation_path, 'monsters.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for i, (t_address, t_value) in enumerate(translated_texts.items()):
+        for i, (_, t_address, t_value) in enumerate(translated_texts):
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
             if len(text) > 9:
                 sys.exit(f"{t_value} exceeds")

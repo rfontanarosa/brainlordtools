@@ -60,7 +60,7 @@ def starocean_misc_inserter(args):
         translation_file = os.path.join(translation_path, 'menu.csv')
         translated_texts = get_csv_translated_texts(translation_file)
         already_pointed = {}
-        for i, (t_address, t_value) in enumerate(translated_texts):
+        for i, (_, t_address, t_value) in enumerate(translated_texts):
             if not already_pointed.get(t_address):
                 already_pointed[t_address] = f1.tell()
                 encoded_text = table2.encode(t_value) + b'\xff'
@@ -77,7 +77,7 @@ def starocean_misc_inserter(args):
         translation_file = os.path.join(translation_path, 'items.csv')
         translated_texts = get_csv_translated_texts(translation_file)
         already_pointed = {}
-        for i, (t_address, t_value) in enumerate(translated_texts):
+        for i, (_, t_address, t_value) in enumerate(translated_texts):
             if not already_pointed.get(t_address):
                 already_pointed[t_address] = f1.tell()
                 encoded_text = table2.encode(t_value) + b'\xff'

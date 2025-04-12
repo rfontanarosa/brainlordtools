@@ -177,7 +177,7 @@ def neugier_misc_inserter(args):
         # Enemy names
         translation_file = os.path.join(translation_path, 'enemy_names.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for _, (t_address, t_value) in enumerate(translated_texts.items()):
+        for _, (_, t_address, t_value) in enumerate(translated_texts):
             text = t_value.encode()
             if len(text) != 10:
                 sys.exit(f'{t_value} exceeds 10')
