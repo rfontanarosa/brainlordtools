@@ -23,7 +23,9 @@ locations_offsets = (0xc8216, 0xc831e, 0xc8357, 0xc8382, 0xc83bb, 0xc83ed, 0xc84
 
 intro_offsets = (0x0BCA80, 0x0BCAA2, 0x0BCB7E, 0x0BCBA8, 0x0BCBD2, 0x0BCBFC, 0x0BCC1F, 0x0BCDD9, 0x0BCE50, 0x0BCE8E)
 
-cmd_list = {b'\xc1': 2, b'\xc3': 1, b'\xc5': 4, b'\xc6': 4, b'\xc7': 2, b'\xc9': 1, b'\xcd': 3, b'\xd1': 2, b'\xd2': 1, b'\xd5': 1, b'\xd6': 1, b'\xd7': 1,}
+credits_offsets = (0x9E9DD, 0x09E9E9, 0x09E9F5, 0x09EA01, 0x09EA0D, 0x09EA19, 0x09EA25, 0x09EA31, 0x09EA3D, 0x09EA49, 0x09EA55, 0x09EA61, 0x09EA6D, 0x09EA79, 0x09EA85, 0x09EA91, 0x09EA9D, 0x09EAA9, 0x09EAB5, 0x09EAC1, 0x09EACD, 0x09EAD9, 0x09EAE5, 0x09EAF1, 0x09EAFD, 0x09EB09, 0x09EB15, 0x09EB21, 0x09EB2D, 0x09EB42)
+
+cmd_list = {b'\xc1': 2, b'\xc3': 1, b'\xc5': 4, b'\xc6': 4, b'\xc7': 2, b'\xc9': 1, b'\xcd': 3, b'\xd1': 2, b'\xd2': 1, b'\xd5': 1, b'\xd6': 1, b'\xd7': 1, b'\xd8': 1}
 
 def gaia_read_text(f, offset=None, length=None, end_byte=None, cmd_list=None, append_end_byte=False):
     text = b''
@@ -47,6 +49,13 @@ def gaia_read_text(f, offset=None, length=None, end_byte=None, cmd_list=None, ap
                     current_offset = f.tell()
                     text += gaia_read_text(f, offset=offset_pc, end_byte=end_byte, cmd_list=cmd_list)
                     f.seek(current_offset)
+                elif byte == b'\xd8':
+                    text += byte
+                    while True:
+                        byte = f.read(1)
+                        text += byte
+                        if byte == b'\x00':
+                            break
                 else:
                     text += byte + read_bytes
             elif byte in end_byte:
@@ -97,6 +106,22 @@ def gaia_text_dumper(args):
         pointers[0x1ff36] = []
         pointers[0x1ff48] = []
         pointers[0x1cb66] = []
+        pointers[0xbf3f4] = []
+        pointers[0xbf437] = []
+        pointers[0xbf476] = []
+        pointers[0xbf48c] = []
+        pointers[0xbf4a7] = []
+        pointers[0xbf4c3] = []
+        pointers[0xbf4ea] = []
+        pointers[0xbf511] = []
+        pointers[0xbf538] = []
+        pointers[0xbf5ad] = []
+        pointers[0xbf679] = []
+        pointers[0xbf6b3] = []
+        pointers[0xbf6df] = []
+        pointers[0xbf6ec] = []
+        pointers[0xbf6f9] = []
+        pointers[0xbf906] = []
         for i, (taddress, paddresses) in enumerate(pointers.items()):
             text = gaia_read_text(f, taddress, end_byte=(b'\xc0', b'\xca'), cmd_list=cmd_list, append_end_byte=True)
             text_decoded = table.decode(text, mte_resolver=True, dict_resolver=True)
@@ -198,9 +223,9 @@ def gaia_misc_dumper(args):
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
             for pointer_offset in \
+                    tuple(range(0x1dabf, 0x1db3e, 2)) + \
                     tuple(range(0x1de1e, 0x1de9e, 2)) + \
                     tuple(range(0x1e132, 0x1e184, 2)) + \
-                    tuple(range(0x1dabf, 0x1db3e, 2)) + \
                     tuple(range(0x1e5ee, 0x1e603, 2)) + \
                     tuple(range(0x1e65f, 0x1e674, 2)) + \
                     tuple(range(0x1e6de, 0x1e6f5, 2)) + \
@@ -227,6 +252,21 @@ def gaia_misc_dumper(args):
                 text_decoded = table3.decode(text, mte_resolver=False, dict_resolver=False)
                 fields = [hex(pointer_offset), hex(taddress), text_decoded]
                 csv_writer.writerow(fields)
+        # Credits
+        filename = os.path.join(dump_path, 'credits.csv')
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
+            for pointer_offset in credits_offsets:
+                f.seek(pointer_offset)
+                pointer = f.read(2)
+                bank_byte = pointer_offset & 0xff0000
+                taddress = pointer[0] + (pointer[1] << 8) + bank_byte
+                text = gaia_read_text(f, taddress, end_byte=(b'\xc0'), cmd_list=cmd_list, append_end_byte=False)
+                text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
+                fields = [hex(pointer_offset), hex(taddress), text_decoded]
+                csv_writer.writerow(fields)
+
 
 def gaia_text_inserter(args):
     source_file = args.source_file
@@ -404,25 +444,44 @@ def gaia_misc_inserter(args):
             # text
             encoded_text = table.encode(t_value, mte_resolver=True, dict_resolver=True)
             f1.write(encoded_text + b'\xca')
+            if (f1.tell() > 0x2f_fff):
+                sys.exit('Text size exceeds!')
         # Intro
         translation_file = os.path.join(translation_path, 'intro.csv')
         translated_texts = get_csv_translated_texts(translation_file)
         f1.seek(0xbfa80)
-        for i, (_, _, t_value) in enumerate(translated_texts):
-            # jump
-            new_pointer = struct.pack('<H', f1.tell() & 0x00FFFF)
-            f2.seek(intro_offsets[i])
+        for i, (p_address, _, t_value) in enumerate(translated_texts):
+            # pointer
+            new_pointer = struct.pack('<H', f1.tell() & 0x00ffff)
+            f2.seek(p_address)
             f2.write(new_pointer)
             # text
             encoded_text = table3.encode(t_value, mte_resolver=False, dict_resolver=False)
             f1.write(encoded_text + b'\xca')
+            if (f1.tell() > 0xbffff):
+                sys.exit('Text size exceeds!')
+        # Credits
+        translation_file = os.path.join(translation_path, 'credits.csv')
+        translated_texts = get_csv_translated_texts(translation_file)
+        f1.seek(0x9f6b0)
+        for i, (p_address, _, t_value) in enumerate(translated_texts):
+            # pointer
+            new_pointer = struct.pack('<H', f1.tell() & 0x00FFFF)
+            f2.seek(p_address)
+            f2.write(new_pointer)
+            # text
+            encoded_text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
+            f1.write(encoded_text + b'\xc0')
+            if (f1.tell() > 0x9f_fff):
+                sys.exit('Text size exceeds!')
 
 def gaia_gfx_inserter(args):
     dest_file = args.dest_file
     translation_path = args.translation_path
     with open (dest_file, 'r+b') as out:
         offset = 0x268_000
-        files = (('01146a8_font_ita.bin', 0xd8008), ('0117325_intro.bin', 0xdaf1d))
+        # Font, intro, Prologue font
+        files = (('01146a8_font_ita.bin', 0xd8008), ('0117325_intro.bin', 0xdaf1d), ('196BD8_prologue_font_ita.bin', 0xd9bad))
         for filename, pointer_offset in files:
             out.seek(pointer_offset)
             snes_offset = pc2snes_hirom(offset) - 0x400_000
