@@ -252,6 +252,21 @@ def gaia_misc_dumper(args):
                 text_decoded = table3.decode(text, mte_resolver=False, dict_resolver=False)
                 fields = [hex(pointer_offset), hex(taddress), text_decoded]
                 csv_writer.writerow(fields)
+        # Locations 2
+        filename = os.path.join(dump_path, 'locations2.csv')
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
+            for pointer_offset in tuple(range(0xbf706, 0xbf906, 2)):
+                f.seek(pointer_offset)
+                pointer = f.read(2)
+                bank_byte = pointer_offset & 0xff0000
+                taddress = pointer[0] + (pointer[1] << 8) + bank_byte
+                text = gaia_read_text(f, taddress, end_byte=(b'\xca'), cmd_list=cmd_list, append_end_byte=True)
+                text += f.read(4)
+                text_decoded = table.decode(text, mte_resolver=False, dict_resolver=True)
+                fields = [hex(pointer_offset), hex(taddress), text_decoded]
+                csv_writer.writerow(fields)
         # Credits
         filename = os.path.join(dump_path, 'credits.csv')
         with open(filename, 'w+', encoding='utf-8') as csv_file:
@@ -458,6 +473,24 @@ def gaia_misc_inserter(args):
             # text
             encoded_text = table3.encode(t_value, mte_resolver=False, dict_resolver=False)
             f1.write(encoded_text + b'\xca')
+            if (f1.tell() > 0xbffff):
+                sys.exit('Text size exceeds!')
+        # Locations 2
+        translation_file = os.path.join(translation_path, 'locations2.csv')
+        translated_texts = get_csv_translated_texts(translation_file)
+        inserted_text = dict()
+        # f1.seek()
+        for i, (p_address, _, t_value) in enumerate(translated_texts):
+            # text
+            encoded_text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
+            # existing pointer check
+            if encoded_text not in inserted_text:
+                inserted_text[encoded_text] = struct.pack('<H', f1.tell() & 0x00ffff)
+                f1.write(encoded_text)
+            # pointer
+            new_pointer = inserted_text[encoded_text]
+            f2.seek(p_address)
+            f2.write(new_pointer)
             if (f1.tell() > 0xbffff):
                 sys.exit('Text size exceeds!')
         # Credits
