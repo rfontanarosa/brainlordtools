@@ -12,6 +12,7 @@ from rhutils.dump import write_text, dump_binary, get_csv_translated_texts, inse
 from rhutils.rom import crc32, expand_rom
 from rhutils.snes import pc2snes_hirom, snes2pc_hirom
 from quintettools.quintet_comp import compress as quintet_compress
+from quintettools.quintet_decomp import decompress as quintet_decompress
 
 CRC32 = '1C3848C0'
 
@@ -238,6 +239,20 @@ def gaia_misc_dumper(args):
                 text_decoded = table2.decode(text, mte_resolver=True, dict_resolver=True)
                 fields = [hex(pointer_offset), hex(taddress), text_decoded]
                 csv_writer.writerow(fields)
+        # World Map Locations
+        filename = os.path.join(dump_path, 'world_map_locations.csv')
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
+            for pointer_offset in tuple(range(0x3b1d4, 0x3b243, 3)):
+                f.seek(pointer_offset + 1)
+                pointer = f.read(2)
+                bank_byte = pointer_offset & 0xFF0000
+                taddress = pointer[0] + (pointer[1] << 8) + bank_byte
+                text = gaia_read_text(f, taddress, end_byte=(b'\xca'), cmd_list=cmd_list, append_end_byte=False)
+                text_decoded = table3.decode(text, mte_resolver=False, dict_resolver=False)
+                fields = [hex(pointer_offset + 1), hex(taddress), text_decoded]
+                csv_writer.writerow(fields)
         # Intro
         filename = os.path.join(dump_path, 'intro.csv')
         with open(filename, 'w+', encoding='utf-8') as csv_file:
@@ -282,6 +297,24 @@ def gaia_misc_dumper(args):
                 fields = [hex(pointer_offset), hex(taddress), text_decoded]
                 csv_writer.writerow(fields)
 
+def gaia_gfx_dumper(args):
+    source_file = args.source_file
+    dump_path = args.dump_path
+    shutil.rmtree(dump_path, ignore_errors=True)
+    os.mkdir(dump_path)
+    # Worlmap - Tileset, Tilemap arrangement, Tilemap data
+    with open(source_file, 'rb') as f:
+        rom = f.read()
+        files = (('worldmap_tileset.bin', 0x10_000), ('worldmap_tilemap_arrangement.bin', 0x135_e1b), ('worldmap_tilemap_data.bin', 0x1a4_66e))
+        for filename, offset in files:
+            decompressed_data = quintet_decompress(rom, offset)
+            decomp, _ = decompressed_data
+            with open(os.path.join(dump_path, filename), 'wb') as out:
+                out.write(decomp)
+    with open(os.path.join(dump_path, 'worldmap_tilemap_arrangement.bin'), 'rb') as f1, open(os.path.join(dump_path, 'worldmap_tilemap_data.bin'), 'rb') as f2:
+        tilemap = merge_tilemap(f1.read(), f2.read())
+        with open(os.path.join(dump_path, 'worldmap_tilemap.bin'), 'wb') as out:
+            out.write(tilemap)
 
 def gaia_text_inserter(args):
     source_file = args.source_file
@@ -461,6 +494,20 @@ def gaia_misc_inserter(args):
             f1.write(encoded_text + b'\xca')
             if (f1.tell() > 0x2f_fff):
                 sys.exit('Text size exceeds!')
+        # World Map Locations
+        translation_file = os.path.join(translation_path, 'world_map_locations.csv')
+        translated_texts = get_csv_translated_texts(translation_file)
+        f1.seek(0x3f_210)
+        for i, (p_address, _, t_value) in enumerate(translated_texts):
+            # pointer
+            new_pointer = struct.pack('<H', f1.tell() & 0x00FFFF)
+            f2.seek(p_address)
+            f2.write(new_pointer)
+            # text
+            encoded_text = table3.encode(t_value, mte_resolver=False, dict_resolver=False)
+            f1.write(encoded_text + b'\xca')
+            if (f1.tell() > 0x3f_fff):
+                sys.exit('Text size exceeds!')
         # Intro
         translation_file = os.path.join(translation_path, 'intro.csv')
         translated_texts = get_csv_translated_texts(translation_file)
@@ -526,10 +573,131 @@ def gaia_gfx_inserter(args):
                 compressed_data = quintet_compress(decompressed_data)
                 out.write(compressed_data)
                 offset = out.tell()
+        # Worlmap - Tilemap
+        with open (os.path.join(translation_path, 'worldmap_tilemap.bin'), 'rb') as f:
+            arrangement, data = split_tilemap(f.read())
+            # Tilemap arrangement
+            snes_offset = pc2snes_hirom(offset) - 0x400_000
+            new_pointer = struct.pack('<I', snes_offset)
+            for pointer_offset in [0x0d_af_ac, 0x0d_af_04]:
+                out.seek(pointer_offset)
+                out.write(new_pointer[:3])
+            out.seek(offset)
+            compressed_data = quintet_compress(arrangement)
+            out.write(b'\x04\x04' + compressed_data)
+            offset = out.tell()
+            # Tilemap data
+            snes_offset = pc2snes_hirom(offset) - 0x400_000
+            new_pointer = struct.pack('<I', snes_offset)
+            for pointer_offset in [0x0d_af_9f, 0x0d_ae_ff]:
+                out.seek(pointer_offset)
+                out.write(new_pointer[:3])
+            out.seek(offset)
+            compressed_data = quintet_compress(data)
+            out.write(compressed_data)
+            offset = out.tell()
+        # Worlmap - Tileset
+        # with open (os.path.join(translation_path, '010000_world_map_tileset.bin'), 'rb') as f:
+        #     tileset = f.read()
+        #     snes_offset = pc2snes_hirom(offset) - 0x400_000
+        #     new_pointer = struct.pack('<I', snes_offset)
+        #     for pointer_offset in [0x0d_af_a6]:
+        #         out.seek(pointer_offset)
+        #         out.write(new_pointer[:3])
+        #     out.seek(offset)
+        #     compressed_tileset = quintet_compress(tileset)
+        #     out.write(compressed_tileset)
+        #     offset = out.tell()
 
 def gaia_expander(args):
     dest_file = args.dest_file
     expand_rom(dest_file, EXP_SIZE)
+
+#####
+
+TOTAL_SIZE = 128 * 128  # Total map size
+BLOCK_HEIGHT = 32       # Height of each horizontal strip
+SECTION_WIDTH = 32      # Width of each section within a strip
+TILES_PER_ROW = 16      # Number of tiles processed in each inner loop
+
+def merge_tilemap(arrangement_data, tilemap_data):
+    output_data = bytearray(TOTAL_SIZE * 2)
+    offset = 0
+    arrangement_offset = 0
+
+    # Process each 128x32 horizontal strip
+    for block_y in range(0, TOTAL_SIZE * 2, BLOCK_HEIGHT * 128 * 2):
+        # Process each 32x32 section within the strip
+        for block_x in range(0, 128 * 2, SECTION_WIDTH * 2):
+            # Process each row of tiles within the section
+            for tile_index in range(0, BLOCK_HEIGHT * 128 * 2, 256 * 2):
+                offset = block_y + block_x + tile_index
+
+                # Process 4 tiles together in this row
+                for _ in range(TILES_PER_ROW):
+                    # Get tilemap data
+                    tilemap_ofs = arrangement_data[arrangement_offset] * 8
+
+                    output_data[offset]         = tilemap_data[tilemap_ofs ]
+                    output_data[offset + 1]     = tilemap_data[tilemap_ofs + 1]
+                    output_data[offset + 2]     = tilemap_data[tilemap_ofs + 2]
+                    output_data[offset + 3]     = tilemap_data[tilemap_ofs + 3]
+                    output_data[offset + 0x100] = tilemap_data[tilemap_ofs + 4]
+                    output_data[offset + 0x101] = tilemap_data[tilemap_ofs + 5]
+                    output_data[offset + 0x102] = tilemap_data[tilemap_ofs + 6]
+                    output_data[offset + 0x103] = tilemap_data[tilemap_ofs + 7]
+
+                    offset += 4
+                    arrangement_offset += 1
+
+    return output_data
+
+def split_tilemap(input_data):
+    # Sanity‑check input length: 128×128×2 bytes = 32 768
+    if len(input_data) != TOTAL_SIZE * 2:
+        raise ValueError("Converted_data must be exactly 32 768 bytes")
+
+    # ---------- 1st step – collect unique 8‑byte sequences -------------
+    unique = []
+    for block_y in range(0, TOTAL_SIZE * 2, BLOCK_HEIGHT * 128 * 2):
+        for block_x in range(0, 128 * 2, SECTION_WIDTH * 2):
+            for tile_index in range(0, BLOCK_HEIGHT * 128 * 2, 256 * 2):
+                offset = block_y + block_x + tile_index
+                for _ in range(TILES_PER_ROW):
+                    seq = (input_data[offset : offset + 4] + input_data[offset + 0x100: offset + 0x100 + 4])
+                    if seq not in unique:
+                        unique.append(seq)
+                    offset += 4
+
+    if (len(unique) > 256):
+        print("Too many unique tiles")
+
+    # ---------- 2nd step – build arrangement + tile‑map -------------
+    output_arrangement_data = bytearray(4096)
+    output_tilemap_data     = bytearray(256 * 8)
+    arr_pos = 0
+
+    for block_y in range(0, TOTAL_SIZE * 2, BLOCK_HEIGHT * 128 * 2):
+        for block_x in range(0, 128 * 2, SECTION_WIDTH * 2):
+            for tile_index in range(0, BLOCK_HEIGHT * 128 * 2, 256 * 2):
+                offset = block_y + block_x + tile_index
+                for _ in range(TILES_PER_ROW):
+                    seq = (input_data[offset : offset + 4] + input_data[offset + 0x100: offset + 0x100 + 4])
+
+                    if seq in unique:
+                        index = unique.index(seq)
+                    else:
+                        print("Sequence not in unique")
+
+                    base = index * 8
+                    output_tilemap_data[base : base + 8] = seq
+
+                    output_arrangement_data[arr_pos] = index
+
+                    arr_pos += 1
+                    offset += 4
+
+    return bytes(output_arrangement_data), bytes(output_tilemap_data)
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -564,6 +732,10 @@ insert_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2'
 insert_misc_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Intro table filename')
 insert_misc_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
 insert_misc_parser.set_defaults(func=gaia_misc_inserter)
+dump_gfx_parser = subparsers.add_parser('dump_gfx', help='Execute GFX DUMP')
+dump_gfx_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+dump_gfx_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+dump_gfx_parser.set_defaults(func=gaia_gfx_dumper)
 insert_gfx_parser = subparsers.add_parser('insert_gfx', help='Execute GFX INSERTER')
 insert_gfx_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 insert_gfx_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
