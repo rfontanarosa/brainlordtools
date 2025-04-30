@@ -20,11 +20,13 @@ EXP_SIZE = 0x80000
 
 pointers_offsets_to_exclude = (0x5c94, 0x64e1c, 0xa0f3e, 0xaf75e, 0xdbdc, 0x11318, 0xd2ebc, 0x13321, 0x329b9, 0x80f93, 0xbe1ec, 0xba2dc, 0xba4f3, 0x80f93, 0xaedf9, 0xa468b, 0x226ab, 0x31732, 0xd3016, 0xdd242, 0xdd244, 0xdf92a, 0xe7728, 0xe7e76, 0xf3496, 0x1032df, 0x103c2a, 0x10d8c7, 0x118258, 0x12846b, 0x12b8f4, 0x13c9dd, 0x13f292, 0x14bd72, 0x151bc7, 0x1527eb, 0x15637d, 0x16c614, 0x16c61e, 0x171027, 0x184e15, 0x188d3b, 0x1909f0, 0x19853c, 0x1ddd09, 0x1e6886, 0x1ebcf8, 0x1edec7, 0x1f0973, 0x1f0b8b, 0x1f0bcb, 0x1f189b, 0x1f8cb2, 0x1f8e28, 0x1f9e90)
 
-locations_offsets = (0xc8216, 0xc831e, 0xc8357, 0xc8382, 0xc83bb, 0xc83ed, 0xc8450, 0xc84b5, 0xc8601, 0xc866e, 0xc8749, 0xc8b56, 0xc8b98, 0xc8c23, 0xc8cb2, 0xc8d7d, 0xc968b, 0xc9700, 0xc9829, 0xc9913, 0xc9bed, 0xc9cd6, 0xc9d38, 0xc9da8, 0xc9e87, 0xc9f47, 0xca00f, 0xca0bf, 0xca187, 0xca23b, 0xca32a, 0xca42f, 0xca7ea, 0xcab3e, 0xcad90, 0Xcaea8, 0xcb295, 0xcb569, 0xcb626, 0xcb836, 0xcbf5b, 0xcbfcc, 0xcc008, 0xcc03d, 0xcc182, 0xcc213, 0xccbc6, 0xccc92, 0xccffe, 0xcd080, 0xcd188, 0xcd1ea, 0xcd28f, 0xcd32f, 0xcd387, 0xcd446, 0xcd584, 0xce1fa, 0xce3e3, 0xce401, 0xce41f, 0xce43d, 0xce45b, 0xce54e)
+locations_text_offsets = (0xc8216, 0xc831e, 0xc8357, 0xc8382, 0xc83bb, 0xc83ed, 0xc8450, 0xc84b5, 0xc8601, 0xc866e, 0xc8749, 0xc8b56, 0xc8b98, 0xc8c23, 0xc8cb2, 0xc8d7d, 0xc968b, 0xc9700, 0xc9829, 0xc9913, 0xc9bed, 0xc9cd6, 0xc9d38, 0xc9da8, 0xc9e87, 0xc9f47, 0xca00f, 0xca0bf, 0xca187, 0xca23b, 0xca32a, 0xca42f, 0xca7ea, 0xcab3e, 0xcad90, 0Xcaea8, 0xcb295, 0xcb569, 0xcb626, 0xcb836, 0xcbf5b, 0xcbfcc, 0xcc008, 0xcc03d, 0xcc182, 0xcc213, 0xccbc6, 0xccc92, 0xccffe, 0xcd080, 0xcd188, 0xcd1ea, 0xcd28f, 0xcd32f, 0xcd387, 0xcd446, 0xcd584, 0xce1fa, 0xce3e3, 0xce401, 0xce41f, 0xce43d, 0xce45b, 0xce54e)
 
-intro_offsets = (0x0BCA80, 0x0BCAA2, 0x0BCB7E, 0x0BCBA8, 0x0BCBD2, 0x0BCBFC, 0x0BCC1F, 0x0BCDD9, 0x0BCE50, 0x0BCE8E)
+intro_pointers_offsets = (0x0BCA80, 0x0BCAA2, 0x0BCB7E, 0x0BCBA8, 0x0BCBD2, 0x0BCBFC, 0x0BCC1F, 0x0BCDD9, 0x0BCE50, 0x0BCE8E)
 
-credits_offsets = (0x9E9DD, 0x09E9E9, 0x09E9F5, 0x09EA01, 0x09EA0D, 0x09EA19, 0x09EA25, 0x09EA31, 0x09EA3D, 0x09EA49, 0x09EA55, 0x09EA61, 0x09EA6D, 0x09EA79, 0x09EA85, 0x09EA91, 0x09EA9D, 0x09EAA9, 0x09EAB5, 0x09EAC1, 0x09EACD, 0x09EAD9, 0x09EAE5, 0x09EAF1, 0x09EAFD, 0x09EB09, 0x09EB15, 0x09EB21, 0x09EB2D, 0x09EB42)
+credits_pointers_offsets = (0x9E9DD, 0x09E9E9, 0x09E9F5, 0x09EA01, 0x09EA0D, 0x09EA19, 0x09EA25, 0x09EA31, 0x09EA3D, 0x09EA49, 0x09EA55, 0x09EA61, 0x09EA6D, 0x09EA79, 0x09EA85, 0x09EA91, 0x09EA9D, 0x09EAA9, 0x09EAB5, 0x09EAC1, 0x09EACD, 0x09EAD9, 0x09EAE5, 0x09EAF1, 0x09EAFD, 0x09EB09, 0x09EB15, 0x09EB21, 0x09EB2D, 0x09EB42)
+
+menu_pointers_offsets = (0xbe2b5, 0xbe359, 0xbe72b, 0xbe72f, 0xbe733, 0xbe8df, 0xbea5a, 0xbebad, 0xbebd1, 0xbebf5, 0xbf6ad, 0xbf6af, 0xbf6b1)
 
 cmd_list = {b'\xc1': 2, b'\xc3': 1, b'\xc5': 4, b'\xc6': 4, b'\xc7': 2, b'\xc9': 1, b'\xcd': 3, b'\xd1': 2, b'\xd2': 1, b'\xd5': 1, b'\xd6': 1, b'\xd7': 1, b'\xd8': 1}
 
@@ -70,11 +72,13 @@ def gaia_read_text(f, offset=None, length=None, end_byte=None, cmd_list=None, ap
 def gaia_text_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
+    table3_file = args.table3
     dump_path = args.dump_path
     db = args.database_file
     if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
+    table3 = Table(table3_file)
     conn = sqlite3.connect(db)
     conn.text_factory = str
     cur = conn.cursor()
@@ -90,8 +94,8 @@ def gaia_text_dumper(args):
             f.seek(pointer_offset)
             pointer = f.read(4)[2:]
             bank_byte = pointer_offset & 0xFF0000
-            taddress = pointer[0] + (pointer[1] << 8) + bank_byte
-            pointers.setdefault(taddress, []).append(pointer_offset)
+            text_offset = pointer[0] + (pointer[1] << 8) + bank_byte
+            pointers.setdefault(text_offset, []).append(pointer_offset)
         f.seek(0)
         pointer_offsets = [m.start() for m in re.finditer(b'\x02\x19\x17', f.read())]
         for pointer_offset in pointer_offsets:
@@ -100,29 +104,13 @@ def gaia_text_dumper(args):
             f.seek(pointer_offset)
             pointer = f.read(5)[3:]
             bank_byte = pointer_offset & 0xFF0000
-            taddress = pointer[0] + (pointer[1] << 8) + bank_byte
-            pointers.setdefault(taddress, []).append(pointer_offset)
+            text_offset = pointer[0] + (pointer[1] << 8) + bank_byte
+            pointers.setdefault(text_offset, []).append(pointer_offset)
         pointers[0x1ff02] = []
         pointers[0x1ff1f] = []
         pointers[0x1ff36] = []
         pointers[0x1ff48] = []
         pointers[0x1cb66] = []
-        pointers[0xbf3f4] = []
-        pointers[0xbf437] = []
-        pointers[0xbf476] = []
-        pointers[0xbf48c] = []
-        pointers[0xbf4a7] = []
-        pointers[0xbf4c3] = []
-        pointers[0xbf4ea] = []
-        pointers[0xbf511] = []
-        pointers[0xbf538] = []
-        pointers[0xbf5ad] = []
-        pointers[0xbf679] = []
-        pointers[0xbf6b3] = []
-        pointers[0xbf6df] = []
-        pointers[0xbf6ec] = []
-        pointers[0xbf6f9] = []
-        pointers[0xbf906] = []
         for i, (taddress, paddresses) in enumerate(pointers.items()):
             text = gaia_read_text(f, taddress, end_byte=(b'\xc0', b'\xca'), cmd_list=cmd_list, append_end_byte=True)
             text_decoded = table.decode(text, mte_resolver=True, dict_resolver=True)
@@ -135,7 +123,7 @@ def gaia_text_dumper(args):
             with open(filename, 'a+', encoding='utf-8') as out:
                 out.write(f'{ref}\n{text_decoded}\n\n')
             id += 1
-        ##
+        # Attacks
         id = 1
         pointers = {}
         for pointer_offset in tuple(range(0x8eb8f, 0x8eb9b, 2)) + tuple(range(0x8ebd3, 0x8ebdf, 2)):
@@ -144,7 +132,7 @@ def gaia_text_dumper(args):
             bank_byte = pointer_offset & 0xFF0000
             taddress = pointer[0] + (pointer[1] << 8) + bank_byte
             pointers.setdefault(taddress, []).append(pointer_offset)
-        for i, (taddress, paddresses) in enumerate(pointers.items()):
+        for _, (taddress, paddresses) in enumerate(pointers.items()):
             text = gaia_read_text(f, taddress, end_byte=(b'\xc0', b'\xca'), cmd_list=cmd_list, append_end_byte=True)
             text_decoded = table.decode(text, mte_resolver=True, dict_resolver=True)
             pointer_addresses = ';'.join(hex(x) for x in paddresses)
@@ -156,6 +144,7 @@ def gaia_text_dumper(args):
             with open(filename, 'a+', encoding='utf-8') as out:
                 out.write(f'{ref}\n{text_decoded}\n\n')
             id += 1
+        # Other text
         id = 1
         pointers = {}
         for pointer_offset in tuple(range(0x1fd24, 0x1fda3, 2)):
@@ -164,7 +153,7 @@ def gaia_text_dumper(args):
             bank_byte = pointer_offset & 0xFF0000
             taddress = pointer[0] + (pointer[1] << 8) + bank_byte
             pointers.setdefault(taddress, []).append(pointer_offset)
-        for i, (taddress, paddresses) in enumerate(pointers.items()):
+        for _, (taddress, paddresses) in enumerate(pointers.items()):
             text = gaia_read_text(f, taddress, end_byte=(b'\xc0', b'\xca'), cmd_list=cmd_list, append_end_byte=True)
             text_decoded = table.decode(text, mte_resolver=True, dict_resolver=True)
             pointer_addresses = ';'.join(hex(x) for x in paddresses)
@@ -173,6 +162,100 @@ def gaia_text_dumper(args):
             # insert_text(cur, id, text, text_decoded, text_address, '', 2, ref)
             # dump - txt
             filename = os.path.join(dump_path, 'dump_other_text_eng.txt')
+            with open(filename, 'a+', encoding='utf-8') as out:
+                out.write(f'{ref}\n{text_decoded}\n\n')
+            id += 1
+        # Intro
+        id = 1
+        pointers = {}
+        for pointer_offset in intro_pointers_offsets:
+            f.seek(pointer_offset)
+            pointer = f.read(2)
+            bank_byte = pointer_offset & 0xFF0000
+            taddress = pointer[0] + (pointer[1] << 8) + bank_byte
+            pointers.setdefault(taddress, []).append(pointer_offset)
+        for _, (taddress, paddresses) in enumerate(pointers.items()):
+            text = gaia_read_text(f, taddress, end_byte=(b'\xca'), cmd_list=cmd_list, append_end_byte=False)
+            text_decoded = table3.decode(text, mte_resolver=False, dict_resolver=False)
+            pointer_addresses = ';'.join(hex(x) for x in paddresses)
+            ref = f'[BLOCK {id}: {hex(taddress)} to {hex(f.tell() - 1)} - {pointer_addresses}]'
+            # dump - db
+            # insert_text(cur, id, text, text_decoded, text_address, '', 2, ref)
+            # dump - txt
+            filename = os.path.join(dump_path, 'dump_intro_eng.txt')
+            with open(filename, 'a+', encoding='utf-8') as out:
+                out.write(f'{ref}\n{text_decoded}\n\n')
+            id += 1
+        # Menu
+        id = 1
+        pointers = {}
+        pointers[0xbf3f4] = []
+        pointers[0xbf437] = []
+        pointers[0xbf476] = []
+        pointers[0xbf48c] = []
+        pointers[0xbf4a7] = []
+        # pointers[0xbf4c3] = []
+        # pointers[0xbf4ea] = []
+        # pointers[0xbf511] = []
+        pointers[0xbf538] = []
+        pointers[0xbf5ad] = []
+        pointers[0xbf679] = []
+        pointers[0xbf6b3] = []
+        pointers[0xbf6df] = []
+        pointers[0xbf6ec] = []
+        pointers[0xbf6f9] = []
+        for _, (taddress, paddresses) in enumerate(pointers.items()):
+            text = gaia_read_text(f, taddress, end_byte=(b'\xc0', b'\xca'), cmd_list=cmd_list, append_end_byte=True)
+            text_decoded = table.decode(text, mte_resolver=True, dict_resolver=True)
+            pointer_addresses = ';'.join(hex(x) for x in paddresses)
+            ref = f'[BLOCK {id}: {hex(taddress)} to {hex(f.tell() - 1)} - {pointer_addresses}]'
+            # dump - db
+            # insert_text(cur, id, text, text_decoded, text_address, '', 2, ref)
+            # dump - txt
+            filename = os.path.join(dump_path, 'dump_menu_eng.txt')
+            with open(filename, 'a+', encoding='utf-8') as out:
+                out.write(f'{ref}\n{text_decoded}\n\n')
+            id += 1
+        # Menu
+        id = 1
+        pointers = {}
+        for pointer_offset in menu_pointers_offsets:
+            f.seek(pointer_offset)
+            pointer = f.read(2)
+            bank_byte = pointer_offset & 0xFF0000
+            taddress = pointer[0] + (pointer[1] << 8) + bank_byte
+            pointers.setdefault(taddress, []).append(pointer_offset)
+        for _, (taddress, paddresses) in enumerate(pointers.items()):
+            text = gaia_read_text(f, taddress, end_byte=(b'\xc0', b'\xca'), cmd_list=cmd_list, append_end_byte=True)
+            text_decoded = table.decode(text, mte_resolver=True, dict_resolver=True)
+            pointer_addresses = ';'.join(hex(x) for x in paddresses)
+            ref = f'[BLOCK {id}: {hex(taddress)} to {hex(f.tell() - 1)} - {pointer_addresses}]'
+            # dump - db
+            # insert_text(cur, id, text, text_decoded, text_address, '', 2, ref)
+            # dump - txt
+            filename = os.path.join(dump_path, 'dump_menu_eng_.txt')
+            with open(filename, 'a+', encoding='utf-8') as out:
+                out.write(f'{ref}\n{text_decoded}\n\n')
+            id += 1
+        # Menu locations
+        id = 1
+        pointers = {}
+        for pointer_offset in tuple(range(0xbf706, 0xbf906, 2)):
+            f.seek(pointer_offset)
+            pointer = f.read(2)
+            bank_byte = pointer_offset & 0xFF0000
+            taddress = pointer[0] + (pointer[1] << 8) + bank_byte
+            pointers.setdefault(taddress, []).append(pointer_offset)
+        for _, (taddress, paddresses) in enumerate(pointers.items()):
+            text = gaia_read_text(f, taddress, end_byte=(b'\xca'), cmd_list=cmd_list, append_end_byte=True)
+            text += f.read(4)
+            text_decoded = table.decode(text, mte_resolver=True, dict_resolver=True)
+            pointer_addresses = ';'.join(hex(x) for x in paddresses)
+            ref = f'[BLOCK {id}: {hex(taddress)} to {hex(f.tell() - 1)} - {pointer_addresses}]'
+            # dump - db
+            # insert_text(cur, id, text, text_decoded, text_address, '', 2, ref)
+            # dump - txt
+            filename = os.path.join(dump_path, 'dump_menu_locations_eng.txt')
             with open(filename, 'a+', encoding='utf-8') as out:
                 out.write(f'{ref}\n{text_decoded}\n\n')
             id += 1
@@ -252,35 +335,6 @@ def gaia_misc_dumper(args):
                 text = gaia_read_text(f, taddress, end_byte=(b'\xca'), cmd_list=cmd_list, append_end_byte=False)
                 text_decoded = table3.decode(text, mte_resolver=False, dict_resolver=False)
                 fields = [hex(pointer_offset + 1), hex(taddress), text_decoded]
-                csv_writer.writerow(fields)
-        # Intro
-        filename = os.path.join(dump_path, 'intro.csv')
-        with open(filename, 'w+', encoding='utf-8') as csv_file:
-            csv_writer = csv.writer(csv_file)
-            csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
-            for pointer_offset in intro_offsets:
-                f.seek(pointer_offset)
-                pointer = f.read(2)
-                bank_byte = pointer_offset & 0xFF0000
-                taddress = pointer[0] + (pointer[1] << 8) + bank_byte
-                text = gaia_read_text(f, taddress, end_byte=(b'\xca'), cmd_list=cmd_list, append_end_byte=False)
-                text_decoded = table3.decode(text, mte_resolver=False, dict_resolver=False)
-                fields = [hex(pointer_offset), hex(taddress), text_decoded]
-                csv_writer.writerow(fields)
-        # Locations 2
-        filename = os.path.join(dump_path, 'locations2.csv')
-        with open(filename, 'w+', encoding='utf-8') as csv_file:
-            csv_writer = csv.writer(csv_file)
-            csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
-            for pointer_offset in tuple(range(0xbf706, 0xbf906, 2)):
-                f.seek(pointer_offset)
-                pointer = f.read(2)
-                bank_byte = pointer_offset & 0xff0000
-                taddress = pointer[0] + (pointer[1] << 8) + bank_byte
-                text = gaia_read_text(f, taddress, end_byte=(b'\xca'), cmd_list=cmd_list, append_end_byte=True)
-                text += f.read(4)
-                text_decoded = table.decode(text, mte_resolver=False, dict_resolver=True)
-                fields = [hex(pointer_offset), hex(taddress), text_decoded]
                 csv_writer.writerow(fields)
         # Credits
         filename = os.path.join(dump_path, 'credits.csv')
@@ -466,6 +520,51 @@ def gaia_text_inserter(args):
         new_pointer = struct.pack('<I', snes_offset)[:3]
         f.seek(original_text_offset)
         f.write(b'\xcd' + new_pointer + bytes([end_byte]))
+    ###
+    with open(dest_file, 'rb+') as f1, open(dest_file, 'rb+') as f2:
+        new_offset = 0xbf906
+        f1.seek(new_offset)
+        # Menu locations
+        translation_file = os.path.join(translation_path, 'dump_menu_locations_ita.txt')
+        dump = read_dump(translation_file)
+        for block_id, value in dump.items():
+            text, _, pointer_offsets = value
+            pointer_value = struct.pack('<H', f1.tell() & 0x00ffff)
+            encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=False)
+            f1.write(encoded_text)
+            for pointer_offset in pointer_offsets:
+                f2.seek(pointer_offset)
+                f2.write(pointer_value)
+        # Intro
+        translation_file = os.path.join(translation_path, 'dump_intro_ita.txt')
+        dump = read_dump(translation_file)
+        for block_id, value in dump.items():
+            text, _, pointer_offsets = value
+            pointer_value = struct.pack('<H', f1.tell() & 0x00ffff)
+            encoded_text = table3.encode(text[:-2], mte_resolver=False, dict_resolver=False)
+            f1.write(encoded_text + b'\xca')
+            for pointer_offset in pointer_offsets:
+                f2.seek(pointer_offset)
+                f2.write(pointer_value)
+        # Menu
+        translation_file = os.path.join(translation_path, 'dump_menu_ita.txt')
+        dump = read_dump(translation_file)
+        for block_id, value in dump.items():
+            text, offsets, _ = value
+            original_text_offset, _ = offsets
+            encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
+            if len(encoded_text) < 5:
+                continue
+            offsets_list.append((block_id, original_text_offset, f1.tell(), encoded_text[-1]))
+            f1.write(encoded_text[:-1] + b'\xca')
+        for block_id, original_text_offset, new_text_offset, end_byte in offsets_list:
+            snes_offset = pc2snes_hirom(new_text_offset) - 0x400_000
+            new_pointer = struct.pack('<I', snes_offset)[:3]
+            f2.seek(original_text_offset)
+            f2.write(b'\xcd' + new_pointer + bytes([end_byte]))
+        #
+        if (f1.tell() > 0xbffff):
+            sys.exit(f'Text size exceeds: {f1.tell() - 0xbffff}')
 
 def gaia_misc_inserter(args):
     dest_file = args.dest_file
@@ -507,38 +606,6 @@ def gaia_misc_inserter(args):
             encoded_text = table3.encode(t_value, mte_resolver=False, dict_resolver=False)
             f1.write(encoded_text + b'\xca')
             if (f1.tell() > 0x3f_fff):
-                sys.exit('Text size exceeds!')
-        # Intro
-        translation_file = os.path.join(translation_path, 'intro.csv')
-        translated_texts = get_csv_translated_texts(translation_file)
-        f1.seek(0xbfa80)
-        for i, (p_address, _, t_value) in enumerate(translated_texts):
-            # pointer
-            new_pointer = struct.pack('<H', f1.tell() & 0x00ffff)
-            f2.seek(p_address)
-            f2.write(new_pointer)
-            # text
-            encoded_text = table3.encode(t_value, mte_resolver=False, dict_resolver=False)
-            f1.write(encoded_text + b'\xca')
-            if (f1.tell() > 0xbffff):
-                sys.exit('Text size exceeds!')
-        # Locations 2
-        translation_file = os.path.join(translation_path, 'locations2.csv')
-        translated_texts = get_csv_translated_texts(translation_file)
-        inserted_text = dict()
-        # f1.seek()
-        for i, (p_address, _, t_value) in enumerate(translated_texts):
-            # text
-            encoded_text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
-            # existing pointer check
-            if encoded_text not in inserted_text:
-                inserted_text[encoded_text] = struct.pack('<H', f1.tell() & 0x00ffff)
-                f1.write(encoded_text)
-            # pointer
-            new_pointer = inserted_text[encoded_text]
-            f2.seek(p_address)
-            f2.write(new_pointer)
-            if (f1.tell() > 0xbffff):
                 sys.exit('Text size exceeds!')
         # Credits
         translation_file = os.path.join(translation_path, 'credits.csv')
@@ -707,13 +774,16 @@ subparsers = parser.add_subparsers()
 dump_text_parser = subparsers.add_parser('dump_text', help='Execute TEXT DUMP')
 dump_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 dump_text_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+dump_text_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Menu table filename')
+dump_text_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Intro table filename')
 dump_text_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
 dump_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
 dump_text_parser.set_defaults(func=gaia_text_dumper)
 insert_text_parser = subparsers.add_parser('insert_text', help='Execute TEXT INSERTER')
 insert_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 insert_text_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-insert_text_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+insert_text_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified original table filename')
+insert_text_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Modified intro table filename')
 insert_text_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
 insert_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
 insert_text_parser.add_argument('-u', '--user', action='store', dest='user', help='')
