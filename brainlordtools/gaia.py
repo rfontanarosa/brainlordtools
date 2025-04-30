@@ -277,19 +277,33 @@ def gaia_misc_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        # Dictionary
-        filename = os.path.join(dump_path, 'dictionary.csv')
+        # Dictionary 1
+        filename = os.path.join(dump_path, 'dictionary1.csv')
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
-            for pointer_offset in tuple(range(0x1eba8, 0x1eda7, 2)) + tuple(range(0x1f54f, 0x1f6dc, 2)):
+            for pointer_offset in tuple(range(0x1eba8, 0x1eda7, 2)):
                 f.seek(pointer_offset)
                 pointer = f.read(2)
                 bank_byte = pointer_offset & 0xFF0000
-                taddress = pointer[0] + (pointer[1] << 8) + bank_byte
-                text = gaia_read_text(f, taddress, end_byte=(b'\xc0', b'\xca'), cmd_list=cmd_list, append_end_byte=False)
-                text_decoded = table.decode(text, mte_resolver=True, dict_resolver=True)
-                fields = [hex(pointer_offset), hex(taddress), text_decoded]
+                text_offset = pointer[0] + (pointer[1] << 8) + bank_byte
+                text = gaia_read_text(f, text_offset, end_byte=(b'\xca'), cmd_list=cmd_list, append_end_byte=False)
+                text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
+                fields = [hex(pointer_offset), hex(text_offset), text_decoded]
+                csv_writer.writerow(fields)
+        # Dictionary 2
+        filename = os.path.join(dump_path, 'dictionary2.csv')
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
+            for pointer_offset in tuple(range(0x1f54d, 0x1f6dc, 2)):
+                f.seek(pointer_offset)
+                pointer = f.read(2)
+                bank_byte = pointer_offset & 0xFF0000
+                text_offset = pointer[0] + (pointer[1] << 8) + bank_byte
+                text = gaia_read_text(f, text_offset, end_byte=(b'\xca'), cmd_list=cmd_list, append_end_byte=False)
+                text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
+                fields = [hex(pointer_offset), hex(text_offset), text_decoded]
                 csv_writer.writerow(fields)
         # Locations
         filename = os.path.join(dump_path, 'locations.csv')
@@ -576,6 +590,38 @@ def gaia_misc_inserter(args):
     table2 = Table(table2_file)
     table3 = Table(table3_file)
     with open(dest_file, 'r+b') as f1, open(dest_file, 'r+b') as f2:
+        # Dictionaries
+        fill(f1, 0x1eba8, 0x1fd24 - 0x1eba8)
+        # Dictionary 1
+        translation_file = os.path.join(translation_path, 'dictionary1.csv')
+        translated_texts = get_csv_translated_texts(translation_file)
+        new_pointers_offsets = tuple(range(0x6dce0, 0x6dce0 + 512, 2))
+        f1.seek(0x6dce0 + 512)
+        for i, (_, t_address, t_value) in enumerate(translated_texts):
+            # pointer
+            new_pointer = struct.pack('<H', f1.tell() & 0x00FFFF)
+            f2.seek(new_pointers_offsets[i])
+            f2.write(new_pointer)
+            # text
+            encoded_text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
+            f1.write(encoded_text + b'\xca')
+            if (f1.tell() > 0x6ffff):
+                sys.exit('Text size exceeds!')
+        # Dictionary 2
+        translation_file = os.path.join(translation_path, 'dictionary2.csv')
+        translated_texts = get_csv_translated_texts(translation_file)
+        new_pointers_offsets = tuple(range(0x6ece0, 0x6ece0 + 402, 2))
+        f1.seek(0x6ece0 + 402)
+        for i, (_, t_address, t_value) in enumerate(translated_texts):
+            # pointer
+            new_pointer = struct.pack('<H', f1.tell() & 0x00FFFF)
+            f2.seek(new_pointers_offsets[i])
+            f2.write(new_pointer)
+            # text
+            encoded_text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
+            f1.write(encoded_text + b'\xca')
+            if (f1.tell() > 0x6ffff):
+                sys.exit('Text size exceeds!')
         # Locations
         translation_file = os.path.join(translation_path, 'locations.csv')
         translated_texts = get_csv_translated_texts(translation_file)
