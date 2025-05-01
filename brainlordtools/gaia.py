@@ -30,6 +30,116 @@ menu_pointers_offsets = (0xbe2b5, 0xbe359, 0xbe72b, 0xbe72f, 0xbe733, 0xbe8df, 0
 
 cmd_list = {b'\xc1': 2, b'\xc3': 1, b'\xc5': 4, b'\xc6': 4, b'\xc7': 2, b'\xc9': 1, b'\xcd': 3, b'\xd1': 2, b'\xd2': 1, b'\xd5': 1, b'\xd6': 1, b'\xd7': 1, b'\xd8': 1}
 
+MISCS_CONFIGS = ({
+    'name': 'Credits',
+    'filename': 'credits.csv',
+    'pointers_offsets': credits_pointers_offsets,
+    'end_byte': (b'\xc0'),
+    'append_end_byte': False,
+    'tablename': 'main',
+    'mte_resolver': False,
+    'dict_resolver': False
+}, {
+    'name': 'Dictionary 1',
+    'filename': 'dictionary1.csv',
+    'pointers_offsets': range(0x1eba8, 0x1eda7, 2),
+    'end_byte': (b'\xca'),
+    'append_end_byte': False,
+    'tablename': 'main',
+    'mte_resolver': False,
+    'dict_resolver': False
+}, {
+    'name': 'Dictionary 2',
+    'filename': 'dictionary2.csv',
+    'pointers_offsets': range(0x1f54d, 0x1f6dc, 2),
+    'end_byte': (b'\xca'),
+    'append_end_byte': False,
+    'tablename': 'main',
+    'mte_resolver': False,
+    'dict_resolver': False
+}, {
+    'name': 'Locations',
+    'filename': 'locations.csv',
+    'texts_offsets': locations_text_offsets,
+    'end_byte': (b'\xc0', b'\xca'),
+    'append_end_byte': False,
+    'tablename': 'main',
+    'mte_resolver': False,
+    'dict_resolver': True
+}, {
+    'name': 'Misc 1',
+    'filename': 'misc1.csv',
+    'pointers_offsets': range(0x1dabf, 0x1db3e, 2),
+    'end_byte': (b'\x00'),
+    'append_end_byte': False,
+    'tablename': 'menu',
+    'mte_resolver': True,
+    'dict_resolver': True
+}, {
+    'name': 'Misc 2',
+    'filename': 'misc2.csv',
+    'pointers_offsets': range(0x1de1e, 0x1de9e, 2),
+    'end_byte': (b'\x00'),
+    'append_end_byte': False,
+    'tablename': 'menu',
+    'mte_resolver': True,
+    'dict_resolver': True
+}, {
+    'name': 'Misc 3',
+    'filename': 'misc3.csv',
+    'pointers_offsets': range(0x1e132, 0x1e184, 2),
+    'end_byte': (b'\x00'),
+    'append_end_byte': False,
+    'tablename': 'menu',
+    'mte_resolver': True,
+    'dict_resolver': True
+}, {
+    'name': 'Misc 4',
+    'filename': 'misc4.csv',
+    'pointers_offsets': range(0x1e5ee, 0x1e603, 2),
+    'end_byte': (b'\x00'),
+    'append_end_byte': False,
+    'tablename': 'menu',
+    'mte_resolver': True,
+    'dict_resolver': True
+}, {
+    'name': 'Misc 5',
+    'filename': 'misc5.csv',
+    'pointers_offsets': range(0x1e65f, 0x1e674, 2),
+    'end_byte': (b'\x00'),
+    'append_end_byte': False,
+    'tablename': 'menu',
+    'mte_resolver': True,
+    'dict_resolver': True
+}, {
+    'name': 'Misc 6',
+    'filename': 'misc6.csv',
+    'pointers_offsets': range(0x1e6de, 0x1e6f5, 2),
+    'end_byte': (b'\x00'),
+    'append_end_byte': False,
+    'tablename': 'menu',
+    'mte_resolver': True,
+    'dict_resolver': True
+}, {
+    'name': 'Misc 7',
+    'filename': 'misc7.csv',
+    'pointers_offsets': range(0x1e7ce, 0x1e7d5, 2),
+    'end_byte': (b'\x00'),
+    'append_end_byte': False,
+    'tablename': 'menu',
+    'mte_resolver': True,
+    'dict_resolver': True
+}, {
+    'name': 'World Map Locations',
+    'filename': 'world_map_locations.csv',
+    'pointers_offsets': tuple(range(0x3b1d5, 0x3b244, 3)),
+    'end_byte': (b'\xca'),
+    'append_end_byte': False,
+    'tablename': 'intro',
+    'mte_resolver': False,
+    'dict_resolver': False
+})
+
 def gaia_read_text(f, offset=None, length=None, end_byte=None, cmd_list=None, append_end_byte=False):
     text = b''
     if offset is not None:
@@ -271,99 +381,40 @@ def gaia_misc_dumper(args):
     dump_path = args.dump_path
     if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
-    table = Table(table1_file)
+    table1 = Table(table1_file)
     table2 = Table(table2_file)
     table3 = Table(table3_file)
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        # Dictionary 1
-        filename = os.path.join(dump_path, 'dictionary1.csv')
-        with open(filename, 'w+', encoding='utf-8') as csv_file:
-            csv_writer = csv.writer(csv_file)
-            csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
-            for pointer_offset in tuple(range(0x1eba8, 0x1eda7, 2)):
-                f.seek(pointer_offset)
-                pointer = f.read(2)
-                bank_byte = pointer_offset & 0xFF0000
-                text_offset = pointer[0] + (pointer[1] << 8) + bank_byte
-                text = gaia_read_text(f, text_offset, end_byte=(b'\xca'), cmd_list=cmd_list, append_end_byte=False)
-                text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
-                fields = [hex(pointer_offset), hex(text_offset), text_decoded]
-                csv_writer.writerow(fields)
-        # Dictionary 2
-        filename = os.path.join(dump_path, 'dictionary2.csv')
-        with open(filename, 'w+', encoding='utf-8') as csv_file:
-            csv_writer = csv.writer(csv_file)
-            csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
-            for pointer_offset in tuple(range(0x1f54d, 0x1f6dc, 2)):
-                f.seek(pointer_offset)
-                pointer = f.read(2)
-                bank_byte = pointer_offset & 0xFF0000
-                text_offset = pointer[0] + (pointer[1] << 8) + bank_byte
-                text = gaia_read_text(f, text_offset, end_byte=(b'\xca'), cmd_list=cmd_list, append_end_byte=False)
-                text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
-                fields = [hex(pointer_offset), hex(text_offset), text_decoded]
-                csv_writer.writerow(fields)
-        # Locations
-        filename = os.path.join(dump_path, 'locations.csv')
-        with open(filename, 'w+', encoding='utf-8') as csv_file:
-            csv_writer = csv.writer(csv_file)
-            csv_writer.writerow(['text_address', 'text', 'trans'])
-            for taddress in locations_offsets:
-                text = gaia_read_text(f, taddress, end_byte=(b'\xc0', b'\xca'), cmd_list=cmd_list, append_end_byte=False)
-                text_decoded = table.decode(text, mte_resolver=False, dict_resolver=True)
-                fields = [hex(taddress), text_decoded]
-                csv_writer.writerow(fields)
-        # Misc
-        filename = os.path.join(dump_path, 'misc.csv')
-        with open(filename, 'w+', encoding='utf-8') as csv_file:
-            csv_writer = csv.writer(csv_file)
-            csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
-            for pointer_offset in \
-                    tuple(range(0x1dabf, 0x1db3e, 2)) + \
-                    tuple(range(0x1de1e, 0x1de9e, 2)) + \
-                    tuple(range(0x1e132, 0x1e184, 2)) + \
-                    tuple(range(0x1e5ee, 0x1e603, 2)) + \
-                    tuple(range(0x1e65f, 0x1e674, 2)) + \
-                    tuple(range(0x1e6de, 0x1e6f5, 2)) + \
-                    tuple(range(0x1e7ce, 0x1e7d5, 2)):
-                f.seek(pointer_offset)
-                pointer = f.read(2)
-                bank_byte = pointer_offset & 0xFF0000
-                taddress = pointer[0] + (pointer[1] << 8) + bank_byte
-                text = gaia_read_text(f, taddress, end_byte=(b'\x00'), cmd_list=cmd_list, append_end_byte=False)
-                text_decoded = table2.decode(text, mte_resolver=True, dict_resolver=True)
-                fields = [hex(pointer_offset), hex(taddress), text_decoded]
-                csv_writer.writerow(fields)
-        # World Map Locations
-        filename = os.path.join(dump_path, 'world_map_locations.csv')
-        with open(filename, 'w+', encoding='utf-8') as csv_file:
-            csv_writer = csv.writer(csv_file)
-            csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
-            for pointer_offset in tuple(range(0x3b1d4, 0x3b243, 3)):
-                f.seek(pointer_offset + 1)
-                pointer = f.read(2)
-                bank_byte = pointer_offset & 0xFF0000
-                taddress = pointer[0] + (pointer[1] << 8) + bank_byte
-                text = gaia_read_text(f, taddress, end_byte=(b'\xca'), cmd_list=cmd_list, append_end_byte=False)
-                text_decoded = table3.decode(text, mte_resolver=False, dict_resolver=False)
-                fields = [hex(pointer_offset + 1), hex(taddress), text_decoded]
-                csv_writer.writerow(fields)
-        # Credits
-        filename = os.path.join(dump_path, 'credits.csv')
-        with open(filename, 'w+', encoding='utf-8') as csv_file:
-            csv_writer = csv.writer(csv_file)
-            csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
-            for pointer_offset in credits_offsets:
-                f.seek(pointer_offset)
-                pointer = f.read(2)
-                bank_byte = pointer_offset & 0xff0000
-                taddress = pointer[0] + (pointer[1] << 8) + bank_byte
-                text = gaia_read_text(f, taddress, end_byte=(b'\xc0'), cmd_list=cmd_list, append_end_byte=False)
-                text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
-                fields = [hex(pointer_offset), hex(taddress), text_decoded]
-                csv_writer.writerow(fields)
+        for config in MISCS_CONFIGS:
+            _, filename, pointers_offsets, texts_offsets = config['name'], config['filename'], config.get('pointers_offsets'), config.get('texts_offsets')
+            end_byte, append_end_byte = config['end_byte'], config['append_end_byte']
+            tablename, mte_resolver, dict_resolver = config['tablename'], config['mte_resolver'], config['dict_resolver']
+            print(tablename)
+            print('main' if tablename == 'main' else 'intro' if tablename == 'intro' else 'menu')
+            table = table1 if tablename == 'main' else table2 if tablename == 'menu' else table3
+            filepath = os.path.join(dump_path, filename)
+            with open(filepath, 'w+', encoding='utf-8') as csv_file:
+                csv_writer = csv.writer(csv_file)
+                if pointers_offsets:
+                    csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
+                    for pointer_offset in pointers_offsets:
+                        f.seek(pointer_offset)
+                        pointer_value = f.read(2)
+                        bank_byte = pointer_offset & 0xff0000
+                        text_offset = pointer_value[0] + (pointer_value[1] << 8) + bank_byte
+                        text = gaia_read_text(f, text_offset, end_byte=end_byte, cmd_list=cmd_list, append_end_byte=append_end_byte)
+                        text_decoded = table.decode(text, mte_resolver=mte_resolver, dict_resolver=dict_resolver)
+                        fields = [hex(pointer_offset), hex(text_offset), text_decoded]
+                        csv_writer.writerow(fields)
+                elif texts_offsets:
+                    csv_writer.writerow(['text_address', 'text', 'trans'])
+                    for text_offset in locations_text_offsets:
+                        text = gaia_read_text(f, text_offset, end_byte=end_byte, cmd_list=cmd_list, append_end_byte=append_end_byte)
+                        text_decoded = table.decode(text, mte_resolver=mte_resolver, dict_resolver=dict_resolver)
+                        fields = [hex(text_offset), text_decoded]
+                        csv_writer.writerow(fields)
 
 def gaia_gfx_dumper(args):
     source_file = args.source_file
@@ -388,12 +439,14 @@ def gaia_text_inserter(args):
     source_file = args.source_file
     dest_file = args.dest_file
     table2_file = args.table2
+    table3_file = args.table3
     translation_path = args.translation_path
     db = args.database_file
     user_name = args.user
     if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table2_file)
+    table3 = Table(table3_file)
     #
     # buffer = dict()
     # conn = sqlite3.connect(db)
