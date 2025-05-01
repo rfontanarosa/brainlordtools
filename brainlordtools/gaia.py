@@ -8,7 +8,7 @@ import csv, os, re, shutil, sqlite3, struct, sys
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_translation_by_author, select_most_recent_translation
-from rhutils.dump import write_text, dump_binary, get_csv_translated_texts, insert_binary, read_dump
+from rhutils.dump import get_csv_translated_texts, read_dump, fill
 from rhutils.rom import crc32, expand_rom
 from rhutils.snes import pc2snes_hirom, snes2pc_hirom
 from quintettools.quintet_comp import compress as quintet_compress
@@ -704,6 +704,25 @@ def gaia_misc_inserter(args):
             f1.write(encoded_text + b'\xca')
             if (f1.tell() > 0x2f_fff):
                 sys.exit('Text size exceeds!')
+        # Miscs
+        f1.seek(0x1eba8)
+        for config in MISCS_CONFIGS[4:13]:
+            _, filename, _, _ = config['name'], config['filename'], config.get('pointers_offsets'), config.get('texts_offsets')
+            end_byte, _ = config['end_byte'], config['append_end_byte']
+            tablename, mte_resolver, dict_resolver = config['tablename'], config['mte_resolver'], config['dict_resolver']
+            table = table1 if tablename == 'main' else table2 if tablename == 'menu' else table3
+            filepath = os.path.join(translation_path, filename)
+            translated_texts = get_csv_translated_texts(filepath)
+            for i, (pointer_offset, _, text_value) in enumerate(translated_texts):
+                # pointer
+                new_pointer_value = struct.pack('<H', f1.tell() & 0x00ffff)
+                f2.seek(pointer_offset)
+                f2.write(new_pointer_value)
+                # text
+                encoded_text = table.encode(text_value, mte_resolver=mte_resolver, dict_resolver=dict_resolver)
+                f1.write(encoded_text + end_byte)
+                if (f1.tell() > 0x1fd24):
+                    sys.exit('Text size exceeds!')
         # World Map Locations
         translation_file = os.path.join(translation_path, 'world_map_locations.csv')
         translated_texts = get_csv_translated_texts(translation_file)
