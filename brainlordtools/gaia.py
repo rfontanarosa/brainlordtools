@@ -643,6 +643,20 @@ def gaia_misc_inserter(args):
     table2 = Table(table2_file)
     table3 = Table(table3_file)
     with open(dest_file, 'r+b') as f1, open(dest_file, 'r+b') as f2:
+        # Credits
+        translation_file = os.path.join(translation_path, 'credits.csv')
+        translated_texts = get_csv_translated_texts(translation_file)
+        f1.seek(0x9f6b0)
+        for i, (p_address, _, t_value) in enumerate(translated_texts):
+            # pointer
+            new_pointer = struct.pack('<H', f1.tell() & 0x00FFFF)
+            f2.seek(p_address)
+            f2.write(new_pointer)
+            # text
+            encoded_text = table1.encode(t_value, mte_resolver=False, dict_resolver=False)
+            f1.write(encoded_text + b'\xc0')
+            if (f1.tell() > 0x9f_fff):
+                sys.exit('Text size exceeds!')
         # Dictionaries
         fill(f1, 0x1eba8, 0x1fd24 - 0x1eba8)
         # Dictionary 1
@@ -705,20 +719,6 @@ def gaia_misc_inserter(args):
             encoded_text = table3.encode(t_value, mte_resolver=False, dict_resolver=False)
             f1.write(encoded_text + b'\xca')
             if (f1.tell() > 0x3f_fff):
-                sys.exit('Text size exceeds!')
-        # Credits
-        translation_file = os.path.join(translation_path, 'credits.csv')
-        translated_texts = get_csv_translated_texts(translation_file)
-        f1.seek(0x9f6b0)
-        for i, (p_address, _, t_value) in enumerate(translated_texts):
-            # pointer
-            new_pointer = struct.pack('<H', f1.tell() & 0x00FFFF)
-            f2.seek(p_address)
-            f2.write(new_pointer)
-            # text
-            encoded_text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
-            f1.write(encoded_text + b'\xc0')
-            if (f1.tell() > 0x9f_fff):
                 sys.exit('Text size exceeds!')
 
 def gaia_gfx_inserter(args):
