@@ -707,7 +707,7 @@ def gaia_misc_inserter(args):
         # World Map Locations
         translation_file = os.path.join(translation_path, 'world_map_locations.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        f1.seek(0x3f_210)
+        f1.seek(0x3f_600)
         for i, (pointer_offset, _, text_value) in enumerate(translated_texts):
             # pointer
             new_pointer_value = struct.pack('<H', f1.tell() & 0x00ffff)
