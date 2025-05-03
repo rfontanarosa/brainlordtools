@@ -576,7 +576,7 @@ def gaia_text_inserter(args):
         for block_id, value in dump.items():
             text, _, pointer_offsets = value
             pointer_value = struct.pack('<H', f1.tell() & 0x00ffff)
-            encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=False)
+            encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
             f1.write(encoded_text)
             for pointer_offset in pointer_offsets:
                 f2.seek(pointer_offset)
@@ -681,7 +681,7 @@ def gaia_misc_inserter(args):
             f2.seek(text_offset)
             f2.write(b'\xcd' + new_pointer_value + b'\xca')
             # text
-            encoded_text = table1.encode(text_value, mte_resolver=True, dict_resolver=True)
+            encoded_text = table1.encode(text_value, mte_resolver=True, dict_resolver=False)
             f1.write(encoded_text + b'\xca')
             if (f1.tell() > 0x2f_fff):
                 sys.exit('Text size exceeds!')
@@ -724,13 +724,20 @@ def gaia_gfx_inserter(args):
     translation_path = args.translation_path
     with open (dest_file, 'r+b') as out:
         offset = 0x268_000
-        # Font, intro, Prologue font
-        files = (('01146a8_font_ita.bin', 0xd8008), ('0117325_intro.bin', 0xdaf1d), ('196BD8_prologue_font_ita.bin', 0xd9bad))
-        for filename, pointer_offset in files:
-            out.seek(pointer_offset)
+        # Font, Prologue font, Intro gfx, Intro data, Worldmap - Tileset
+        files = (
+            ('01146a8_font_ita.bin', [0xd8008]),
+            ('196BD8_prologue_font_ita.bin', [0xd9bad]),
+            ('117325_intro_ita.bin', [0xdaf1d]),
+            ('1d7773_intro_data_ita.bin', [0xdaf2c]),
+            ('010000_world_map_tileset_ita.bin', [0xdafa6, 0xdaeef])
+        )
+        for filename, pointers_offsets in files:
             snes_offset = pc2snes_hirom(offset) - 0x400_000
             new_pointer_value = struct.pack('<I', snes_offset)
-            out.write(new_pointer_value[:3])
+            for pointer_offset in pointers_offsets:
+                out.seek(pointer_offset)
+                out.write(new_pointer_value[:3])
             with open(os.path.join(translation_path, filename), 'rb') as f:
                 out.seek(offset)
                 decompressed_data = f.read()
@@ -760,18 +767,6 @@ def gaia_gfx_inserter(args):
             compressed_data = quintet_compress(data)
             out.write(compressed_data)
             offset = out.tell()
-        # Worlmap - Tileset
-        # with open (os.path.join(translation_path, '010000_world_map_tileset.bin'), 'rb') as f:
-        #     tileset = f.read()
-        #     snes_offset = pc2snes_hirom(offset) - 0x400_000
-        #     new_pointer_value = struct.pack('<I', snes_offset)
-        #     for pointer_offset in [0x0d_af_a6]:
-        #         out.seek(pointer_offset)
-        #         out.write(new_pointer_value[:3])
-        #     out.seek(offset)
-        #     compressed_tileset = quintet_compress(tileset)
-        #     out.write(compressed_tileset)
-        #     offset = out.tell()
 
 def gaia_expander(args):
     dest_file = args.dest_file
