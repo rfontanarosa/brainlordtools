@@ -59,15 +59,15 @@ TEXTS_CONFIGS = ({
     'dict_resolver': True,
     'custom_after_read_text': True
 }, {
-    'name': 'Menu',
-    'filename': 'dump_menu_eng_.txt',
-    'pointers_offsets': initial_menu_pointers_offsets,
-    'end_byte': (b'\xc0', b'\xca'),
-    'append_end_byte': True,
-    'tablename': 'main',
-    'mte_resolver': True,
-    'dict_resolver': True
-}, {
+#     'name': 'Menu',
+#     'filename': 'dump_menu_eng_.txt',
+#     'pointers_offsets': initial_menu_pointers_offsets,
+#     'end_byte': (b'\xc0', b'\xca'),
+#     'append_end_byte': True,
+#     'tablename': 'main',
+#     'mte_resolver': True,
+#     'dict_resolver': True
+# }, {
     'name': 'Other text',
     'filename': 'dump_other_text_eng.txt',
     'pointers_offsets': range(0x1fd24, 0x1fda3, 2),
@@ -311,6 +311,7 @@ def gaia_text_dumper(args):
             with open(filename, 'a+', encoding='utf-8') as out:
                 out.write(f'{ref}\n{text_decoded}\n\n')
             id += 1
+        #
         for config in TEXTS_CONFIGS:
             _, filename, pointers_offsets, texts_offsets = config['name'], config['filename'], config.get('pointers_offsets'), config.get('texts_offsets')
             end_byte, append_end_byte = config['end_byte'], config['append_end_byte']
@@ -403,6 +404,15 @@ def gaia_gfx_dumper(args):
         tilemap = merge_tilemap(f1.read(), f2.read())
         with open(os.path.join(dump_path, 'worldmap_tilemap.bin'), 'wb') as out:
             out.write(tilemap)
+    # Intro
+    with open(source_file, 'rb') as f:
+        rom = f.read()
+        files = (('117325_intro.bin', 0x117325),)
+        for filename, offset in files:
+            decompressed_data = quintet_decompress(rom, offset)
+            decomp, _ = decompressed_data
+            with open(os.path.join(dump_path, filename), 'wb') as out:
+                out.write(decomp)
 
 def gaia_text_inserter(args):
     source_file = args.source_file
@@ -728,12 +738,12 @@ def gaia_gfx_inserter(args):
                 out.write(compressed_data)
                 offset = out.tell()
         # Worlmap - Tilemap
-        with open (os.path.join(translation_path, 'worldmap_tilemap.bin'), 'rb') as f:
+        with open (os.path.join(translation_path, 'worldmap_tilemap_ita.bin'), 'rb') as f:
             arrangement, data = split_tilemap(f.read())
             # Tilemap arrangement
             snes_offset = pc2snes_hirom(offset) - 0x400_000
             new_pointer_value = struct.pack('<I', snes_offset)
-            for pointer_offset in [0x0d_af_ac, 0x0d_af_04]:
+            for pointer_offset in [0xdaf04, 0xdafac]:
                 out.seek(pointer_offset)
                 out.write(new_pointer_value[:3])
             out.seek(offset)
@@ -743,7 +753,7 @@ def gaia_gfx_inserter(args):
             # Tilemap data
             snes_offset = pc2snes_hirom(offset) - 0x400_000
             new_pointer_value = struct.pack('<I', snes_offset)
-            for pointer_offset in [0x0d_af_9f, 0x0d_ae_ff]:
+            for pointer_offset in [0xdaeff, 0xdaf9f]:
                 out.seek(pointer_offset)
                 out.write(new_pointer_value[:3])
             out.seek(offset)
@@ -824,7 +834,7 @@ def split_tilemap(input_data):
                     offset += 4
 
     if (len(unique) > 256):
-        print("Too many unique tiles")
+        print(f"Too many unique tiles: {len(unique)}")
 
     # ---------- 2nd step – build arrangement + tile‑map -------------
     output_arrangement_data = bytearray(4096)
