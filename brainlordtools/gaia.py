@@ -727,7 +727,7 @@ def gaia_gfx_inserter(args):
         # Font, Prologue font, Intro gfx, Intro data, Worldmap - Tileset
         files = (
             ('01146a8_font_ita.bin', [0xd8008]),
-            ('196BD8_prologue_font_ita.bin', [0xd9bad]),
+            ('196BD8_prologue_font_ita.bin', [0xd9bad, 0xdafc2]),
             ('117325_intro_ita.bin', [0xdaf1d]),
             ('1d7773_intro_data_ita.bin', [0xdaf2c]),
             ('010000_world_map_tileset_ita.bin', [0xdafa6, 0xdaeef])
