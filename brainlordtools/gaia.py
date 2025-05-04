@@ -452,7 +452,7 @@ def gaia_text_inserter(args):
         new_offset = 0x208_000
         f.seek(new_offset)
         for block_id, value in dump.items():
-            if block_id in (1165, 1166, 1328, 1329, 1132, 1289):
+            if block_id in (1165, 1166, 1328, 1329, 1132, 1275, 1289):
                 continue
             text, offsets, _ = value
             original_text_offset, _ = offsets
