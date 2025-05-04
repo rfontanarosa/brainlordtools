@@ -593,6 +593,7 @@ def gaia_text_inserter(args):
                 f2.seek(pointer_offset)
                 f2.write(pointer_value)
         # Menu
+        offsets_list = []
         translation_file = os.path.join(translation_path, 'dump_menu_ita.txt')
         dump = read_dump(translation_file)
         for block_id, value in dump.items():
