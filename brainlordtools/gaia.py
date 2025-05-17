@@ -266,6 +266,7 @@ def gaia_text_dumper(args):
             pointers.setdefault(text_offset, []).append(pointer_offset)
         pointers[0x1ff02] = []
         pointers[0x1ff1f] = []
+        pointers[0x1ff2d] = []
         pointers[0x1ff36] = []
         pointers[0x1ff48] = []
         pointers[0x1cb66] = []
@@ -452,7 +453,7 @@ def gaia_text_inserter(args):
         new_offset = 0x208_000
         f.seek(new_offset)
         for block_id, value in dump.items():
-            if block_id in (1165, 1166, 1328, 1329, 1132, 1275, 1289):
+            if block_id in (1165, 1166) + (1328, 1329, 1330) + (1132, 1275, 1289):
                 continue
             text, offsets, _ = value
             original_text_offset, _ = offsets
@@ -495,7 +496,6 @@ def gaia_text_inserter(args):
         new_text_offset = f.tell()
         end_byte = encoded_text[-1]
         f.write(encoded_text[:-1] + b'\xca')
-        #
         new_offset = f.tell()
         snes_offset = pc2snes_hirom(new_text_offset) - 0x400_000
         new_pointer_value = struct.pack('<I', snes_offset)[:3]
@@ -521,7 +521,6 @@ def gaia_text_inserter(args):
         new_text_offset = f.tell()
         end_byte = encoded_text[-1]
         f.write(encoded_text[:-1] + b'\xca')
-        #
         new_offset = f.tell()
         snes_offset = pc2snes_hirom(new_text_offset) - 0x400_000
         new_pointer_value = struct.pack('<I', snes_offset)[:3]
@@ -550,6 +549,12 @@ def gaia_text_inserter(args):
         new_text_offset = f.tell()
         end_byte = encoded_text[-1]
         f.write(encoded_text[:-1] + b'\xca')
+        new_offset = f.tell()
+        snes_offset = pc2snes_hirom(new_text_offset) - 0x400_000
+        new_pointer_value = struct.pack('<I', snes_offset)[:3]
+        f.seek(original_text_offset)
+        f.write(b'\xcd' + new_pointer_value + bytes([end_byte]))
+        f.seek(new_offset)
         #
         dialog = dump[1329]
         text, offsets, _ = dialog
@@ -560,7 +565,22 @@ def gaia_text_inserter(args):
         new_text_offset = f.tell()
         end_byte = encoded_text[-1]
         f.write(encoded_text[:-1] + b'\xca')
+        new_offset = f.tell()
+        snes_offset = pc2snes_hirom(new_text_offset) - 0x400_000
+        new_pointer_value = struct.pack('<I', snes_offset)[:3]
+        f.seek(original_text_offset)
+        f.write(b'\xcd' + new_pointer_value + bytes([end_byte]))
+        f.seek(new_offset)
         #
+        dialog = dump[1330]
+        text, offsets, _ = dialog
+        original_text_offset, _ = offsets
+        encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
+        c5_index = encoded_text.find(b'\xc5')
+        encoded_text = encoded_text[:c5_index + 1] + struct.pack('<I', pointer_offset)[:2] + encoded_text[c5_index + 3:]
+        new_text_offset = f.tell()
+        end_byte = encoded_text[-1]
+        f.write(encoded_text[:-1] + b'\xca')
         new_offset = f.tell()
         snes_offset = pc2snes_hirom(new_text_offset) - 0x400_000
         new_pointer_value = struct.pack('<I', snes_offset)[:3]
