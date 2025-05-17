@@ -395,7 +395,14 @@ def gaia_gfx_dumper(args):
     # Worlmap - Tileset, Tilemap arrangement, Tilemap data
     with open(source_file, 'rb') as f:
         rom = f.read()
-        files = (('worldmap_tileset.bin', 0x10_000), ('worldmap_tilemap_arrangement.bin', 0x135_e1b), ('worldmap_tilemap_data.bin', 0x1a4_66e))
+        files = (
+            ('worldmap_tileset.bin', 0x10000),
+            ('worldmap_tilemap_arrangement.bin', 0x135e1b),
+            ('worldmap_tilemap_data.bin', 0x1a466e),
+            ('03638b_end.bin', 0x3638B),
+            ('173f7c_end_data.bin', 0x173f7c),
+            ('1522bf_end_font.bin', 0x173f7c)
+        )
         for filename, offset in files:
             decompressed_data = quintet_decompress(rom, offset)
             decomp, _ = decompressed_data
@@ -751,7 +758,10 @@ def gaia_gfx_inserter(args):
             ('196BD8_prologue_font_ita.bin', [0xd9bad, 0xdafc2]),
             ('117325_intro_ita.bin', [0xdaf1d]),
             ('1d7773_intro_data_ita.bin', [0xdaf2c]),
-            ('010000_world_map_tileset_ita.bin', [0xdafa6, 0xdaeef])
+            ('010000_world_map_tileset_ita.bin', [0xdafa6, 0xdaeef]),
+            ('03638b_end_ita.bin', [0x0dacb8]),
+            ('173f7c_end_data_ita.bin', [0xdacc7]),
+            ('1522bf_end_font_ita.bin', [0xdae32])
         )
         for filename, pointers_offsets in files:
             snes_offset = pc2snes_hirom(offset) - 0x400_000
