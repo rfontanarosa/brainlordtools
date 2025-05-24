@@ -8,7 +8,7 @@ import csv, os, re, shutil, sqlite3, struct, sys
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_translation_by_author, select_most_recent_translation
-from rhutils.dump import get_csv_translated_texts, read_dump, fill
+from rhutils.dump import get_csv_translated_texts, read_dump, fill, write_byte
 from rhutils.rom import crc32, expand_rom
 from rhutils.snes import pc2snes_hirom, snes2pc_hirom
 from quintettools.quintet_comp import compress as quintet_compress
@@ -750,6 +750,8 @@ def gaia_misc_inserter(args):
 def gaia_gfx_inserter(args):
     dest_file = args.dest_file
     translation_path = args.translation_path
+    with open (dest_file, 'r+b') as out, open(os.path.join(translation_path, '000b40_5HP_ita.bin'), 'rb') as f:
+        write_byte(out, 0x000b40, f.read())
     with open (dest_file, 'r+b') as out:
         offset = 0x268_000
         # Font, Prologue font, Intro gfx, Intro data, Worldmap - Tileset
