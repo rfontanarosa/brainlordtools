@@ -253,7 +253,7 @@ def gaia_text_dumper(args):
             pointer = f.read(4)[2:]
             bank_byte = pointer_offset & 0xff0000
             text_offset = pointer[0] + (pointer[1] << 8) + bank_byte
-            pointers.setdefault(text_offset, []).append(pointer_offset)
+            pointers.setdefault(text_offset, []).append(pointer_offset + 2)
         f.seek(0)
         pointer_offsets = [m.start() for m in re.finditer(b'\x02\x19\x17', f.read())]
         for pointer_offset in pointer_offsets:
@@ -263,7 +263,7 @@ def gaia_text_dumper(args):
             pointer = f.read(5)[3:]
             bank_byte = pointer_offset & 0xff0000
             text_offset = pointer[0] + (pointer[1] << 8) + bank_byte
-            pointers.setdefault(text_offset, []).append(pointer_offset)
+            pointers.setdefault(text_offset, []).append(pointer_offset + 3)
         pointers[0x1ff02] = []
         pointers[0x1ff1f] = []
         pointers[0x1ff2d] = []
@@ -462,7 +462,7 @@ def gaia_text_inserter(args):
         for block_id, value in dump.items():
             if block_id in (1165, 1166) + (1328, 1329, 1330) + (1132, 1275, 1289):
                 continue
-            text, offsets, _ = value
+            text, offsets, pointers = value
             original_text_offset, _ = offsets
             encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
             if len(encoded_text) < 5:
@@ -474,10 +474,18 @@ def gaia_text_inserter(args):
                 f.seek(new_offset)
             offsets_list.append((block_id, original_text_offset, f.tell(), encoded_text[-1]))
             f.write(encoded_text[:-1] + b'\xca')
+            if block_id == 190:
+                offset = f.tell()
+                for pointer in pointers:
+                    f.seek(pointer)
+                    f.write(b'\x87\x9b')
+                f.seek(offset)
         for block_id, original_text_offset, new_text_offset, end_byte in offsets_list:
             snes_offset = pc2snes_hirom(new_text_offset) - 0x400_000
             new_pointer_value = struct.pack('<I', snes_offset)[:3]
             f.seek(original_text_offset)
+            if block_id == 190:
+                f.read(3)
             f.write(b'\xcd' + new_pointer_value + bytes([end_byte]))
     ###
     new_offset = 0x258_000
