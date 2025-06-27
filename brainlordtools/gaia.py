@@ -548,8 +548,9 @@ def gaia_text_inserter(args):
         f.seek(new_offset)
         pointers = b''
         for block, value in list(dump_other.items()):
-            text, _, _ = value
-            pointers += struct.pack('<I', f.tell())[:2]
+            text, _, pointer_offsets = value
+            for _ in range(0, len(pointer_offsets)):
+                pointers += struct.pack('<I', f.tell())[:2]
             encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
             f.write(encoded_text)
         pointer_offset = f.tell()
