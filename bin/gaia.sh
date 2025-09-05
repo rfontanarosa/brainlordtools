@@ -6,7 +6,7 @@ TOOLS_PATH="$BRAINLORD_PATH/brainlordtools/brainlordtools"
 
 USER="clomax"
 DB="$RESOURCE_PATH/db/gaia.sqlite3"
-SOURCE="$RESOURCE_PATH/roms/Illusion of Gaia (U) [!].sfc"
+SOURCE="$RESOURCE_PATH/roms/Illusion of Gaia (U) [!] + Sprint hack.sfc"
 DESTINATION="$RESOURCE_PATH/roms/Illusion of Gaia (I) [!].sfc"
 
 TABLE1="$RESOURCE_PATH/tables/Illusion of Gaia (U) [!].tbl"
@@ -33,6 +33,16 @@ python "$TOOLS_PATH/gaia.py" dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
 python "$TOOLS_PATH/gaia.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE2" -t3 "$TABLE5" -tp "$TRANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
 python "$TOOLS_PATH/gaia.py" insert_misc -d "$DESTINATION" -t1 "$TABLE2" -t2 "$TABLE3" -t3 "$TABLE5" -tp "$TRANSLATION_MISC_PATH"
 python "$TOOLS_PATH/gaia.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
+
+if ! command -v asar &> /dev/null
+then
+  echo "Command 'asar' not found."
+  exit
+else
+  asar "$RESOURCE_PATH/asm/intro_it.asm" "$TANSLATION_GFX_PATH/1d7773_intro_data_ita.bin"
+  cp "$DUMP_GFX_PATH/173f7c_end_data.bin" "$TANSLATION_GFX_PATH/173f7c_end_data_ita.bin"
+  asar "$RESOURCE_PATH/asm/end_it.asm" "$TANSLATION_GFX_PATH/173f7c_end_data_ita.bin"
+fi
 
 if ! command -v asar &> /dev/null
 then

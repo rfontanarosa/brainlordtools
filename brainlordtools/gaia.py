@@ -14,7 +14,8 @@ from rhutils.snes import pc2snes_hirom, snes2pc_hirom
 from quintettools.quintet_comp import compress as quintet_compress
 from quintettools.quintet_decomp import decompress as quintet_decompress
 
-CRC32 = '1C3848C0'
+# CRC32 = '1C3848C0'
+CRC32 = 'D625022B'
 
 EXP_SIZE = 0x80000
 
