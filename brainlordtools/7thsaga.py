@@ -151,7 +151,7 @@ def seventhsaga_text_inserter(args):
         for POINTER_BLOCK in POINTER_BLOCKS:
             fw.seek(POINTER_BLOCK[0])
             while fw.tell() < POINTER_BLOCK[1]:
-                repoint_text(fw, fw.tell(), offset_map)
+                repoint_text(fw, fw.tell(), offset_map, 'Pointer Block')
     # repoint pointers in text block
     with open(dest_file, 'r+b') as fw:
         fw.seek(NEW_TEXT_SEGMENT_1_START)
@@ -159,9 +159,9 @@ def seventhsaga_text_inserter(args):
             byte = fw.read(1)
             if byte in (b'\xfb', b'\xfc'):
                 fw.read(2)
-                repoint_text(fw, fw.tell(), offset_map)
+                repoint_text(fw, fw.tell(), offset_map, 'Text Block A')
             elif byte == b'\xff':
-                repoint_text(fw, fw.tell(), offset_map)
+                repoint_text(fw, fw.tell(), offset_map, 'Text Block B')
     # repoint other pointers
     with open(dest_file, 'r+b') as fw:
         #
@@ -337,7 +337,7 @@ def seventhsaga_misc_inserter(args):
         repoint_two_bytes_pointers(f1, (0x19be6, 0x1e4c2), offset_map, b'\xc7') # Weapon
         repoint_two_bytes_pointers(f1, (0x19c12, 0x1e4ee), offset_map, b'\xc7') # Defend
 
-def repoint_two_bytes_pointer(fw, pointer_offset, offset_map, third_byte):
+def repoint_two_bytes_pointer(fw, pointer_offset, offset_map, third_byte, type=None):
     fw.seek(pointer_offset)
     pointer = fw.read(2)
     original_text_offset = struct.unpack('i', pointer + third_byte + b'\x00')[0] - 0xc00000
@@ -349,13 +349,13 @@ def repoint_two_bytes_pointer(fw, pointer_offset, offset_map, third_byte):
         fw.seek(5, os.SEEK_CUR)
         fw.write(new_pointer_value[2:3])
     else:
-        print(f'NOT FOUND - CHOICE - Pointer offset: {hex(pointer_offset)} - Pointer value: {hex(new_text_offset)}')
+        print(f'NOT FOUND - 2 Bytes - Type: {type} - Pointer offset: {hex(pointer_offset)} - Pointer value: {hex(original_text_offset)}')
 
 def repoint_two_bytes_pointers(fw, offsets, offset_map, third_byte):
     for offset in offsets:
         repoint_two_bytes_pointer(fw, offset, offset_map, third_byte)
 
-def repoint_text(f, pointer_offset, offset_map):
+def repoint_text(f, pointer_offset, offset_map, type=None):
     f.seek(pointer_offset)
     pointer = f.read(3)
     original_text_offset = struct.unpack('i', pointer + b'\x00')[0] - 0xc00000
@@ -372,7 +372,7 @@ def repoint_text(f, pointer_offset, offset_map):
         f.seek(-3, os.SEEK_CUR)
         f.write(new_pointer_value[:-1])
     else:
-        print(f'MISSING - Pointer offset: {hex(pointer_offset)} - Pointer value: {hex(original_text_offset)}')
+        print(f'NOT FOUND - 3 Bytes - Type: {type} - Pointer offset: {hex(pointer_offset)} - Pointer value: {hex(original_text_offset)}')
 
 import argparse
 parser = argparse.ArgumentParser()
