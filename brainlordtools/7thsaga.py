@@ -134,24 +134,12 @@ def seventhsaga_text_inserter(args):
             fw.write(encoded_text)
             fw.write(b'\xf7')
         NEW_TEXT_SEGMENT_1_END = fw.tell()
-    # find pointers
-    # text_address = 0x6058b
-    # if text_address:
-    #     pointer = offset_map.get(text_address)
-    #     with open(dest_file, 'r+b') as fw:
-    #         file = fw.read()
-    #         packed = struct.pack('i', text_address + 0xc00000)[:-1]
-    #         print(packed)
-    #         print(hex(pointer))
-    #         offsets = [i for i in range(len(file)) if file.startswith(packed, i)]
-    #         hex_offsets = list(map(lambda x: hex(x), offsets))
-    #         print(hex_offsets)
     # repoint pointers in pointer blocks
     with open(dest_file, 'r+b') as fw:
         for POINTER_BLOCK in POINTER_BLOCKS:
             fw.seek(POINTER_BLOCK[0])
             while fw.tell() < POINTER_BLOCK[1]:
-                repoint_text(fw, fw.tell(), offset_map, 'Pointer Block')
+                repoint_three_bytes_pointer(fw, fw.tell(), offset_map, 'Pointer Block')
     # repoint pointers in text block
     with open(dest_file, 'r+b') as fw:
         fw.seek(NEW_TEXT_SEGMENT_1_START)
@@ -159,9 +147,9 @@ def seventhsaga_text_inserter(args):
             byte = fw.read(1)
             if byte in (b'\xfb', b'\xfc'):
                 fw.read(2)
-                repoint_text(fw, fw.tell(), offset_map, 'Text Block A')
+                repoint_three_bytes_pointer(fw, fw.tell(), offset_map, 'Text Block A')
             elif byte == b'\xff':
-                repoint_text(fw, fw.tell(), offset_map, 'Text Block B')
+                repoint_three_bytes_pointer(fw, fw.tell(), offset_map, 'Text Block B')
     # repoint other pointers
     with open(dest_file, 'r+b') as fw:
         #
@@ -214,7 +202,7 @@ def seventhsaga_text_inserter(args):
         sparse_pointers += (0x159149, 0x159269, 0x159389, 0x1593b3, 0x1595f3, 0x15973d, 0x15976d, 0x15978b, 0x1597a9, 0x1597bb, 0x1597cd, 0x1597d3, 0x15987b, 0x159a4f, 0x159aa9, 0x159ac7, 0x159adf, 0x159af7, 0x159e21, 0x15a19f) # Hello! I have a large selection of weapons here. (0x6002d)
         sparse_pointers += (0x159167, 0x15926f, 0x15938f, 0x15952d, 0x1595f9, 0x159791, 0x159881, 0x1599f5) # Hello! I sell armor. (0x6005a)
         for sparse_pointer in sparse_pointers:
-            repoint_text(fw, sparse_pointer, offset_map)
+            repoint_three_bytes_pointer(fw, sparse_pointer, offset_map, 'Sparse pointer')
     # two bytes pointers
     with open(dest_file, 'r+b') as fw:
         repoint_two_bytes_pointer(fw, 0x8eb2, offset_map, b'\xc6') # 0x604a7 # What else would you like?
@@ -355,7 +343,7 @@ def repoint_two_bytes_pointers(fw, offsets, offset_map, third_byte):
     for offset in offsets:
         repoint_two_bytes_pointer(fw, offset, offset_map, third_byte)
 
-def repoint_text(f, pointer_offset, offset_map, type=None):
+def repoint_three_bytes_pointer(f, pointer_offset, offset_map, type=None):
     f.seek(pointer_offset)
     pointer = f.read(3)
     original_text_offset = struct.unpack('i', pointer + b'\x00')[0] - 0xc00000
