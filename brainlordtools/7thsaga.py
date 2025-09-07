@@ -135,7 +135,7 @@ def seventhsaga_text_inserter(args):
             fw.write(b'\xf7')
         NEW_TEXT_SEGMENT_1_END = fw.tell()
     # find pointers
-    address = 0x626ca
+    address = 0x6058b
     if address:
         pointer = new_pointers.get(address)
         with open(dest_file, 'r+b') as fw:
@@ -183,13 +183,14 @@ def seventhsaga_text_inserter(args):
     # sparse pointers
     with open(dest_file, 'r+b') as fw:
         sparse_pointers = (0x56f0a, 0x56f10, 0x56f16, 0x56f1c, 0x56f22, 0x56f28) # Lemele
-        sparse_pointers = sparse_pointers + (0x56f88, 0x56f8e, 0x56f94, 0x56f9a, 0x56fa0, 0x56fa6, 0x56fac, 0x56fb2, 0x56fb8) # Reblesk
+        sparse_pointers = sparse_pointers + (0x56f88, 0x56f8e, 0x56f94, 0x56f9a, 0x56fa0, 0x56fa6, 0x56fac, 0x56fb2, 0x56fb8) # Rablesk
         sparse_pointers = sparse_pointers + (0x57012, 0x57018, 0x5701e, 0x57024, 0x5702a) # Bonro
         sparse_pointers = sparse_pointers + (0x57090, 0x57096, 0x5709c, 0x570a2, 0x570a8) # Zellis
         sparse_pointers = sparse_pointers + (0x57114, 0x5711a, 0x57120, 0x57126, 0x5712c, 0x57132, 0x57138, 0x5713e, 0x57144) # Eygus
         sparse_pointers = sparse_pointers + (0x57192, 0x57198) # Pell
         sparse_pointers = sparse_pointers + (0x57204, 0x5720a, 0x57210, 0x57216, 0x5721c, 0x57222, 0x57228) # Guntz
-        sparse_pointers = sparse_pointers + (0x57288, 0x5728e, 0x5729a, 0x572dc, 0x572e2, 0x572e8, 0x572ee, 0x572f4) # Patrof 0x572f4
+        sparse_pointers = sparse_pointers + (0x57288, 0x5728e, 0x5729a, 0x572dc, 0x572e2, 0x572e8, 0x572ee) # Patrof
+        sparse_pointers += (0x572f4,) # Patrof 0x572f4
         sparse_pointers = sparse_pointers + (0x5731e, 0x57324, 0x5732a, 0x57330, 0x57336, 0x5733c, 0x5737e, 0x57384, 0x5738a, 0x57390, 0x57396, 0x5739c) # Bone
         sparse_pointers = sparse_pointers + (0x573e4, 0x573ea, 0x573f0, 0x573f6, 0x573fc, 0x57402) # Dowaine
         sparse_pointers = sparse_pointers + (0x5745c, 0x57462, 0x57468, 0x5746e, 0x57474, 0x5747a, 0x57480, 0x57486, 0x5748c) # Belaine
