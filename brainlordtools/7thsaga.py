@@ -15,41 +15,17 @@ from rhutils.snes import snes2pc_lorom, pc2snes_lorom
 # CRC32 = 'B3ABDDE6'
 CRC32 = '2979C59' # UNPACKED GFX
 
+TEXT_SEGMENT_1 = (0x60000, 0x6fddf)
+TEXT_SEGMENT_X = (0x6fde0, 0x6ffff) # empty
+TEXT_SEGMENT_2 = (0x70000, 0x733c0)
+TEXT_SEGMENT_3 = (0x741f7, 0x75342)
 
-TEXT_BLOCK1 = (0x60000, 0x6fdde)
-TEXT_BLOCK2 = (0x70000, 0x733c1)
-TEXT_BLOCK3 = (0x741f7, 0x75343)
-
-MISC_BLOCK1 = (0x733c2, 0x741f6)
-MISC_BLOCK2 = (0x75345, 0x7545f)
+MISC_SEGMENT_1 = (0x733c2, 0x741f6)
+MISC_SEGMENT_2 = (0x75345, 0x7545f)
 
 POINTER_BLOCKS = ((0x1a0ad, 0x1a0c1), (0x425db, 0x4269a))
 
 FONT1_BLOCK = (0x13722d, 0x13B22d)
-
-def dump_blocks(f, table, dump_path):
-    filename = os.path.join(dump_path, 'misc1.csv')
-    with open(filename, 'w+') as csv_file:
-        csv_writer = csv.writer(csv_file)
-        csv_writer.writerow(['text_address', 'text', 'trans'])
-        f.seek(MISC_BLOCK1[0])
-        while f.tell() <= MISC_BLOCK1[1]:
-            text_address = f.tell()
-            text = read_text(f, text_address, end_byte=b'\xf7')
-            text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
-            fields = [hex(text_address), text_decoded]
-            csv_writer.writerow(fields)
-    filename = os.path.join(dump_path, 'misc2.csv')
-    with open(filename, 'w+') as csv_file:
-        csv_writer = csv.writer(csv_file)
-        csv_writer.writerow(['text_address', 'text', 'trans'])
-        f.seek(MISC_BLOCK2[0])
-        while f.tell() <= MISC_BLOCK2[1]:
-            text_address = f.tell()
-            text = read_text(f, text_address, end_byte=b'\xf7')
-            text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
-            fields = [hex(text_address), text_decoded]
-            csv_writer.writerow(fields)
 
 def get_pointers(f, start, count, step):
     pointers = {}
@@ -142,10 +118,10 @@ def seventhsaga_text_inserter(args):
     conn.text_factory = str
     cur = conn.cursor()
     # collect pointers
-    NEW_TEXT_BLOCK1_START = NEW_TEXT_BLOCK1_END = 0x300000
+    NEW_TEXT_SEGMENT_1_START = NEW_TEXT_SEGMENT_1_END = 0x300000
     new_pointers = {}
     with open(dest_file, 'r+b') as fw:
-        fw.seek(NEW_TEXT_BLOCK1_START)
+        fw.seek(NEW_TEXT_SEGMENT_1_START)
         # db
         rows = select_most_recent_translation(cur, ['1', '2', '3'])
         for row in rows:
@@ -157,7 +133,7 @@ def seventhsaga_text_inserter(args):
             new_pointers[int(address)] = fw.tell()
             fw.write(encoded_text)
             fw.write(b'\xf7')
-        NEW_TEXT_BLOCK1_END = fw.tell()
+        NEW_TEXT_SEGMENT_1_END = fw.tell()
     # find pointers
     address = 0x626ca
     if address:
@@ -178,8 +154,8 @@ def seventhsaga_text_inserter(args):
                 repoint_text(fw, fw.tell(), new_pointers)
     # text block pointers
     with open(dest_file, 'r+b') as fw:
-        fw.seek(NEW_TEXT_BLOCK1_START)
-        while (fw.tell() < NEW_TEXT_BLOCK1_END):
+        fw.seek(NEW_TEXT_SEGMENT_1_START)
+        while (fw.tell() < NEW_TEXT_SEGMENT_1_END):
             byte = fw.read(1)
             if byte in (b'\xfb', b'\xfc'):
                 fw.read(2)
@@ -295,7 +271,18 @@ def seventhsaga_misc_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_blocks(f, table, dump_path)
+        for i, current_misc_segment in enumerate((MISC_SEGMENT_1, MISC_SEGMENT_2)):
+            filename = os.path.join(dump_path, f'misc{i + 1}.csv')
+            with open(filename, 'w+', encoding='utf-8') as csv_file:
+                csv_writer = csv.writer(csv_file)
+                csv_writer.writerow(['text_address', 'text', 'trans'])
+                f.seek(current_misc_segment[0])
+                while f.tell() <= current_misc_segment[1]:
+                    text_address = f.tell()
+                    text = read_text(f, text_address, end_byte=b'\xf7')
+                    text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
+                    fields = [hex(text_address), text_decoded]
+                    csv_writer.writerow(fields)
 
 def seventhsaga_misc_inserter(args):
     source_file, dest_file = args.source_file, args.dest_file
