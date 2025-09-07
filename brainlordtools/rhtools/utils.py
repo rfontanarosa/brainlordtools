@@ -10,12 +10,6 @@ def byte2int(b):
 	""" returns an integer representing a 8-bit string """
 	return ord(b)
 
-def byte22int(b2):
-	return (ord(b2[0]) << 8) + ord(b2[1])
-
-# def byte32int(b3):
-# 	return (ord(b3[2]) << 16) + (ord(b3[1]) << 8) + ord(b3[0])
-
 def int2byte(n):
 	""" convert an integer to a byte """
 	return chr(n)
@@ -72,25 +66,6 @@ def clean_text(text):
 	import re
 	replaced = re.sub('{..}', '\n', text)
 	return replaced
-
-#######
-# ROM #
-#######
-
-import zlib
-
-def crc32(filename):
-	prev = 0
-	for line in open(filename, 'rb'):
-		prev = zlib.crc32(line, prev)
-	return '%X' % (prev & 0xFFFFFFFF)
-
-import os
-
-def expand_rom(dest_file, size_in_bytes):
-	with open(dest_file, 'r+b') as f:
-		f.seek(0, os.SEEK_END)
-		f.write(b'\x00' * size_in_bytes)
 
 ########
 # TEST #

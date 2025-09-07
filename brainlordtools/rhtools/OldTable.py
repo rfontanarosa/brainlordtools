@@ -4,8 +4,10 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, string
-from utils import hex2dec, byte2int, byte22int, hex2byte, int2byte
+from utils import hex2dec, byte2int, hex2byte, int2byte
+
+def byte22int(b2):
+	return (ord(b2[0]) << 8) + ord(b2[1])
 
 class Table():
 
