@@ -76,15 +76,15 @@ def repoint_misc(f, pointers, new_pointers, table=None):
     for i, (p_value, p_addresses) in enumerate(pointers.items()):
         p_new_value = new_pointers.get(p_value)
         if not p_new_value:
-            print('repoint_misc - Text not found - Text offset: ' + hex(p_value))
+            print('repoint_misc - Text not found - Text offset: ' + hex(p_value) + ' - Pointer offsets: ' + str(list(map(lambda x: hex(x), p_addresses))))
         else:
             a = f.tell()
             text = read_text(f, p_new_value, end_byte=b'\xf7')
             t2 = table.decode(text, mte_resolver=True, dict_resolver=False)
-            print(f'repoint_misc - {t2} - Text offset: {hex(p_value)}' + ' - Pointer offset: ' + hex(f.tell()))
             f.seek(p_new_value)
             f.seek(a)
             for p_address in p_addresses:
+                print(f'repoint_misc - {t2} - Text offset: {hex(p_value)}' + ' - Pointer offset: ' + hex(f.tell()))
                 f.seek(p_address)
                 packed = struct.pack('i', p_new_value + 0xc00000)
                 f.write(packed[:-1])
@@ -362,7 +362,7 @@ def repoint_two_bytes_pointer(fw, offset, new_pointers, third_byte):
         fw.seek(5, os.SEEK_CUR)
         fw.write(packed[2:3])
     else:
-        print(f'CHOICE - Pointer offset: {hex(offset)} - Pointer value: {hex(unpacked)}')
+        print(f'NOT FOUND - CHOICE - Pointer offset: {hex(offset)} - Pointer value: {hex(unpacked)}')
 
 def repoint_two_bytes_pointers(fw, offsets, new_pointers, third_byte):
     for offset in offsets:
