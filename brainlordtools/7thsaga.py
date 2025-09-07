@@ -92,16 +92,17 @@ def repoint_misc(f, pointers, new_pointers, table=None):
 def seventhsaga_text_segment_dumper(f, dump_path, table, id, block, cur, start=0x0, end=0x0):
     f.seek(start)
     while f.tell() < end:
-        text_address = f.tell()
-        text = read_text(f, text_address, end_byte=b'\xf7', cmd_list={b'\xfc': 5})
+        text_offset = f.tell()
+        text = read_text(f, text_offset, end_byte=b'\xf7', cmd_list={b'\xfc': 5})
         text_decoded = table.decode(text, mte_resolver=True, dict_resolver=False, cmd_list={0xf6: 1, 0xfb: 5, 0xfc: 5, 0xfd: 2, 0xfe: 2, 0xff: 3})
         ref = '[BLOCK {}: {} to {}]'.format(str(id), hex(text_address), hex(f.tell()))
         # dump - db
-        insert_text(cur, id, text, text_decoded, text_address, '', block, ref)
+        insert_text(cur, id, text, text_decoded, text_offset, '', block, ref)
         # dump - txt
-        filename = os.path.join(dump_path, 'dump_eng.txt')
-        with open(filename, 'a+') as out:
-            out.write(ref + '\n' + text_decoded + "\n\n")
+        filename = 'dump_eng.txt'
+        filepath = os.path.join(dump_path, filename)
+        with open(filepath, 'a+', encoding='utf-8') as out:
+            out.write(f'{ref}\n{text_decoded}\n\n')
         id += 1
     return id
 
@@ -297,15 +298,12 @@ def seventhsaga_misc_dumper(args):
         dump_blocks(f, table, dump_path)
 
 def seventhsaga_misc_inserter(args):
-    source_file = args.source_file
-    dest_file = args.dest_file
-    table1_file = args.table1
-    table2_file = args.table2
+    source_file, dest_file = args.source_file, args.dest_file
+    table1_file, table2_file = args.table1, args.table2
     translation_path = args.translation_path
     if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
-    table = Table(table1_file)
-    table2 = Table(table2_file)
+    table, table2 = Table(table1_file), Table(table2_file)
     # get pointers
     with open(source_file, 'rb') as f:
         # get misc1 pointers
