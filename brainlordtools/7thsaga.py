@@ -71,7 +71,7 @@ def seventhsaga_text_segment_dumper(f, dump_path, table, id, block, cur, start=0
         text_offset = f.tell()
         text = read_text(f, text_offset, end_byte=b'\xf7', cmd_list={b'\xfc': 5})
         text_decoded = table.decode(text, mte_resolver=True, dict_resolver=False, cmd_list={0xf6: 1, 0xfb: 5, 0xfc: 5, 0xfd: 2, 0xfe: 2, 0xff: 3})
-        ref = '[BLOCK {}: {} to {}]'.format(str(id), hex(text_address), hex(f.tell()))
+        ref = '[BLOCK {}: {} to {}]'.format(str(id), hex(text_offset), hex(f.tell()))
         # dump - db
         insert_text(cur, id, text, text_decoded, text_offset, '', block, ref)
         # dump - txt
