@@ -89,6 +89,34 @@ def som_text_dumper(args):
     conn.commit()
     conn.close()
 
+def som_text_inserter(args):
+    dest_file = args.dest_file
+    table2_file = args.table2
+    db = args.database_file
+    user_name = args.user
+    table = Table(table2_file)
+    conn = sqlite3.connect(db)
+    conn.text_factory = str
+    cur = conn.cursor()
+    with open(dest_file, 'r+b') as f:
+        for block, block_pointers in enumerate(BLOCK_POINTERS_OFFSET):
+            print('BLOCK CHANGE')
+            f.seek(block_pointers[1])
+            current_text_address = f.tell()
+            rows = select_most_recent_translation(cur, [str(block + 1),])
+            for row in rows:
+                id, original_text, text_decoded, text_address, pointer_address, translation, _, _, _ = row
+                text = translation if translation else text_decoded
+                text_encoded = table.encode(text)
+                f.write(text_encoded)
+                # REPOINTER
+                new_pointer_value = struct.pack('<I', current_text_address)[:2]
+                current_text_address = f.tell()
+                f.seek(int(pointer_address, 16))
+                f.write(new_pointer_value)
+                f.seek(current_text_address)
+    cur.close()
+    conn.close()
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -103,6 +131,14 @@ dump_text_parser.add_argument('-t3', '--table3', action='store', dest='table3', 
 dump_text_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
 dump_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
 dump_text_parser.set_defaults(func=som_text_dumper)
+insert_text_parser = subparsers.add_parser('insert_text', help='Execute TEXT INSERTER')
+insert_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+insert_text_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_text_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+insert_text_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+insert_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
+insert_text_parser.add_argument('-u', '--user', action='store', dest='user', help='')
+insert_text_parser.set_defaults(func=som_text_inserter)
 
 if __name__ == "__main__":
     args = parser.parse_args()
