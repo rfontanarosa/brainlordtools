@@ -12,10 +12,21 @@ from rhutils.rom import crc32
 from rhutils.table import Table
 
 CRC32 = 'D0176B24'
+# CRC32 = '31114AAC' # SADNESS
 
-BLOCK_POINTERS_OFFSET = (
-    (0x90000, 0x90800),
-    (0xa0000, 0xa0c02)
+import enum
+
+class DumpType(enum.Enum):
+    EVENTS = 1
+    TEXTS = 2
+
+# pointer_block_start, pointer_block_end, bank_offset, limit, pointer_bytes, filename
+POINTERS_OFFSETS = (
+    (0x90000, 0x90800, 0x9f2d6, 0x90000, 2, DumpType.EVENTS),
+    (0xa0000, 0xa0c02, 0xab573, 0xa0000, 2, DumpType.EVENTS),
+    (0x33d0, 0x33f0, 0x77b23, 0x70000, 2, DumpType.TEXTS),
+    (0x7780a, 0x7784c, 0x77693, 0x70000, 2, DumpType.TEXTS),
+    (0x33b5, 0x33d0, 0x0, 0x0, 3, DumpType.TEXTS)
 )
 
 # start, end, free_space
@@ -66,24 +77,35 @@ def som_text_dumper(args):
     with open(source_file, 'rb') as f:
         # TEXT POINTERS
         id = 1
-        for block, block_pointers in enumerate(BLOCK_POINTERS_OFFSET):
+        for block, block_pointers in enumerate(POINTERS_OFFSETS):
+            pointer_block_start, pointer_block_end, _, bank_offset, pointer_bytes, dump_type = block_pointers
             pointers = {}
-            f.seek(block_pointers[0])
-            while f.tell() < block_pointers[1]:
+            f.seek(pointer_block_start)
+            while f.tell() < pointer_block_end:
                 p_address = f.tell()
-                p_value = f.read(2)
-                text_address = struct.unpack('H', p_value)[0] + block_pointers[0]
+                if pointer_bytes == 3:
+                    p_value = f.read(3)
+                    text_address = struct.unpack('i', p_value[:3] + b'\x00')[0] - 0xc00000
+                else:
+                    p_value = f.read(2)
+                    text_address = struct.unpack('H', p_value)[0] + bank_offset
                 pointers.setdefault(text_address, []).append(p_address)
             # TEXT
             for _, (text_address, p_addresses) in enumerate(pointers.items()):
                 pointer_addresses = ';'.join(str(hex(x)) for x in p_addresses)
                 text = som_read_text(f, text_address, end_byte=b'\x00', cmd_list=cmd_list, append_end_byte=True)
                 text_decoded = table.decode(text)
-                ref = f'[ID {id} - EVENT {hex(id - 1)} - {hex(text_address)} - {pointer_addresses}]'
+                if dump_type == DumpType.EVENTS:
+                    ref = f'[ID {id} - BLOCK {block + 1} - EVENT {hex(id - 1)} - {hex(text_address)} - {pointer_addresses}]'
+                else:
+                    ref = f'[ID {id} - BLOCK {block + 1} - {hex(text_address)} - {pointer_addresses}]'
                 # dump - db
                 insert_text(cur, id, text, text_decoded, text_address, pointer_addresses, block + 1, ref)
                 # dump - txt
-                filename = os.path.join(dump_path, 'dump_eng.txt')
+                if dump_type == DumpType.EVENTS:
+                    filename = os.path.join(dump_path, 'dump_events_eng.txt')
+                else:
+                    filename = os.path.join(dump_path, 'dump_texts_eng.txt')
                 with open(filename, 'a+') as out:
                     out.write(ref + '\n' + text_decoded + "\n\n")
                 id += 1
@@ -101,15 +123,18 @@ def som_text_inserter(args):
     conn.text_factory = str
     cur = conn.cursor()
     with open(dest_file, 'r+b') as f:
-        for block, block_pointers in enumerate(BLOCK_POINTERS_OFFSET):
-            print('BLOCK CHANGE')
-            f.seek(block_pointers[1])
+        for block, block_pointers in enumerate(POINTERS_OFFSETS):
+            _, pointer_block_end, limit, _, pointer_bytes, dump_type = block_pointers
+            f.seek(pointer_block_end)
             current_text_address = f.tell()
             rows = select_most_recent_translation(cur, [str(block + 1),])
             for row in rows:
-                id, original_text, text_decoded, text_address, pointer_address, translation, _, _, _ = row
+                _, _, text_decoded, _, pointer_address, translation, _, _, _ = row
                 text = translation if translation else text_decoded
                 text_encoded = table.encode(text)
+                if f.tell() + len(text_encoded) > limit:
+                    print('BANK CROSSED')
+                    sys.exit()
                 f.write(text_encoded)
                 # REPOINTER
                 new_pointer_value = struct.pack('<I', current_text_address)[:2]
