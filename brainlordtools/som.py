@@ -32,7 +32,7 @@ POINTERS_OFFSETS = (
 # start, end, free_space
 DTE_OFFSETS = (0x77299, 0x77312, 0x74300)
 
-cmd_list = {b'\x20': 1, b'\x21': 1, b'\x22': 1, b'\x23': 1, b'\x24': 1, b'\x25': 1, b'\x26': 1, b'\x27': 1, b'\x28': 1, b'\x29': 1, b'\x2a': 1, b'\x2b': 1, b'\x2c': 1, b'\x2e': 1, b'\x2f': 1, b'\x30': 2, b'\x31': 2, b'\x32': 2, b'\x34': 2, b'\x36': 3, b'\x37': 3, b'\x38': 1, b'\x39': 3, b'\x40': 4, b'\x42': 2, b'\x49': 3, b'\x4a': 3, b'\x4b': 3, b'\x4c': 3, b'\x4d': 3, b'\x4e': 3, b'\x57': 1, b'\x59': 1, b'\x5a': 1, b'\x5b': 2}
+cmd_list = {b'\x20': 1, b'\x21': 1, b'\x22': 1, b'\x23': 1, b'\x24': 1, b'\x25': 1, b'\x26': 1, b'\x27': 1, b'\x28': 1, b'\x29': 1, b'\x2a': 1, b'\x2b': 1, b'\x2c': 1, b'\x2e': 1, b'\x2f': 1, b'\x30': 2, b'\x31': 2, b'\x32': 2, b'\x33': 2, b'\x34': 2, b'\x36': 3, b'\x37': 3, b'\x38': 1, b'\x39': 3, b'\x40': 4, b'\x42': 2, b'\x49': 3, b'\x4a': 3, b'\x4b': 3, b'\x4c': 3, b'\x4d': 3, b'\x4e': 3, b'\x57': 1, b'\x59': 1, b'\x5a': 1, b'\x5b': 2}
 
 def som_read_text(f, offset=None, length=None, end_byte=None, cmd_list=None, append_end_byte=False):
     text = b''
