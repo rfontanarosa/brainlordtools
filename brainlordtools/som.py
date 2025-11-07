@@ -7,9 +7,8 @@ __email__ = "robertofontanarosa@gmail.com"
 import csv, os, re, shutil, sqlite3, struct, sys
 
 from rhutils.db import insert_text, select_translation_by_author, select_most_recent_translation
-from rhutils.dump import read_text
-from rhutils.rom import crc32, expand_rom
-from rhutils.snes import pc2snes_hirom, snes2pc_hirom
+from rhutils.dump import read_text, get_csv_translated_texts
+from rhutils.rom import crc32
 from rhutils.table import Table
 
 CRC32 = 'D0176B24'
@@ -18,6 +17,9 @@ BLOCK_POINTERS_OFFSET = (
     (0x90000, 0x90800),
     (0xa0000, 0xa0c02)
 )
+
+# start, end, free_space
+DTE_OFFSETS = (0x77299, 0x77312, 0x74300)
 
 cmd_list = {b'\x20': 1, b'\x21': 1, b'\x22': 1, b'\x23': 1, b'\x24': 1, b'\x25': 1, b'\x26': 1, b'\x27': 1, b'\x28': 1, b'\x29': 1, b'\x2a': 1, b'\x2b': 1, b'\x2c': 1, b'\x2e': 1, b'\x2f': 1, b'\x30': 2, b'\x31': 2, b'\x32': 2, b'\x34': 2, b'\x36': 3, b'\x37': 3, b'\x38': 1, b'\x39': 3, b'\x40': 4, b'\x42': 2, b'\x49': 3, b'\x4a': 3, b'\x4b': 3, b'\x4c': 3, b'\x4d': 3, b'\x4e': 3, b'\x57': 1, b'\x59': 1, b'\x5a': 1, b'\x5b': 2}
 
@@ -118,6 +120,45 @@ def som_text_inserter(args):
     cur.close()
     conn.close()
 
+def som_misc_dumper(args):
+    source_file = args.source_file
+    table1_file = args.table1
+    dump_path = args.dump_path
+    if not args.no_crc32_check and crc32(source_file) != CRC32:
+        sys.exit('SOURCE ROM CHECKSUM FAILED!')
+    table = Table(table1_file)
+    shutil.rmtree(dump_path, ignore_errors=True)
+    os.mkdir(dump_path)
+    with open(source_file, 'rb') as f:
+        # DTE
+        filename = os.path.join(dump_path, 'dte.csv')
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['text_address', 'text', 'trans'])
+            f.seek(DTE_OFFSETS[0])
+            while f.tell() < DTE_OFFSETS[1]:
+                text_address_start = f.tell()
+                text = read_text(f, text_address_start, length=2)
+                text_decoded = table.decode(text)
+                fields = [hex(text_address_start), text_decoded]
+                csv_writer.writerow(fields)
+
+def som_misc_inserter(args):
+    dest_file = args.dest_file
+    table1_file = args.table1
+    translation_path = args.translation_path
+    table1 = Table(table1_file)
+    with open(dest_file, 'r+b') as f:
+        # DTE
+        translation_file = os.path.join(translation_path, 'dte.csv')
+        translated_texts = get_csv_translated_texts(translation_file)
+        f.seek(DTE_OFFSETS[2])
+        for i, (_, _, text_value) in enumerate(translated_texts):
+            encoded_text = table1.encode(text_value)
+            f.write(encoded_text)
+            if (f.tell() > DTE_OFFSETS[2] + (2 * 69)):
+                sys.exit('Text size exceeds!')
+
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--no_crc32_check', action='store_true', dest='no_crc32_check', required=False, default=False, help='CRC32 Check')
@@ -139,6 +180,20 @@ insert_text_parser.add_argument('-tp', '--translation_path', action='store', des
 insert_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
 insert_text_parser.add_argument('-u', '--user', action='store', dest='user', help='')
 insert_text_parser.set_defaults(func=som_text_inserter)
+dump_misc_parser = subparsers.add_parser('dump_misc', help='Execute MISC DUMP')
+dump_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+dump_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+dump_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Menu table filename')
+dump_misc_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Intro table filename')
+dump_misc_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+dump_misc_parser.set_defaults(func=som_misc_dumper)
+insert_misc_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
+insert_misc_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
+insert_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Menu table filename')
+insert_misc_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Intro table filename')
+insert_misc_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
+insert_misc_parser.set_defaults(func=som_misc_inserter)
 
 if __name__ == "__main__":
     args = parser.parse_args()
