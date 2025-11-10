@@ -33,5 +33,5 @@ def select_most_recent_translation(cur, blocks=None):
     query = "SELECT * FROM (SELECT t1.id, t1.text, t1.text_decoded, t1.address, t1.pointer_addresses, t2.translation, t2.author, COALESCE(t2.date, 1) AS date, t1.ref FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM translations WHERE status = 2) AS t2 ON t1.id=t2.id_text) WHERE 1=1 GROUP BY id HAVING MAX(date)"
     if blocks:
         query = "SELECT * FROM (SELECT t1.id, t1.text, t1.text_decoded, t1.address, t1.pointer_addresses, t2.translation, t2.author, COALESCE(t2.date, 1) AS date, t1.ref FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM translations WHERE status = 2) AS t2 ON t1.id=t2.id_text WHERE t1.block IN ({})) WHERE 1=1 GROUP BY id HAVING MAX(date)".format(', '.join(blocks))
-    query += " ORDER BY t1.id"
+    query += " ORDER BY id"
     return cur.execute(query)
