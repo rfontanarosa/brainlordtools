@@ -55,6 +55,10 @@ def dump_binary(f, start, end, path, filename):
     with open(os.path.join(path, filename), 'wb') as out:
         out.write(block)
 
+def fill(f, offset, length, byte=b'\x00') -> None:
+    f.seek(offset)
+    f.write(byte * length)
+
 def insert_binary(f, start, end, path, filename):
     with open(os.path.join(path, filename), 'rb') as f1:
         block = f1.read()
