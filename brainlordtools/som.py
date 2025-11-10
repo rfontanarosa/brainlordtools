@@ -4,7 +4,7 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import csv, os, re, shutil, sqlite3, struct, sys
+import csv, os, shutil, sqlite3, struct, sys
 
 from rhutils.db import insert_text, select_translation_by_author, select_most_recent_translation
 from rhutils.dump import read_text, get_csv_translated_texts
@@ -20,16 +20,16 @@ class DumpType(enum.Enum):
     EVENTS = 1
     TEXTS = 2
 
-# pointer_block_start, pointer_block_end, bank_offset, limit, pointer_bytes, filename
+# pointer_block_start, pointer_block_end, text_block_start, text_block_end, bank_offset pointer_bytes, filename
 POINTERS_OFFSETS = (
-    (0x90000, 0x90800, 0x9f2d6, 0x90000, 2, DumpType.EVENTS),
-    (0xa0000, 0xa0c02, 0xab573, 0xa0000, 2, DumpType.EVENTS),
-    (0x33d0, 0x33f0, 0x77b23, 0x70000, 2, DumpType.TEXTS),
-    (0x7780a, 0x7784c, 0x77693, 0x70000, 2, DumpType.TEXTS),
-    (0x33b5, 0x33d0, 0x0, 0x0, 3, DumpType.TEXTS)
+    (0x90000, 0x90800, 0x90800, 0x9f2d6, 0x90000, 2, DumpType.EVENTS),
+    (0xa0000, 0xa0c02, 0xa0c02, 0xab573, 0xa0000, 2, DumpType.EVENTS),
+    (0x33d0, 0x33f0, 0X77a8e, 0x77b23, 0x70000, 2, DumpType.TEXTS),
+    (0x7780a, 0x7784c, 0x77313, 0x77693, 0x70000, 2, DumpType.TEXTS),
+    (0x33b5, 0x33d0, 0x33f0, 0x0, 0x0, 3, DumpType.TEXTS)
 )
 
-# start, end, free_space
+# start, end, where_to_move
 DTE_OFFSETS = (0x77299, 0x77312, 0x74300)
 
 cmd_list = {b'\x20': 1, b'\x21': 1, b'\x22': 1, b'\x23': 1, b'\x24': 1, b'\x25': 1, b'\x26': 1, b'\x27': 1, b'\x28': 1, b'\x29': 1, b'\x2a': 1, b'\x2b': 1, b'\x2c': 1, b'\x2e': 1, b'\x2f': 1, b'\x30': 2, b'\x31': 2, b'\x32': 2, b'\x33': 2, b'\x34': 2, b'\x36': 3, b'\x37': 3, b'\x38': 1, b'\x39': 3, b'\x40': 4, b'\x42': 2, b'\x49': 3, b'\x4a': 3, b'\x4b': 3, b'\x4c': 3, b'\x4d': 3, b'\x4e': 3, b'\x57': 1, b'\x59': 1, b'\x5a': 1, b'\x5b': 2}
@@ -78,7 +78,7 @@ def som_text_dumper(args):
         # TEXT POINTERS
         id = 1
         for block, block_pointers in enumerate(POINTERS_OFFSETS):
-            pointer_block_start, pointer_block_end, _, bank_offset, pointer_bytes, dump_type = block_pointers
+            pointer_block_start, pointer_block_end, text_block_start, _, bank_offset, pointer_bytes, dump_type = block_pointers
             pointers = {}
             f.seek(pointer_block_start)
             while f.tell() < pointer_block_end:
@@ -124,15 +124,15 @@ def som_text_inserter(args):
     cur = conn.cursor()
     with open(dest_file, 'r+b') as f:
         for block, block_pointers in enumerate(POINTERS_OFFSETS):
-            _, pointer_block_end, limit, _, pointer_bytes, dump_type = block_pointers
-            f.seek(pointer_block_end)
+            _, _, text_block_start, text_block_end, _, _, dump_type = block_pointers
+            f.seek(text_block_start)
             current_text_address = f.tell()
             rows = select_most_recent_translation(cur, [str(block + 1),])
             for row in rows:
-                _, _, text_decoded, _, pointer_address, translation, _, _, _ = row
+                id, _, text_decoded, _, pointer_address, translation, _, _, _ = row
                 text = translation if translation else text_decoded
                 text_encoded = table.encode(text)
-                if f.tell() + len(text_encoded) > limit:
+                if f.tell() + len(text_encoded) > text_block_end:
                     print('BANK CROSSED')
                     sys.exit()
                 f.write(text_encoded)
