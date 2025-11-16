@@ -4,7 +4,7 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import csv, os, shutil, sqlite3, struct, sys
+import csv, pathlib, shutil, sqlite3, struct, sys
 
 from rhutils.db import insert_text, select_translation_by_author, select_most_recent_translation
 from rhutils.dump import read_text, get_csv_translated_texts
@@ -64,7 +64,7 @@ def som_read_text(f, offset=None, length=None, end_byte=None, cmd_list=None, app
 def som_text_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     db = args.database_file
     if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
@@ -73,7 +73,7 @@ def som_text_dumper(args):
     conn.text_factory = str
     cur = conn.cursor()
     shutil.rmtree(dump_path, ignore_errors=True)
-    os.mkdir(dump_path)
+    pathlib.Path.mkdir(dump_path)
     with open(source_file, 'rb') as f:
         # TEXT POINTERS
         id = 1
@@ -103,9 +103,9 @@ def som_text_dumper(args):
                 insert_text(cur, id, text, text_decoded, text_address, pointer_addresses, block + 1, ref)
                 # dump - txt
                 if dump_type == DumpType.EVENTS:
-                    filename = os.path.join(dump_path, 'dump_events_eng.txt')
+                    filename = dump_path / 'dump_events_eng.txt'
                 else:
-                    filename = os.path.join(dump_path, 'dump_texts_eng.txt')
+                    filename = dump_path / 'dump_texts_eng.txt'
                 with open(filename, 'a+') as out:
                     out.write(ref + '\n' + text_decoded + "\n\n")
                 id += 1
@@ -148,16 +148,16 @@ def som_text_inserter(args):
 def som_misc_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
-    os.mkdir(dump_path)
+    pathlib.Path.mkdir(dump_path)
     with open(source_file, 'rb') as f:
         # DTE
-        filename = os.path.join(dump_path, 'dte.csv')
-        with open(filename, 'w+', encoding='utf-8') as csv_file:
+        filepath = dump_path / 'dte.csv'
+        with filepath.open('w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             f.seek(DTE_OFFSETS[0])
@@ -171,12 +171,12 @@ def som_misc_dumper(args):
 def som_misc_inserter(args):
     dest_file = args.dest_file
     table1_file = args.table1
-    translation_path = args.translation_path
+    translation_path = pathlib.Path(args.translation_path)
     table1 = Table(table1_file)
     with open(dest_file, 'r+b') as f:
         # DTE
-        translation_file = os.path.join(translation_path, 'dte.csv')
-        translated_texts = get_csv_translated_texts(translation_file)
+        filepath = translation_path / 'dte.csv'
+        translated_texts = get_csv_translated_texts(filepath)
         f.seek(DTE_OFFSETS[2])
         for i, (_, _, text_value) in enumerate(translated_texts):
             encoded_text = table1.encode(text_value)
