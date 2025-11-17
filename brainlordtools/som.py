@@ -6,8 +6,8 @@ __email__ = "robertofontanarosa@gmail.com"
 
 import csv, pathlib, shutil, sqlite3, struct, sys
 
-from rhutils.db import insert_text, select_translation_by_author, select_most_recent_translation
-from rhutils.dump import read_text, get_csv_translated_texts
+from rhutils.db import insert_text, select_most_recent_translation
+from rhutils.dump import read_text, get_csv_translated_texts, insert_binary
 from rhutils.rom import crc32
 from rhutils.table import Table
 
@@ -178,11 +178,14 @@ def som_misc_inserter(args):
         filepath = translation_path / 'dte.csv'
         translated_texts = get_csv_translated_texts(filepath)
         f.seek(DTE_OFFSETS[2])
-        for i, (_, _, text_value) in enumerate(translated_texts):
+        for _, (_, _, text_value) in enumerate(translated_texts):
             encoded_text = table1.encode(text_value)
             f.write(encoded_text)
             if (f.tell() > DTE_OFFSETS[2] + (2 * 69)):
                 sys.exit('Text size exceeds!')
+        # INTRO
+        with open(dest_file, 'r+b') as f:
+            insert_binary(f, 0x7B480, translation_path / 'intro-compressed.bin', max_length=3390)
 
 import argparse
 parser = argparse.ArgumentParser()

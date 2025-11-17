@@ -4,13 +4,11 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, struct, sqlite3, shutil, csv
+import sys, os, struct, sqlite3, shutil
 
 from rhtools3.Table import Table
-from rhutils.db import insert_text, select_translation_by_author, select_most_recent_translation
-from rhutils.dump import read_text, write_text, write_byte, dump_binary, insert_binary, get_csv_translated_texts
+from rhutils.db import insert_text
 from rhutils.rom import crc32
-from rhutils.snes import snes2pc_lorom, pc2snes_lorom
 
 CRC32 = 'C2ACD40D'
 

@@ -7,7 +7,7 @@ __email__ = "robertofontanarosa@gmail.com"
 import sys, os, struct, sqlite3, shutil
 
 from rhtools3.Table import Table
-from rhutils.db import insert_text, select_translation_by_author
+from rhutils.db import insert_text
 from rhutils.dump import read_text, dump_binary, insert_binary
 from rhutils.rom import crc32
 
