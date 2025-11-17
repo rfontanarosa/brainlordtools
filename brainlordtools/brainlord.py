@@ -291,15 +291,15 @@ def brainlord_gfx_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1], dump_path, 'gfx_font1.bin')
-        dump_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[1], dump_path, 'gfx_font2.bin')
+        dump_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1] - FONT1_BLOCK[0], os.path.join(dump_path, 'gfx_font1.bin'))
+        dump_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[1]- FONT2_BLOCK[0], os.path.join(dump_path, 'gfx_font2.bin'))
 
 def brainlord_gfx_inserter(args):
     dest_file = args.dest_file
     translation_path = args.translation_path
     with open(dest_file, 'r+b') as f:
-        insert_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1], translation_path, 'gfx_font1.bin')
-        insert_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[1], translation_path, 'gfx_font2.bin')
+        insert_binary(f, FONT1_BLOCK[0], os.path.join(translation_path, 'gfx_font1.bin'), max_length=FONT1_BLOCK[1] - FONT1_BLOCK[0])
+        insert_binary(f, FONT2_BLOCK[0], os.path.join(translation_path, 'gfx_font2.bin'), max_length=FONT2_BLOCK[1] - FONT2_BLOCK[0])
 
 def brainlord_text_segment_dumper(f, dump_path, table, id, block, cur, start=0x0, end=0x0):
     f.seek(start)

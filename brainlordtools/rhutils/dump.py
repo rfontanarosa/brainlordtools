@@ -49,24 +49,23 @@ def write_byte(f, offset, byte):
     f.seek(offset)
     f.write(byte)
 
-def dump_binary(f, start, end, path, filename):
-    f.seek(start)
-    block = f.read(end - start)
-    with open(os.path.join(path, filename), 'wb') as out:
-        out.write(block)
-
-def fill(f, offset, length, byte=b'\x00') -> None:
-    f.seek(offset)
+def fill(f, start_offset, length, byte=b'\x00') -> None:
+    f.seek(start_offset)
     f.write(byte * length)
 
-def insert_binary(f, start, end, path, filename):
-    with open(os.path.join(path, filename), 'rb') as f1:
+def dump_binary(f, start_offset, length, filepath):
+    f.seek(start_offset)
+    block = f.read(length)
+    with open(filepath, 'wb') as f1:
+        f1.write(block)
+
+def insert_binary(f, start_offset, filepath, max_length=None):
+    with open(filepath, 'rb') as f1:
         block = f1.read()
-        if len(block) == end - start:
-            f.seek(start)
-            f.write(block)
-        else:
-            raise Exception()
+        if max_length is not None and len(block) > max_length:
+            raise ValueError(f"Insertion exceeds the specified limit of {max_length} bytes.")
+        f.seek(start_offset)
+        f.write(block)
 
 def get_csv_translated_texts(filename):
     translated_texts = []

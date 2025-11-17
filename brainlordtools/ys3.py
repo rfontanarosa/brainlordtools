@@ -106,7 +106,7 @@ def ys3_gfx_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_binary(f, GFX_BLOCK[0], GFX_BLOCK[1], dump_path, 'gfx_1.bin')
+        dump_binary(f, GFX_BLOCK[0], GFX_BLOCK[1] - GFX_BLOCK[0], os.path.join(dump_path, 'gfx_1.bin'))
 
 def ys3_text_inserter(args):
     dest_file = args.dest_file

@@ -243,13 +243,13 @@ def seventhsaga_gfx_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1], dump_path, 'gfx_font1.bin')
+        dump_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1] - FONT1_BLOCK[0], os.path.join(dump_path, 'gfx_font1.bin'))
 
 def seventhsaga_gfx_inserter(args):
     dest_file = args.dest_file
     translation_path = args.translation_path
     with open(dest_file, 'r+b') as f:
-        insert_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1], translation_path, 'gfx_font1.bin')
+        insert_binary(f, FONT1_BLOCK[0], os.path.join(translation_path, 'gfx_font1.bin'), max_length=FONT1_BLOCK[1] - FONT1_BLOCK[0])
 
 def seventhsaga_misc_dumper(args):
     source_file = args.source_file

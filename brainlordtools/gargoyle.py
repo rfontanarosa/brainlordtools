@@ -384,16 +384,16 @@ def gargoyle_gfx_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_binary(f, 0x18000, 0x18800, dump_path, '18000_title.bin')
-        dump_binary(f, 0x14000, 0x14200, dump_path, '14000_font.bin')
+        dump_binary(f, 0x18000, 0x18800 - 0x18000, os.path.join(dump_path, '18000_title.bin'))
+        dump_binary(f, 0x14000, 0x14200 - 0x14000, os.path.join(dump_path, '14000_font.bin'))
 
 def gargoyle_gfx_inserter(args):
     dest_file = args.dest_file
     translation_path = args.translation_path
     with open(dest_file, 'r+b') as f:
-        insert_binary(f, 0x18000, 0x18800, translation_path, '18000_title_ita.bin')
-        # insert_binary(f, 0x14000, 0x14200, translation_path, '14000_font_ita.bin')
-        insert_binary(f, 0x1c800, 0x1cba0, translation_path, '1C800_ingame_menu_ita.bin')
+        insert_binary(f, 0x18000, os.path.join(translation_path, '18000_title_ita.bin'), max_length=0x18800 - 0x18000)
+        # insert_binary(f, 0x14000, os.path.join(translation_path, '14000_font_ita.bin'), max_length=0x14200 - 0x14000)
+        insert_binary(f, 0x1c800, os.path.join(translation_path, '1C800_ingame_menu_ita.bin'), max_length=0x1cba0 - 0x1c800)
         write_text(f, 0x2341, b'\xa4')
 
 import argparse

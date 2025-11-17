@@ -93,17 +93,17 @@ def starocean_gfx_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_binary(f, 0x3f0000, 0x3f0000 + 3392, dump_path, '3F0000_font.bin')
-        dump_binary(f, 0x3f0d40, 0x3f0d40 + (4 * 13) + 1, dump_path, '3F0d40_font_vwf.bin')
-        dump_binary(f, 0xa0268, 0xa0268 + 16, dump_path, 'a0268_menu_hand_pointer.bin')
+        dump_binary(f, 0x3f0000, 3392, os.path.join(dump_path, '3F0000_font.bin'))
+        dump_binary(f, 0x3f0d40, (4 * 13) + 1, os.path.join(dump_path, '3F0d40_font_vwf.bin'))
+        dump_binary(f, 0xa0268, 16, os.path.join(dump_path, 'a0268_menu_hand_pointer.bin'))
 
 def starocean_gfx_inserter(args):
     dest_file = args.dest_file
     translation_path = args.translation_path
     with open(dest_file, 'r+b') as f:
-        insert_binary(f, 0x3f0000, 0x3f0000 + 3392, translation_path, '3F0000_font_ita.bin')
-        insert_binary(f, 0x3f0d40, 0x3f0d40 + (4 * 13) + 1, translation_path, '3F0d40_font_vwf_ita.bin')
-        insert_binary(f, 0xa0268, 0xa0268 + 16, translation_path, 'a0268_menu_hand_pointer_ita.bin')
+        insert_binary(f, 0x3f0000, os.path.join(translation_path, '3F0000_font_ita.bin'), max_length=3392)
+        insert_binary(f, 0x3f0d40, os.path.join(translation_path, '3F0d40_font_vwf_ita.bin'), max_length=(4 * 13) + 1)
+        insert_binary(f, 0xa0268, os.path.join(translation_path, 'a0268_menu_hand_pointer_ita.bin'), max_length=16)
 
 import argparse
 parser = argparse.ArgumentParser()

@@ -265,14 +265,14 @@ def soe_gfx_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1] - (16 * 8 * 3), dump_path, 'gfx_font1.bin')
-        dump_binary(f, FONT1_VWF_TABLE[0], FONT1_VWF_TABLE[1] - 16, dump_path, 'gfx_vwf1.bin')
-        dump_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[1] - (16 * 8 * 3), dump_path, 'gfx_font2.bin')
-        dump_binary(f, FONT2_VWF_TABLE[0], FONT2_VWF_TABLE[1] - 16, dump_path, 'gfx_vwf2.bin')
-        dump_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[0] + (16 * 8 * 3), dump_path, 'gfx_exp_font1.bin')
-        dump_binary(f, FONT1_VWF_TABLE[0], FONT1_VWF_TABLE[0] + 16, dump_path, 'gfx_exp_vwf1.bin')
-        dump_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[0] + (16 * 8 * 3), dump_path, 'gfx_exp_font2.bin')
-        dump_binary(f, FONT2_VWF_TABLE[0], FONT2_VWF_TABLE[0] + 16, dump_path, 'gfx_exp_vwf2.bin')
+        dump_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1] - (16 * 8 * 3) - FONT1_BLOCK[0], os.path.join(dump_path, 'gfx_font1.bin'))
+        dump_binary(f, FONT1_VWF_TABLE[0], FONT1_VWF_TABLE[1] - 16 - FONT1_VWF_TABLE[0], os.path.join(dump_path, 'gfx_vwf1.bin'))
+        dump_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[1] - (16 * 8 * 3) - FONT2_BLOCK[0], os.path.join(dump_path, 'gfx_font2.bin'))
+        dump_binary(f, FONT2_VWF_TABLE[0], FONT2_VWF_TABLE[1] - 16 - FONT2_VWF_TABLE[0], os.path.join(dump_path, 'gfx_vwf2.bin'))
+        dump_binary(f, FONT1_BLOCK[0], 16 * 8 * 3, os.path.join(dump_path, 'gfx_exp_font1.bin'))
+        dump_binary(f, FONT1_VWF_TABLE[0], 16, os.path.join(dump_path, 'gfx_exp_vwf1.bin'))
+        dump_binary(f, FONT2_BLOCK[0], 16 * 8 * 3, os.path.join(dump_path, 'gfx_exp_font2.bin'))
+        dump_binary(f, FONT2_VWF_TABLE[0], 16, os.path.join(dump_path, 'gfx_exp_vwf2.bin'))
 
 def soe_gfx_inserter(args):
     dest_file = args.dest_file
@@ -282,14 +282,14 @@ def soe_gfx_inserter(args):
         f.seek(0x129917)
         f.write(b'\x18')
         #
-        insert_binary(f, FONT1_BLOCK[0] + (16 * 8 * 3), FONT1_BLOCK[1], translation_path, 'gfx_font1.bin')
-        insert_binary(f, FONT1_VWF_TABLE[0] + 16, FONT1_VWF_TABLE[1], translation_path, 'gfx_vwf1.bin')
-        insert_binary(f, FONT2_BLOCK[0] + (16 * 8 * 3), FONT2_BLOCK[1], translation_path, 'gfx_font2.bin')
-        insert_binary(f, FONT2_VWF_TABLE[0] + 16, FONT2_VWF_TABLE[1], translation_path, 'gfx_vwf2.bin')
-        insert_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[0] + (16 * 8 * 3), translation_path, 'gfx_exp_font1.bin')
-        insert_binary(f, FONT1_VWF_TABLE[0], FONT1_VWF_TABLE[0] + 16, translation_path, 'gfx_exp_vwf1.bin')
-        insert_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[0] + (16 * 8 * 3), translation_path, 'gfx_exp_font2.bin')
-        insert_binary(f, FONT2_VWF_TABLE[0], FONT2_VWF_TABLE[0] + 16, translation_path, 'gfx_exp_vwf2.bin')
+        insert_binary(f, FONT1_BLOCK[0] + (16 * 8 * 3), os.path.join(translation_path, 'gfx_font1.bin'), max_length=FONT1_BLOCK[1] - (FONT1_BLOCK[0] + (16 * 8 * 3)))
+        insert_binary(f, FONT1_VWF_TABLE[0] + 16, os.path.join(translation_path, 'gfx_vwf1.bin'), max_length=FONT1_VWF_TABLE[1] - (FONT1_VWF_TABLE[0] + 16))
+        insert_binary(f, FONT2_BLOCK[0] + (16 * 8 * 3), os.path.join(translation_path, 'gfx_font2.bin'), max_length=FONT2_BLOCK[1] - FONT2_BLOCK[0] + (16 * 8 * 3))
+        insert_binary(f, FONT2_VWF_TABLE[0] + 16, os.path.join(translation_path, 'gfx_vwf2.bin'), max_length=FONT2_VWF_TABLE[1] - FONT2_VWF_TABLE[0] + 16)
+        insert_binary(f, FONT1_BLOCK[0], os.path.join(translation_path, 'gfx_exp_font1.bin'), max_length=16 * 8 * 3)
+        insert_binary(f, FONT1_VWF_TABLE[0], os.path.join(translation_path, 'gfx_exp_vwf1.bin'), max_length=16)
+        insert_binary(f, FONT2_BLOCK[0], os.path.join(translation_path, 'gfx_exp_font2.bin'), max_length=16 * 8 * 3)
+        insert_binary(f, FONT2_VWF_TABLE[0], os.path.join(translation_path, 'gfx_exp_vwf2.bin'), max_length=16)
 
 import argparse
 parser = argparse.ArgumentParser()

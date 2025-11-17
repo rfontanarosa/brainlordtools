@@ -116,21 +116,21 @@ def neugier_gfx_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_binary(f, GFX_NEW_GAME_OFFSETS[0], GFX_NEW_GAME_OFFSETS[1], dump_path, 'gfx_new_game.bin')
-        dump_binary(f, GFX_TITLE[0], GFX_TITLE[1], dump_path, 'gfx_title.bin')
-        dump_binary(f, GFX_STATUS_OFFSETS[0], GFX_STATUS_OFFSETS[1], dump_path, 'gfx_status.bin')
-        dump_binary(f, GFX_FONT_OFFSETS[0], GFX_FONT_OFFSETS[1], dump_path, 'gfx_font.bin')
-        dump_binary(f, GFX_INTRO_OFFSETS[0], GFX_INTRO_OFFSETS[1], dump_path, 'gfx_intro.bin')
+        dump_binary(f, GFX_NEW_GAME_OFFSETS[0], GFX_NEW_GAME_OFFSETS[1] - GFX_NEW_GAME_OFFSETS[0], os.path.join(dump_path, 'gfx_new_game.bin'))
+        dump_binary(f, GFX_TITLE[0], GFX_TITLE[1] - GFX_TITLE[0], os.path.join(dump_path, 'gfx_title.bin'))
+        dump_binary(f, GFX_STATUS_OFFSETS[0], GFX_STATUS_OFFSETS[1] - GFX_STATUS_OFFSETS[0], os.path.join(dump_path, 'gfx_status.bin'))
+        dump_binary(f, GFX_FONT_OFFSETS[0], GFX_FONT_OFFSETS[1] - GFX_FONT_OFFSETS[0], os.path.join(dump_path, 'gfx_font.bin'))
+        dump_binary(f, GFX_INTRO_OFFSETS[0], GFX_INTRO_OFFSETS[1] - GFX_INTRO_OFFSETS[0], os.path.join(dump_path, 'gfx_intro.bin'))
 
 def neugier_gfx_inserter(args):
     dest_file = args.dest_file
     translation_path = args.translation_path
     with open(dest_file, 'r+b') as f:
-        insert_binary(f, GFX_NEW_GAME_OFFSETS[0], GFX_NEW_GAME_OFFSETS[1], translation_path, 'gfx_new_game.bin')
-        insert_binary(f, GFX_TITLE[0], GFX_TITLE[1], translation_path, 'gfx_title.bin')
-        insert_binary(f, GFX_STATUS_OFFSETS[0], GFX_STATUS_OFFSETS[1], translation_path, 'gfx_status.bin')
-        insert_binary(f, GFX_FONT_OFFSETS[0], GFX_FONT_OFFSETS[1], translation_path, 'gfx_font.bin')
-        insert_binary(f, GFX_INTRO_OFFSETS[0], GFX_INTRO_OFFSETS[1], translation_path, 'gfx_intro.bin')
+        insert_binary(f, GFX_NEW_GAME_OFFSETS[0], os.path.join(translation_path, 'gfx_new_game.bin'), max_length=GFX_NEW_GAME_OFFSETS[1] - GFX_NEW_GAME_OFFSETS[0])
+        insert_binary(f, GFX_TITLE[0], os.path.join(translation_path, 'gfx_title.bin'), max_length=GFX_TITLE[1] - GFX_TITLE[0])
+        insert_binary(f, GFX_STATUS_OFFSETS[0], os.path.join(translation_path, 'gfx_status.bin'), max_length=GFX_STATUS_OFFSETS[1] - GFX_STATUS_OFFSETS[0])
+        insert_binary(f, GFX_FONT_OFFSETS[0], os.path.join(translation_path, 'gfx_font.bin'), max_length=GFX_FONT_OFFSETS[1] - GFX_FONT_OFFSETS[0])
+        insert_binary(f, GFX_INTRO_OFFSETS[0], os.path.join(translation_path, 'gfx_intro.bin'), max_length=GFX_INTRO_OFFSETS[1] - GFX_INTRO_OFFSETS[0])
         # VWF
         write_byte(f, 0x110050, b'\x07')
         write_byte(f, 0x110051, b'\x07')
@@ -164,7 +164,7 @@ def neugier_misc_dumper(args):
                 csv_writer.writerow(fields)
         # Credits
         with open(source_file, 'rb') as f:
-            dump_binary(f, 0xd0919, 0xd0f37, dump_path, 'credits.bin')
+            dump_binary(f, 0xd0919, 0xd0f37 - 0xd0919, os.path.join(dump_path, 'credits.bin'))
 
 def neugier_misc_inserter(args):
     dest_file = args.dest_file
@@ -183,7 +183,7 @@ def neugier_misc_inserter(args):
                 sys.exit(f'{t_value} exceeds 10')
             write_text(f, t_address, text, length=10)
         # Credits
-        insert_binary(f, 0xd0919, 0xd0f37, translation_path, 'credits.bin')
+        insert_binary(f, 0xd0919, os.path.join(translation_path, 'credits.bin'), max_length=0xd0f37 - 0xd0919)
 
 def neugier_credits_dumper(args):
     source_file = args.source_file
