@@ -20,13 +20,14 @@ class DumpType(enum.Enum):
     EVENTS = 1
     TEXTS = 2
 
-# pointer_block_start, pointer_block_end, text_block_start, text_block_end, bank_offset pointer_bytes, filename
+# pointer_block_start, pointer_block_end, text_block_start, text_block_end, bank_offset, pointer_bytes, filename
 POINTERS_OFFSETS = (
     (0x90000, 0x90800, 0x90800, 0x9f2d6, 0x90000, 2, DumpType.EVENTS),
     (0xa0000, 0xa0c02, 0xa0c02, 0xab573, 0xa0000, 2, DumpType.EVENTS),
     (0x33d0, 0x33f0, 0X77a8e, 0x77b23, 0x70000, 2, DumpType.TEXTS),
     (0x7780a, 0x7784c, 0x77313, 0x77693, 0x70000, 2, DumpType.TEXTS),
-    (0x33b5, 0x33d0, 0x33f0, 0x0, 0x0, 3, DumpType.TEXTS)
+    (0x33b5, 0x33d0, 0x33f0, 0x0, 0x0, 3, DumpType.TEXTS),
+    (0x77bb7, 0x77bc7, 0x77b6d, 0x77ba5, 0x70000, 2, DumpType.TEXTS)
 )
 
 # start, end, where_to_move
@@ -125,23 +126,24 @@ def som_text_inserter(args):
     with open(dest_file, 'r+b') as f:
         for block, block_pointers in enumerate(POINTERS_OFFSETS):
             _, _, text_block_start, text_block_end, _, _, dump_type = block_pointers
-            f.seek(text_block_start)
-            current_text_address = f.tell()
-            rows = select_most_recent_translation(cur, [str(block + 1),])
-            for row in rows:
-                id, _, text_decoded, _, pointer_address, translation, _, _, _ = row
-                text = translation if translation else text_decoded
-                text_encoded = table.encode(text)
-                if f.tell() + len(text_encoded) > text_block_end:
-                    print('BANK CROSSED')
-                    sys.exit()
-                f.write(text_encoded)
-                # REPOINTER
-                new_pointer_value = struct.pack('<I', current_text_address)[:2]
+            if dump_type == DumpType.EVENTS:
+                f.seek(text_block_start)
                 current_text_address = f.tell()
-                f.seek(int(pointer_address, 16))
-                f.write(new_pointer_value)
-                f.seek(current_text_address)
+                rows = select_translation_by_author(cur, 'clomax', [str(block + 1),])
+                for row in rows:
+                    _, _, text_decoded, _, pointer_address, translation, _ = row
+                    text = translation if translation else text_decoded
+                    text_encoded = table.encode(text)
+                    if f.tell() + len(text_encoded) > text_block_end:
+                        print('BANK CROSSED')
+                        sys.exit()
+                    f.write(text_encoded)
+                    # REPOINTER
+                    new_pointer_value = struct.pack('<I', current_text_address)[:2]
+                    current_text_address = f.tell()
+                    f.seek(int(pointer_address, 16))
+                    f.write(new_pointer_value)
+                    f.seek(current_text_address)
     cur.close()
     conn.close()
 
