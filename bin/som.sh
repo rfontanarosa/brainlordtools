@@ -32,6 +32,11 @@ python "$TOOLS_PATH/som.py" dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_MISC
 # python "$TOOLS_PATH/som.py" --no_crc32_check dump_text -s "$SOURCE1" -t1 "$TABLE3" -dp "$DUMP_TEXT_PATH" -db "$DB"
 # python "$TOOLS_PATH/som.py" --no_crc32_check dump_misc -s "$SOURCE1" -t1 "$TABLE1" -dp "$DUMP_MISC_PATH"
 
+python "$TOOLS_PATH/somtools/decomp.py" "$SOURCE" "$DUMP_MISC_PATH/intro.bin" --base-offset="7B480"
+python "$TOOLS_PATH/somtools/decomp.py" "$SOURCE" "$DUMP_MISC_PATH/title.bin" --base-offset="1CE800"
+python "$TOOLS_PATH/somtools/decomp.py" "$SOURCE" "$DUMP_MISC_PATH/font-intro.bin" --base-offset="7C1C0"
+python "$TOOLS_PATH/somtools/decomp.py" "$SOURCE" "$DUMP_MISC_PATH/intro-code.bin" --base-offset="77C00"
+
 python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_equip.bin" --sprite 9
 python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_hp_down.bin" --sprite 16
 python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_hp_up.bin" --sprite 17
@@ -45,6 +50,8 @@ python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/men
 
 python "$TOOLS_PATH/som.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE4" -tp "$TRANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
 python "$TOOLS_PATH/som.py" insert_misc -d "$DESTINATION" -t1 "$TABLE5" -tp "$TRANSLATION_MISC_PATH"
+
+python "$TOOLS_PATH/somtools/decomp.py" "$TRANSLATION_MISC_PATH/intro.bin" "$TRANSLATION_MISC_PATH/intro-compressed.bin" --compress --compression-key="4"
 
 python "$TOOLS_PATH/somtools/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_equip.bin" "$DESTINATION" --sprite 9
 python "$TOOLS_PATH/somtools/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_hp_down.bin" "$DESTINATION" --sprite 16
@@ -63,4 +70,5 @@ then
   exit
 else
   asar "$RESOURCE_PATH/asm/font.asm" "$DESTINATION"
+  asar "$RESOURCE_PATH/asm/menus.asm" "$DESTINATION"
 fi
