@@ -32,6 +32,8 @@ python "$TOOLS_PATH/som.py" dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_MISC
 # python "$TOOLS_PATH/som.py" --no_crc32_check dump_text -s "$SOURCE1" -t1 "$TABLE3" -dp "$DUMP_TEXT_PATH" -db "$DB"
 # python "$TOOLS_PATH/som.py" --no_crc32_check dump_misc -s "$SOURCE1" -t1 "$TABLE1" -dp "$DUMP_MISC_PATH"
 
+python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_equip.bin" --sprite 9
+
 python "$TOOLS_PATH/som.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE4" -tp "$TRANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
 python "$TOOLS_PATH/som.py" insert_misc -d "$DESTINATION" -t1 "$TABLE5" -tp "$TRANSLATION_MISC_PATH"
 
