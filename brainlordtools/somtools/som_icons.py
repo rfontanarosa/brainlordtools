@@ -13,11 +13,11 @@ DECOMPRESSED_SPRITE_SIZE = 0x80
 # 9 - EQUIP
 # 16/17 - HP
 # 62/63 - MP
-# 171 - STAT
-# 172 - LEVEL
-# 173 - ACT.
-# 174 - EDIT
-# 175 - EDIT
+# 170 - STAT
+# 171 - LEVEL
+# 172 - ACT.
+# 173 - CONTROLLER EDIT
+# 174 - WIN EDIT
 
 
 def decompress_icons(comp_data):
