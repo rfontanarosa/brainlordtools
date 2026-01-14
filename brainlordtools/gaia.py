@@ -646,7 +646,7 @@ def gaia_text_inserter(args):
             f2.seek(original_text_offset)
             f2.write(b'\xcd' + new_pointer_value + bytes([end_byte]))
         #
-        if (f1.tell() > 0xbffff):
+        if f1.tell() > 0xbffff:
             sys.exit(f'Text size exceeds: {f1.tell() - 0xbffff}')
 
 def gaia_misc_inserter(args):
@@ -671,7 +671,7 @@ def gaia_misc_inserter(args):
             # text
             encoded_text = table1.encode(text_value, mte_resolver=False, dict_resolver=False)
             f1.write(encoded_text + b'\xc0')
-            if (f1.tell() > 0x9f_fff):
+            if f1.tell() > 0x9f_fff:
                 sys.exit('Text size exceeds!')
         # Dictionaries
         fill(f1, 0x1eba8, 0x1fd24 - 0x1eba8)
@@ -688,7 +688,7 @@ def gaia_misc_inserter(args):
             # text
             encoded_text = table1.encode(text_value, mte_resolver=False, dict_resolver=False)
             f1.write(encoded_text + b'\xca')
-            if (f1.tell() > 0x6ffff):
+            if f1.tell() > 0x6ffff:
                 sys.exit('Text size exceeds!')
         # Dictionary 2
         translation_file = os.path.join(translation_path, 'dictionary2.csv')
@@ -703,7 +703,7 @@ def gaia_misc_inserter(args):
             # text
             encoded_text = table1.encode(text_value, mte_resolver=False, dict_resolver=False)
             f1.write(encoded_text + b'\xca')
-            if (f1.tell() > 0x6ffff):
+            if f1.tell() > 0x6ffff:
                 sys.exit('Text size exceeds!')
         # Locations
         translation_file = os.path.join(translation_path, 'locations.csv')
@@ -720,7 +720,7 @@ def gaia_misc_inserter(args):
             # text
             encoded_text = table1.encode(text_value, mte_resolver=True, dict_resolver=False)
             f1.write(encoded_text + b'\xca')
-            if (f1.tell() > 0x2f_fff):
+            if f1.tell() > 0x2f_fff:
                 sys.exit('Text size exceeds!')
         # Miscs
         f1.seek(0x1eba8)
@@ -739,7 +739,7 @@ def gaia_misc_inserter(args):
                 # text
                 encoded_text = table.encode(text_value, mte_resolver=mte_resolver, dict_resolver=dict_resolver)
                 f1.write(encoded_text + end_byte)
-                if (f1.tell() > 0x1fd24):
+                if f1.tell() > 0x1fd24:
                     sys.exit('Text size exceeds!')
         # World Map Locations
         translation_file = os.path.join(translation_path, 'world_map_locations.csv')
@@ -753,7 +753,7 @@ def gaia_misc_inserter(args):
             # text
             encoded_text = table3.encode(text_value, mte_resolver=False, dict_resolver=False)
             f1.write(encoded_text + b'\xca')
-            if (f1.tell() > 0x3f_fff):
+            if f1.tell() > 0x3f_fff:
                 sys.exit('Text size exceeds!')
 
 def gaia_gfx_inserter(args):
@@ -870,7 +870,7 @@ def split_tilemap(input_data):
                         unique.append(seq)
                     offset += 4
 
-    if (len(unique) > 256):
+    if len(unique) > 256:
         print(f"Too many unique tiles: {len(unique)}")
 
     # ---------- 2nd step – build arrangement + tile‑map -------------

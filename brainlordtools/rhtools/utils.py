@@ -34,7 +34,7 @@ def int_to_bytes(i):
 
 def string_address2int_address(s, switch=False, offset=0):
 	"""  """
-	if (switch):
+	if switch:
 		n = byte2int(s[0]) + (byte2int(s[1]) << 8) + offset
 	else:
 		n = (byte2int(s[0]) << 8) + byte2int(s[1]) + offset
@@ -45,7 +45,7 @@ def int_address2string_address(n, switch=False, shift=0):
 	import binascii
 	h = int2hex(n)
 	s = binascii.unhexlify(h[shift:])
-	if (switch):
+	if switch:
 		s = s[1] + s[0]
 	return s
 
@@ -57,7 +57,7 @@ def int_address2string_address2(n, switch=False, shift=0):
 	if len(unhex) % 2 != 0:
 		unhex = '0' + unhex
 	s = binascii.unhexlify(unhex)
-	if (switch):
+	if switch:
 		s = s[1] + s[0]
 	return s
 

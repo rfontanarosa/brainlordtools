@@ -231,7 +231,7 @@ def som_misc_inserter(args):
         for _, (_, _, text_value) in enumerate(translated_texts):
             encoded_text = table1.encode(text_value)
             f.write(encoded_text)
-            if (f.tell() > DTE_OFFSETS[2] + (2 * 69)):
+            if f.tell() > DTE_OFFSETS[2] + (2 * 69):
                 sys.exit('Text size exceeds!')
         # INTRO
         with open(dest_file, 'r+b') as f:
