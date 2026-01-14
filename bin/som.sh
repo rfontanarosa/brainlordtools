@@ -46,6 +46,14 @@ python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/men
 python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_controller_edit.bin" --sprite 173
 python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_win_edit.bin" --sprite 174
 
+if ! command -v asar &> /dev/null
+then
+  echo "Command 'asar' not found."
+  exit
+else
+  asar "$RESOURCE_PATH/asm/intro_ram.asm" "$TRANSLATION_MISC_PATH/intro-code.bin"
+fi
+
 python "$TOOLS_PATH/somtools/decomp.py" "$TRANSLATION_MISC_PATH/intro-code.bin" "$TRANSLATION_MISC_PATH/intro-code-compressed.bin" --compress --compression-key="1"
 python "$TOOLS_PATH/somtools/decomp.py" "$TRANSLATION_MISC_PATH/intro-data.bin" "$TRANSLATION_MISC_PATH/intro-data-compressed.bin" --compress --compression-key="4"
 python "$TOOLS_PATH/somtools/decomp.py" "$TRANSLATION_MISC_PATH/title.bin" "$TRANSLATION_MISC_PATH/title-compressed.bin" --compress --compression-key="3"
@@ -71,4 +79,5 @@ then
 else
   asar "$RESOURCE_PATH/asm/font.asm" "$DESTINATION"
   asar "$RESOURCE_PATH/asm/menus.asm" "$DESTINATION"
+  asar "$RESOURCE_PATH/asm/intro.asm" "$DESTINATION"
 fi
