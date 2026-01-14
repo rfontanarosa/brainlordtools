@@ -165,7 +165,7 @@ def som_text_inserter(args):
                         f.write(new_pointer_value)
                         f.seek(current_text_address)
                 elif block + 1 == 5:
-                    f.seek(0xb3400)
+                    f.seek(0xb3800)
                     current_text_address = f.tell()
                     rows = select_translation_by_author(cur, 'clomax', [str(block + 1),])
                     for row in rows:
