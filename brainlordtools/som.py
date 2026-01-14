@@ -147,7 +147,7 @@ def som_text_inserter(args):
                     f.seek(current_text_address)
             else:
                 if block + 1 == 3:
-                    f.seek(0x74500)
+                    f.seek(0x74900)
                     current_text_address = f.tell()
                     rows = select_translation_by_author(cur, 'clomax', [str(block + 1),])
                     for row in rows:
@@ -211,6 +211,13 @@ def som_misc_dumper(args):
                 fields = [hex(text_address_start), text_decoded]
                 csv_writer.writerow(fields)
 
+def som_tilemap_dumper(args):
+    source_file = args.source_file
+    dump_path = pathlib.Path(args.dump_path)
+    with open(source_file, 'rb') as f:
+        # INTRO TILEMAP
+        dump_binary(f, 0x14a6, 928, dump_path / 'intro-tilemap.bin')
+
 def som_misc_inserter(args):
     dest_file = args.dest_file
     table1_file = args.table1
@@ -228,7 +235,9 @@ def som_misc_inserter(args):
                 sys.exit('Text size exceeds!')
         # INTRO
         with open(dest_file, 'r+b') as f:
-            insert_binary(f, 0x7B480, translation_path / 'intro-compressed.bin', max_length=3390)
+            insert_binary(f, 0x77C00, translation_path / 'intro-code-compressed.bin', max_length=14437)
+            insert_binary(f, 0x7B480, translation_path / 'intro-data-compressed.bin', max_length=3390)
+            insert_binary(f, 0x1CE800, translation_path / 'title-compressed.bin', max_length=2096)
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -258,6 +267,10 @@ dump_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', 
 dump_misc_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Intro table filename')
 dump_misc_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
 dump_misc_parser.set_defaults(func=som_misc_dumper)
+dump_tilemap_parser = subparsers.add_parser('dump_tilemap', help='Execute TILEMAP DUMP')
+dump_tilemap_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
+dump_tilemap_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+dump_tilemap_parser.set_defaults(func=som_tilemap_dumper)
 insert_misc_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
 insert_misc_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')

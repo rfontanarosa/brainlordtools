@@ -29,10 +29,11 @@ python "$TOOLS_PATH/_utils.py" file_copy -s "$SOURCE" -d "$DESTINATION"
 python "$TOOLS_PATH/som.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH" -db "$DB"
 python "$TOOLS_PATH/som.py" dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_MISC_PATH"
 
-python "$TOOLS_PATH/somtools/decomp.py" "$SOURCE" "$DUMP_MISC_PATH/intro.bin" --base-offset="7B480"
-python "$TOOLS_PATH/somtools/decomp.py" "$SOURCE" "$DUMP_MISC_PATH/title.bin" --base-offset="1CE800"
-python "$TOOLS_PATH/somtools/decomp.py" "$SOURCE" "$DUMP_MISC_PATH/font-intro.bin" --base-offset="7C1C0"
 python "$TOOLS_PATH/somtools/decomp.py" "$SOURCE" "$DUMP_MISC_PATH/intro-code.bin" --base-offset="77C00"
+python "$TOOLS_PATH/somtools/decomp.py" "$SOURCE" "$DUMP_MISC_PATH/intro-data.bin" --base-offset="7B480"
+python "$TOOLS_PATH/somtools/decomp.py" "$SOURCE" "$DUMP_MISC_PATH/title.bin" --base-offset="1CE800"
+
+python "$TOOLS_PATH/som.py" dump_tilemap -s "$DUMP_MISC_PATH/intro-data.bin" -dp "$DUMP_MISC_PATH"
 
 python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_equip.bin" --sprite 9
 python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_hp_down.bin" --sprite 16
@@ -45,10 +46,12 @@ python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/men
 python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_controller_edit.bin" --sprite 173
 python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_win_edit.bin" --sprite 174
 
+python "$TOOLS_PATH/somtools/decomp.py" "$TRANSLATION_MISC_PATH/intro-code.bin" "$TRANSLATION_MISC_PATH/intro-code-compressed.bin" --compress --compression-key="1"
+python "$TOOLS_PATH/somtools/decomp.py" "$TRANSLATION_MISC_PATH/intro-data.bin" "$TRANSLATION_MISC_PATH/intro-data-compressed.bin" --compress --compression-key="4"
+python "$TOOLS_PATH/somtools/decomp.py" "$TRANSLATION_MISC_PATH/title.bin" "$TRANSLATION_MISC_PATH/title-compressed.bin" --compress --compression-key="3"
+
 python "$TOOLS_PATH/som.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE4" -tp "$TRANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
 python "$TOOLS_PATH/som.py" insert_misc -d "$DESTINATION" -t1 "$TABLE5" -tp "$TRANSLATION_MISC_PATH"
-
-python "$TOOLS_PATH/somtools/decomp.py" "$TRANSLATION_MISC_PATH/intro.bin" "$TRANSLATION_MISC_PATH/intro-compressed.bin" --compress --compression-key="4"
 
 python "$TOOLS_PATH/somtools/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_equip.bin" "$DESTINATION" --sprite 9
 python "$TOOLS_PATH/somtools/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_hp_down.bin" "$DESTINATION" --sprite 16
