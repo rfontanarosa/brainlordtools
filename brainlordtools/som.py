@@ -7,7 +7,7 @@ __email__ = "robertofontanarosa@gmail.com"
 import csv, pathlib, shutil, sqlite3, struct, sys
 
 from rhutils.db import insert_text, select_most_recent_translation, select_translation_by_author
-from rhutils.dump import read_text, get_csv_translated_texts, insert_binary, write_byte
+from rhutils.dump import dump_binary, read_text, get_csv_translated_texts, insert_binary, write_byte
 from rhutils.rom import crc32
 from rhutils.snes import pc2snes_hirom
 from rhutils.table import Table
@@ -28,7 +28,8 @@ POINTERS_OFFSETS = (
     (0x33d0, 0x33f0, 0X77a8e, 0x77b23, 0x70000, 2, DumpType.TEXTS),
     (0x7780a, 0x7784c, 0x77313, 0x77693, 0x70000, 2, DumpType.TEXTS),
     (0x33b5, 0x33d0, 0x33f0, 0x0, 0x0, 3, DumpType.TEXTS),
-    (0x77bb7, 0x77bc7, 0x77b6d, 0x77ba5, 0x70000, 2, DumpType.TEXTS)
+    (0x77bb7, 0x77bc7, 0x77b6d, 0x77ba5, 0x70000, 2, DumpType.TEXTS),
+    (0x5dbb, 0x5e6b, 0x5e6b, 0x637d, 0x0, 2, DumpType.TEXTS)
 )
 
 # start, end, where_to_move
@@ -80,7 +81,7 @@ def som_text_dumper(args):
         # TEXT POINTERS
         id = 1
         for block, block_pointers in enumerate(POINTERS_OFFSETS):
-            pointer_block_start, pointer_block_end, text_block_start, _, bank_offset, pointer_bytes, dump_type = block_pointers
+            pointer_block_start, pointer_block_end, _, _, bank_offset, pointer_bytes, dump_type = block_pointers
             pointers = {}
             f.seek(pointer_block_start)
             while f.tell() < pointer_block_end:
@@ -146,25 +147,7 @@ def som_text_inserter(args):
                     f.write(new_pointer_value)
                     f.seek(current_text_address)
             else:
-                if block + 1 == 3:
-                    f.seek(0x74900)
-                    current_text_address = f.tell()
-                    rows = select_translation_by_author(cur, 'clomax', [str(block + 1),])
-                    for row in rows:
-                        _, _, text_decoded, _, pointer_address, translation, _ = row
-                        text = translation if translation else text_decoded
-                        text_encoded = table.encode(text)
-                        if f.tell() + len(text_encoded) > 0x74fff:
-                            print('BANK CROSSED')
-                            sys.exit()
-                        f.write(text_encoded)
-                        # REPOINTER
-                        new_pointer_value = struct.pack('<I', current_text_address)[:2]
-                        current_text_address = f.tell()
-                        f.seek(int(pointer_address, 16))
-                        f.write(new_pointer_value)
-                        f.seek(current_text_address)
-                elif block + 1 == 5:
+                if block + 1 == 5:
                     f.seek(0xb3800)
                     current_text_address = f.tell()
                     rows = select_translation_by_author(cur, 'clomax', [str(block + 1),])
@@ -183,8 +166,47 @@ def som_text_inserter(args):
                         f.seek(int(pointer_address, 16))
                         f.write(new_pointer_value)
                         f.seek(current_text_address)
+                elif block + 1 == 7:
+                    f.seek(text_block_start)
+                    current_text_address = f.tell()
+                    rows = select_translation_by_author(cur, 'clomax', [str(block + 1),])
+                    for row in rows:
+                        _, _, text_decoded, _, pointer_address, translation, _ = row
+                        text = translation if translation else text_decoded
+                        text_encoded = table.encode(text)
+                        if f.tell() + len(text_encoded) > text_block_end:
+                            print('BANK CROSSED')
+                            sys.exit()
+                        f.write(text_encoded)
+                        # REPOINTER
+                        new_pointer_value = struct.pack('<I', current_text_address)[:2]
+                        current_text_address = f.tell()
+                        f.seek(int(pointer_address, 16))
+                        f.write(new_pointer_value)
+                        f.seek(current_text_address)
                 else:
                     pass
+        f.seek(0x74900)
+        current_text_address = f.tell()
+        rows = select_translation_by_author(cur, 'clomax', ['3', '4', '6'])
+        for row in rows:
+            id, _, text_decoded, _, pointer_addresses, translation, _ = row
+            # SKIP
+            if id in (2579, 2580, 2582, 2583, 2585, 2586, 2588, 2589, 2591, 2592, 2594, 2595, 2596, 2597, 2599, 2600, 2602, 2603, 2605):
+                continue
+            # INSERTER
+            text = translation if translation else text_decoded
+            text_encoded = table.encode(text)
+            if f.tell() + len(text_encoded) > 0x74fff:
+                sys.exit('BANK CROSSED')
+            f.write(text_encoded)
+            # REPOINTER
+            new_pointer_value = struct.pack('<I', current_text_address)[:2]
+            current_text_address = f.tell()
+            for pointer_address in pointer_addresses.split(';'):
+                f.seek(int(pointer_address, 16))
+                f.write(new_pointer_value)
+            f.seek(current_text_address)
     cur.close()
     conn.close()
 
