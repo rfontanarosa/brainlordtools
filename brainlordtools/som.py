@@ -255,6 +255,8 @@ def som_misc_inserter(args):
             f.write(encoded_text)
             if f.tell() > DTE_OFFSETS[2] + (2 * 69):
                 sys.exit('Text size exceeds!')
+        # CARDINALS
+        insert_binary(f, 0x7FB00, translation_path / '7FB00_cardinals.bin', max_length=160)
         # INTRO
         with open(dest_file, 'r+b') as f:
             insert_binary(f, 0x77C00, translation_path / 'intro-code-compressed.bin', max_length=14437)
