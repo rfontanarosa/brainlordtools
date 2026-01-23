@@ -146,6 +146,7 @@ def som_text_inserter(args):
                     f.seek(int(pointer_address, 16))
                     f.write(new_pointer_value)
                     f.seek(current_text_address)
+                print(f'Free space: {text_block_end - f.tell()} bytes')
             else:
                 if block + 1 == 5:
                     f.seek(0xb3800)

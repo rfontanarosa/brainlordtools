@@ -1,8 +1,8 @@
 #!/bin/bash
 
-BRAINLORD_PATH="$HOME/git"
-RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/som"
-TOOLS_PATH="$BRAINLORD_PATH/brainlordtools/brainlordtools"
+GAME_ID="som"
+
+source ./_common.sh
 
 USER="clomax"
 DB="$RESOURCE_PATH/db/som.sqlite3"
@@ -81,3 +81,6 @@ else
   asar "$RESOURCE_PATH/asm/menus.asm" "$DESTINATION"
   asar "$RESOURCE_PATH/asm/intro.asm" "$DESTINATION"
 fi
+
+# python ../mteOpt.py table -s "$RESOURCE_PATH/translation_text/dump_ita.txt" -d "dict.txt" -c "clean.txt" -b 1 -m 2 -M 2 -l 59 -o 128 --game som
+
