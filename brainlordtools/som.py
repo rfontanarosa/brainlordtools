@@ -29,7 +29,8 @@ POINTERS_OFFSETS = (
     (0x7780a, 0x7784c, 0x77313, 0x77693, 0x70000, 2, DumpType.TEXTS),
     (0x33b5, 0x33d0, 0x33f0, 0x0, 0x0, 3, DumpType.TEXTS),
     (0x77bb7, 0x77bc7, 0x77b6d, 0x77ba5, 0x70000, 2, DumpType.TEXTS),
-    (0x5dbb, 0x5e6b, 0x5e6b, 0x637d, 0x0, 2, DumpType.TEXTS)
+    (0x5dbb, 0x5e6b, 0x5e6b, 0x637d, 0x0, 2, DumpType.TEXTS),
+    (0x0, 0x0, 0x19fe20, 0x19fef4, 0x0, 2, DumpType.TEXTS)
 )
 
 # start, end, where_to_move
@@ -93,6 +94,35 @@ def som_text_dumper(args):
                     p_value = f.read(2)
                     text_address = struct.unpack('H', p_value)[0] + bank_offset
                 pointers.setdefault(text_address, []).append(p_address)
+            if block == 6:
+                pointers[0x62E2] = [0x58B3]
+                pointers[0x62F3] = [0x58C1]
+                pointers[0x6294] = [0x58D5]
+                pointers[0x62A0] = [0x58EB]
+                pointers[0x62C6] = [0x5901]
+                pointers[0x62A3] = [0x598A]
+                pointers[0x62B7] = [0x5997]
+                pointers[0x628C] = [0X59AE]
+                pointers[0x6290] = [0x59DC]
+                pointers[0x62D2] = [0x5A09]
+                pointers[0x62D7] = [0x5A31]
+                pointers[0x6251] = [0x5B10]
+                pointers[0x6256] = [0x5B29, 0x5B6C, 0x5B99]
+                pointers[0x6263] = [0x5B38]
+                pointers[0x6265] = [0x5B49]
+                pointers[0x6279] = [0x5B7E]
+                pointers[0x6310] = [0x5BBA]
+                pointers[0x6303] = [0x5BC4]
+            if block == 7:
+                pointers[0x19FEEC] = [0x7E44]
+                pointers[0x19FE65] = [0x7B7B]
+                pointers[0x19FE20] = [0x7AFB]
+                pointers[0x19FE49] = [0x7B13]
+                pointers[0x19FE2D] = [0x7B0E]
+                pointers[0x19FEB5] = [0x7B8C]
+                pointers[0x19FE96] = [0x7B85]
+                pointers[0x19FE7E] = [0x7C38]
+                pointers[0x19FED1] = [0x7B91]
             # TEXT
             for _, (text_address, p_addresses) in enumerate(pointers.items()):
                 pointer_addresses = ';'.join(str(hex(x)) for x in p_addresses)
@@ -172,7 +202,7 @@ def som_text_inserter(args):
                     current_text_address = f.tell()
                     rows = select_translation_by_author(cur, 'clomax', [str(block + 1),])
                     for row in rows:
-                        _, _, text_decoded, _, pointer_address, translation, _ = row
+                        _, _, text_decoded, _, pointer_addresses, translation, _ = row
                         text = translation if translation else text_decoded
                         text_encoded = table.encode(text)
                         if f.tell() + len(text_encoded) > text_block_end:
@@ -182,8 +212,9 @@ def som_text_inserter(args):
                         # REPOINTER
                         new_pointer_value = struct.pack('<I', current_text_address)[:2]
                         current_text_address = f.tell()
-                        f.seek(int(pointer_address, 16))
-                        f.write(new_pointer_value)
+                        for pointer_address in pointer_addresses.split(';'):
+                            f.seek(int(pointer_address, 16))
+                            f.write(new_pointer_value)
                         f.seek(current_text_address)
                 else:
                     pass
