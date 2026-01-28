@@ -83,7 +83,7 @@ def som_text_dumper(args):
     with open(source_file, 'rb') as f:
         # TEXT POINTERS
         id = 1
-        for block, block_pointers in enumerate(POINTERS_OFFSETS):
+        for block, block_pointers in enumerate(POINTERS_OFFSETS, start=1):
             pointer_block_start, pointer_block_end, _, _, bank_offset, pointer_bytes, dump_type = block_pointers
             pointers = {}
             f.seek(pointer_block_start)
@@ -96,7 +96,7 @@ def som_text_dumper(args):
                     p_value = f.read(2)
                     text_address = struct.unpack('H', p_value)[0] + bank_offset
                 pointers.setdefault(text_address, []).append(p_address)
-            if block == 6:
+            if block == 7:
                 pointers[0x62E2] = [0x58B3]
                 pointers[0x62F3] = [0x58C1]
                 pointers[0x6294] = [0x58D5]
@@ -115,7 +115,7 @@ def som_text_dumper(args):
                 pointers[0x6279] = [0x5B7E]
                 pointers[0x6310] = [0x5BBA]
                 pointers[0x6303] = [0x5BC4]
-            if block == 7:
+            if block == 8:
                 pointers[0x19FEEC] = [0x7E44]
                 pointers[0x19FE65] = [0x7B7B]
                 pointers[0x19FE20] = [0x7AFB]
@@ -150,7 +150,7 @@ def som_text_dumper(args):
                 else:
                     ref = f'[ID {id} - BLOCK {block + 1} - {hex(text_address)} - {pointer_addresses}]'
                 # dump - db
-                insert_text(cur, id, text, text_decoded, text_address, pointer_addresses, block + 1, ref)
+                insert_text(cur, id, text, text_decoded, text_address, pointer_addresses, block, ref)
                 # dump - txt
                 if dump_type == DumpType.EVENTS:
                     filename = dump_path / 'dump_events_eng.txt'
@@ -175,12 +175,12 @@ def som_text_inserter(args):
     conn.text_factory = str
     cur = conn.cursor()
     with open(dest_file, 'r+b') as f:
-        for block, block_pointers in enumerate(POINTERS_OFFSETS):
+        for block, block_pointers in enumerate(POINTERS_OFFSETS, start=1):
             _, _, text_block_start, text_block_end, _, _, dump_type = block_pointers
             if dump_type == DumpType.EVENTS:
                 f.seek(text_block_start)
                 current_text_address = f.tell()
-                rows = select_translation_by_author(cur, 'clomax', [str(block + 1),])
+                rows = select_translation_by_author(cur, 'clomax', [str(block),])
                 for row in rows:
                     id, _, text_decoded, _, pointer_address, translation, _ = row
                     text = translation if translation else text_decoded
@@ -212,10 +212,10 @@ def som_text_inserter(args):
                     f.seek(current_text_address)
                 print(f'Free space: {text_block_end - f.tell()} bytes')
             else:
-                if block + 1 == 5:
+                if block == 5:
                     f.seek(0xb3800)
                     current_text_address = f.tell()
-                    rows = select_translation_by_author(cur, 'clomax', [str(block + 1),])
+                    rows = select_translation_by_author(cur, 'clomax', [str(block),])
                     for row in rows:
                         _, _, text_decoded, _, pointer_address, translation, _ = row
                         text = translation if translation else text_decoded
@@ -231,10 +231,10 @@ def som_text_inserter(args):
                         f.seek(int(pointer_address, 16))
                         f.write(new_pointer_value)
                         f.seek(current_text_address)
-                elif block + 1 == 7:
+                elif block == 7:
                     f.seek(text_block_start)
                     current_text_address = f.tell()
-                    rows = select_translation_by_author(cur, 'clomax', [str(block + 1),])
+                    rows = select_translation_by_author(cur, 'clomax', [str(block),])
                     for row in rows:
                         _, _, text_decoded, _, pointer_addresses, translation, _ = row
                         text = translation if translation else text_decoded
@@ -250,10 +250,10 @@ def som_text_inserter(args):
                             f.seek(int(pointer_address, 16))
                             f.write(new_pointer_value)
                         f.seek(current_text_address)
-                elif block + 1 == 8:
+                elif block == 8:
                     f.seek(text_block_start)
                     current_text_address = f.tell()
-                    rows = select_translation_by_author(cur, 'clomax', [str(block + 1),])
+                    rows = select_translation_by_author(cur, 'clomax', [str(block),])
                     for row in rows:
                         _, _, text_decoded, _, pointer_addresses, translation, _ = row
                         text = translation if translation else text_decoded
