@@ -44,13 +44,13 @@ def spike_text_dumper(args):
     with open(source_file, 'rb') as f:
         id = 1
         # READ POINTER BLOCKS
-        for index, pointer_block in enumerate(POINTER_BLOCKS):
+        for block, pointer_block in enumerate(POINTER_BLOCKS):
             pointers = {}
             f.seek(pointer_block[0])
             while f.tell() < pointer_block[1]:
                 p_offset = f.tell()
                 p_value = 0
-                if index == 0:
+                if block == 0:
                     pointer = f.read(3)
                     p_value = struct.unpack('i', pointer[:3] + b'\x00')[0] - 0x868000
                 else:
@@ -58,13 +58,13 @@ def spike_text_dumper(args):
                     p_value = struct.unpack('H', pointer)[0] + 0x10000 - 0x8000
                 if p_value > 0:
                     pointers.setdefault(p_value, []).append(p_offset)
-            for i, (taddress, paddresses) in enumerate(pointers.items()):
-                pointer_addresses = ';'.join(hex(x) for x in paddresses)
-                text = read_text(f, taddress, end_byte=b'\xf0', cmd_list={b'\xf4': 2, b'\xf6': 1, b'\xf8': 1, b'\xfa': 4, b'\xfc': 1, b'\xfd': 4, b'\xfe': 1, b'\xff': 2})
+            for _, (text_address, p_addresses) in enumerate(pointers.items()):
+                pointer_addresses = ';'.join(hex(x) for x in p_addresses)
+                text = read_text(f, text_address, end_byte=b'\xf0', cmd_list={b'\xf4': 2, b'\xf6': 1, b'\xf8': 1, b'\xfa': 4, b'\xfc': 1, b'\xfd': 4, b'\xfe': 1, b'\xff': 2})
                 text_decoded = table1.decode(text, cmd_list={0xf4: 2, 0xf6: 1, 0xf8: 1, 0xfa: 4, 0xfc: 1, 0xfd: 4, 0xfe: 1, 0xff: 2})
-                ref = f'{id} - {pointer_addresses}'
+                ref = f'[ID {id} - BLOCK {block + 1} - {hex(text_address)} - {pointer_addresses}]'
                 # dump - db
-                insert_text(cur, id, text, text_decoded, taddress, pointer_addresses, str(index + 1), id)
+                insert_text(cur, id, text, text_decoded, text_address, pointer_addresses, str(block + 1), ref)
                 # dump - txt
                 filename = os.path.join(dump_path, 'dump_eng.txt')
                 with open(filename, 'a+', encoding='utf-8') as out:

@@ -19,10 +19,10 @@ TRANSLATION_TEXT_PATH="$RESOURCE_PATH/translation_text"
 TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
 
 CURRENT_PATH=$PWD
-WINE_PATH="/Applications/Wine Stable.app/Contents/Resources/wine/bin"
+WINE_PATH="/usr/local/bin"
 cd "$BRAINLORD_PATH/mcfang-dec"
 # "$WINE_PATH/wine" "mcdec.exe" "$SOURCE"
-"$WINE_PATH/wine64" "mccmp.exe" "$SOURCE" "$DESTINATION"
+"$WINE_PATH/wine" "mccmp.exe" "$SOURCE" "$DESTINATION"
 cd $CURRENT_PATH
 
 # python "$TOOLS_PATH/_utils.py" file_copy -s "$SOURCE" -d "$DESTINATION"
