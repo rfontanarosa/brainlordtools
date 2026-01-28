@@ -250,6 +250,25 @@ def som_text_inserter(args):
                             f.seek(int(pointer_address, 16))
                             f.write(new_pointer_value)
                         f.seek(current_text_address)
+                elif block + 1 == 8:
+                    f.seek(text_block_start)
+                    current_text_address = f.tell()
+                    rows = select_translation_by_author(cur, 'clomax', [str(block + 1),])
+                    for row in rows:
+                        _, _, text_decoded, _, pointer_addresses, translation, _ = row
+                        text = translation if translation else text_decoded
+                        text_encoded = table.encode(text)
+                        if f.tell() + len(text_encoded) > text_block_end:
+                            print('BANK CROSSED')
+                            sys.exit()
+                        f.write(text_encoded)
+                        # REPOINTER
+                        new_pointer_value = struct.pack('<I', current_text_address)[:2]
+                        current_text_address = f.tell()
+                        for pointer_address in pointer_addresses.split(';'):
+                            f.seek(int(pointer_address, 16))
+                            f.write(new_pointer_value)
+                        f.seek(current_text_address)
                 else:
                     pass
         f.seek(0x74900)
