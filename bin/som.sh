@@ -14,6 +14,7 @@ TABLE2="$RESOURCE_PATH/tables/som_main_with_dte.tbl"
 TABLE3="$RESOURCE_PATH/tables/som_main_with_dte_sadnes.tbl"
 TABLE4="$RESOURCE_PATH/tables/som_main_with_dte_ita.tbl"
 TABLE5="$RESOURCE_PATH/tables/som_main_ita.tbl"
+TABLE6="$RESOURCE_PATH/tables/som_credits.tbl"
 
 DUMP_TEXT_PATH="$RESOURCE_PATH/dump_text"
 DUMP_GFX_PATH="$RESOURCE_PATH/dump_gfx"
@@ -26,7 +27,7 @@ TRANSLATION_CUSTOM_PATH="$RESOURCE_PATH/translation_custom"
 
 python "$TOOLS_PATH/_utils.py" file_copy -s "$SOURCE" -d "$DESTINATION"
 
-python "$TOOLS_PATH/som.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH" -db "$DB"
+python "$TOOLS_PATH/som.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -t2 "$TABLE6" -dp "$DUMP_TEXT_PATH" -db "$DB"
 python "$TOOLS_PATH/som.py" dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_MISC_PATH"
 
 python "$TOOLS_PATH/somtools/decomp.py" "$SOURCE" "$DUMP_MISC_PATH/intro-code.bin" --base-offset="77C00"
@@ -58,7 +59,7 @@ python "$TOOLS_PATH/somtools/decomp.py" "$TRANSLATION_MISC_PATH/intro-code.bin" 
 python "$TOOLS_PATH/somtools/decomp.py" "$TRANSLATION_MISC_PATH/intro-data.bin" "$TRANSLATION_MISC_PATH/intro-data-compressed.bin" --compress --compression-key="4"
 python "$TOOLS_PATH/somtools/decomp.py" "$TRANSLATION_MISC_PATH/title.bin" "$TRANSLATION_MISC_PATH/title-compressed.bin" --compress --compression-key="3"
 
-python "$TOOLS_PATH/som.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE4" -tp "$TRANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
+python "$TOOLS_PATH/som.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE4" -t2 "$TABLE6" -tp "$TRANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
 python "$TOOLS_PATH/som.py" insert_misc -d "$DESTINATION" -t1 "$TABLE5" -tp "$TRANSLATION_MISC_PATH"
 
 python "$TOOLS_PATH/somtools/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_equip.bin" "$DESTINATION" --sprite 9

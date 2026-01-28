@@ -4,7 +4,7 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import csv, pathlib, shutil, sqlite3, struct, sys
+import csv, pathlib, re, shutil, sqlite3, struct, sys
 
 from rhutils.db import insert_text, select_most_recent_translation, select_translation_by_author
 from rhutils.dump import dump_binary, read_text, get_csv_translated_texts, insert_binary, write_byte
@@ -67,12 +67,14 @@ def som_read_text(f, offset=None, length=None, end_byte=None, cmd_list=None, app
 
 def som_text_dumper(args):
     source_file = args.source_file
-    table1_file = args.table1
+    table_file = args.table1
+    table2_file = args.table2
     dump_path = pathlib.Path(args.dump_path)
     db = args.database_file
     if not args.no_crc32_check and crc32(source_file) != CRC32:
         sys.exit('SOURCE ROM CHECKSUM FAILED!')
-    table = Table(table1_file)
+    table = Table(table_file)
+    table2 = Table(table2_file)
     conn = sqlite3.connect(db)
     conn.text_factory = str
     cur = conn.cursor()
@@ -127,7 +129,22 @@ def som_text_dumper(args):
             for _, (text_address, p_addresses) in enumerate(pointers.items()):
                 pointer_addresses = ';'.join(str(hex(x)) for x in p_addresses)
                 text = som_read_text(f, text_address, end_byte=b'\x00', cmd_list=cmd_list, append_end_byte=True)
-                text_decoded = table.decode(text)
+                # CREDITS
+                if id == 1278:
+                    pattern = b'(?<!\x1d)(?<=\x7d)|(?<!\x1d)(?=\x7e)'
+                    parts = re.split(pattern, text)
+                    decoded_chunks = []
+                    for chunk in parts:
+                        if not chunk:
+                            continue
+                        if chunk.endswith(b'\x7d') or chunk.startswith(b'\x7e'):
+                            decoded_chunks.append(table.decode(chunk))
+                        else:
+                            decoded_chunks.append(table2.decode(chunk))
+                    text_decoded = ''.join(decoded_chunks)
+                else:
+                    text_decoded = table.decode(text)
+                #
                 if dump_type == DumpType.EVENTS:
                     ref = f'[ID {id} - BLOCK {block + 1} - EVENT {hex(id - 1)} - {hex(text_address)} - {pointer_addresses}]'
                 else:
@@ -148,10 +165,12 @@ def som_text_dumper(args):
 
 def som_text_inserter(args):
     dest_file = args.dest_file
+    table_file = args.table1
     table2_file = args.table2
     db = args.database_file
     user_name = args.user
-    table = Table(table2_file)
+    table = Table(table_file)
+    table2 = Table(table2_file)
     conn = sqlite3.connect(db)
     conn.text_factory = str
     cur = conn.cursor()
@@ -163,9 +182,24 @@ def som_text_inserter(args):
                 current_text_address = f.tell()
                 rows = select_translation_by_author(cur, 'clomax', [str(block + 1),])
                 for row in rows:
-                    _, _, text_decoded, _, pointer_address, translation, _ = row
+                    id, _, text_decoded, _, pointer_address, translation, _ = row
                     text = translation if translation else text_decoded
-                    text_encoded = table.encode(text)
+                    # CREDITS
+                    if id == 1278:
+                        pattern = r'(?<=\[SWAP_TABLE_START\])|(?=\[SWAP_TABLE_END\])'
+                        parts = re.split(pattern, text)
+                        encoded_chunks = []
+                        for chunk in parts:
+                            if not chunk:
+                                continue
+                            if chunk.endswith('[SWAP_TABLE_START]') or chunk.startswith('[SWAP_TABLE_END]'):
+                                encoded_chunks.append(table.encode(chunk))
+                            else:
+                                encoded_chunks.append(table2.encode(chunk))
+                        text_encoded = b''.join(encoded_chunks)
+                    else:
+                        text_encoded = table.encode(text)
+                    #
                     if f.tell() + len(text_encoded) > text_block_end:
                         print('BANK CROSSED')
                         sys.exit()
@@ -303,15 +337,15 @@ subparsers = parser.add_subparsers()
 dump_text_parser = subparsers.add_parser('dump_text', help='Execute TEXT DUMP')
 dump_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 dump_text_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-dump_text_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Menu table filename')
-dump_text_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Intro table filename')
+dump_text_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Credits table filename')
 dump_text_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
 dump_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
 dump_text_parser.set_defaults(func=som_text_dumper)
 insert_text_parser = subparsers.add_parser('insert_text', help='Execute TEXT INSERTER')
 insert_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 insert_text_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-insert_text_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+insert_text_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Modified table filename')
+insert_text_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Credits table filename')
 insert_text_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
 insert_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
 insert_text_parser.add_argument('-u', '--user', action='store', dest='user', help='')
