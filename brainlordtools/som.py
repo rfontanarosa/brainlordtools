@@ -13,6 +13,7 @@ from rhutils.snes import pc2snes_hirom
 from rhutils.table import Table
 
 CRC32 = 'D0176B24'
+# CRC32 = 'C5CB2F26' # EUROPE
 # CRC32 = '31114AAC' # SADNESS
 
 import enum
@@ -146,9 +147,9 @@ def som_text_dumper(args):
                     text_decoded = table.decode(text)
                 #
                 if dump_type == DumpType.EVENTS:
-                    ref = f'[ID {id} - BLOCK {block + 1} - EVENT {hex(id - 1)} - {hex(text_address)} - {pointer_addresses}]'
+                    ref = f'[ID={id} BLOCK={block} EVENT={hex(id - 1)} START={hex(text_address)} POINTERS={pointer_addresses}]'
                 else:
-                    ref = f'[ID {id} - BLOCK {block + 1} - {hex(text_address)} - {pointer_addresses}]'
+                    ref = f'[ID={id} BLOCK={block} START={hex(text_address)} POINTERS={pointer_addresses}]'
                 # dump - db
                 insert_text(cur, id, text, text_decoded, text_address, pointer_addresses, block, ref)
                 # dump - txt
@@ -201,8 +202,11 @@ def som_text_inserter(args):
                         text_encoded = table.encode(text)
                     #
                     if f.tell() + len(text_encoded) > text_block_end:
-                        print('BANK CROSSED')
-                        sys.exit()
+                        overflow_amount = (f.tell() + len(text_encoded)) - text_block_end
+                        print(f"ERROR: BLOCK OVERFLOW at ID {id}!")
+                        print(f"Attempted to write {len(text_encoded)} bytes, but only {text_block_end - f.tell()} remaining.")
+                        print(f"Exceeded by: {overflow_amount} bytes.")
+                        sys.exit(1)
                     f.write(text_encoded)
                     # REPOINTER
                     new_pointer_value = struct.pack('<I', current_text_address)[:2]
@@ -213,16 +217,21 @@ def som_text_inserter(args):
                 print(f'Free space: {text_block_end - f.tell()} bytes')
             else:
                 if block == 5:
-                    f.seek(0xb3800)
+                    text_block_start = 0xb3800
+                    text_block_end = 0xb3fff
+                    f.seek(text_block_start)
                     current_text_address = f.tell()
                     rows = select_translation_by_author(cur, 'clomax', [str(block),])
                     for row in rows:
                         _, _, text_decoded, _, pointer_address, translation, _ = row
                         text = translation if translation else text_decoded
                         text_encoded = table.encode(text)
-                        if f.tell() + len(text_encoded) > 0xb3fff:
-                            print('BANK CROSSED')
-                            sys.exit()
+                        if f.tell() + len(text_encoded) > text_block_end:
+                            overflow_amount = (f.tell() + len(text_encoded)) - text_block_end
+                            print(f"ERROR: BLOCK OVERFLOW at ID {id}!")
+                            print(f"Attempted to write {len(text_encoded)} bytes, but only {text_block_end - f.tell()} remaining.")
+                            print(f"Exceeded by: {overflow_amount} bytes.")
+                            sys.exit(1)
                         f.write(text_encoded)
                         # REPOINTER
                         snes_offset = pc2snes_hirom(current_text_address)
@@ -240,8 +249,10 @@ def som_text_inserter(args):
                         text = translation if translation else text_decoded
                         text_encoded = table.encode(text)
                         if f.tell() + len(text_encoded) > text_block_end:
-                            print('BANK CROSSED')
-                            sys.exit()
+                            print(f"ERROR: BLOCK OVERFLOW at ID {id}!")
+                            print(f"Attempted to write {len(text_encoded)} bytes, but only {text_block_end - f.tell()} remaining.")
+                            print(f"Exceeded by: {overflow_amount} bytes.")
+                            sys.exit(1)
                         f.write(text_encoded)
                         # REPOINTER
                         new_pointer_value = struct.pack('<I', current_text_address)[:2]
@@ -259,8 +270,10 @@ def som_text_inserter(args):
                         text = translation if translation else text_decoded
                         text_encoded = table.encode(text)
                         if f.tell() + len(text_encoded) > text_block_end:
-                            print('BANK CROSSED')
-                            sys.exit()
+                            print(f"ERROR: BLOCK OVERFLOW at ID {id}!")
+                            print(f"Attempted to write {len(text_encoded)} bytes, but only {text_block_end - f.tell()} remaining.")
+                            print(f"Exceeded by: {overflow_amount} bytes.")
+                            sys.exit(1)
                         f.write(text_encoded)
                         # REPOINTER
                         new_pointer_value = struct.pack('<I', current_text_address)[:2]
@@ -271,7 +284,9 @@ def som_text_inserter(args):
                         f.seek(current_text_address)
                 else:
                     pass
-        f.seek(0x74900)
+        text_block_start = 0x74900
+        text_block_end = 0x74fff
+        f.seek(text_block_start)
         current_text_address = f.tell()
         rows = select_translation_by_author(cur, 'clomax', ['3', '4', '6'])
         for row in rows:
@@ -282,8 +297,12 @@ def som_text_inserter(args):
             # INSERTER
             text = translation if translation else text_decoded
             text_encoded = table.encode(text)
-            if f.tell() + len(text_encoded) > 0x74fff:
-                sys.exit('BANK CROSSED')
+            if f.tell() + len(text_encoded) > text_block_end:
+                overflow_amount = (f.tell() + len(text_encoded)) - text_block_end
+                print(f"ERROR: BLOCK OVERFLOW at ID {id}!")
+                print(f"Attempted to write {len(text_encoded)} bytes, but only {text_block_end - f.tell()} remaining.")
+                print(f"Exceeded by: {overflow_amount} bytes.")
+                sys.exit(1)
             f.write(text_encoded)
             # REPOINTER
             new_pointer_value = struct.pack('<I', current_text_address)[:2]
