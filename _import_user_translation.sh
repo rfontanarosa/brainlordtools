@@ -14,7 +14,7 @@ case $GAME_ID in
     SOURCE_FILE="$DUMP_DIR/dump_ita_$USER1.txt"
 
     echo "Processing $GAME_ID for user $USER1..."
-    python -m brainlordutils.import_user_translation import_user_translation \
+    python -m brainlordutils.utils import_user_translation \
         -u "$USER2" -db "$DB" -s "$SOURCE_FILE"
     echo "Done! Files have been imported into $DB"
     ;;
@@ -25,9 +25,9 @@ case $GAME_ID in
     SOURCE_TEXT_FILE="$DUMP_DIR/dump_texts_$USER1.txt"
 
     echo "Processing $GAME_ID for user $USER1..."
-    python -m brainlordutils.import_user_translation import_user_translation \
+    python -m brainlordutils.utils import_user_translation \
         -u "$USER2" -db "$DB" -s "$SOURCE_EVENTS_FILE"
-    python -m brainlordutils.import_user_translation import_user_translation \
+    python -m brainlordutils.utils import_user_translation \
         -u "$USER2" -db "$DB" -s "$SOURCE_TEXT_FILE"
     echo "Done! Files have been imported into $DB"
     ;;
