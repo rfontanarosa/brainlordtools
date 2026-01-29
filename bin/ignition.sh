@@ -1,11 +1,11 @@
 #!/bin/bash
 
-BRAINLORD_PATH="$HOME/git"
-RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/ignition"
-TOOLS_PATH="$BRAINLORD_PATH/brainlordtools/brainlordtools"
+GAME_ID="ignition"
+
+source ./_common.sh
 
 USER="clomax"
-DB="$RESOURCE_PATH/db/ignition.sqlite3"
+DB="$RESOURCE_PATH/db/$GAME_ID.sqlite3"
 SOURCE="$RESOURCE_PATH/roms/Ignition Factor, The (U).sfc"
 DESTINATION="$RESOURCE_PATH/roms/Ignition Factor, The (I).sfc"
 
