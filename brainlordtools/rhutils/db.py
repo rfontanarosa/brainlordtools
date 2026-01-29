@@ -7,7 +7,7 @@ class TranslationStatus(IntEnum):
     DONE = 2
 
 def insert_text(cur, id, text, decoded_text, address, pointer_adresses, block, ref):
-    cur.execute('INSERT OR REPLACE INTO texts VALUES (?, ?, ?, ?, ?, ?, ?, ?)', (id, sqlite3.Binary(text), decoded_text, address, pointer_adresses, len(text), block, ref))
+    cur.execute('INSERT OR REPLACE INTO texts VALUES (?, ?, ?, ?, ?, ?, ?, ?)', (id, sqlite3.Binary(text), decoded_text, address, pointer_adresses, len(text), str(block), ref))
 
 def insert_translation(cur, id_text, project, author, translation, status, date, tags, comment):
     cur.execute('INSERT OR REPLACE INTO translations VALUES (?, ?, ?, ?, ?, ?, ?, ?)', (id_text, project, author, translation, status, date, tags, comment))
