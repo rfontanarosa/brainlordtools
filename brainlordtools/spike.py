@@ -44,13 +44,13 @@ def spike_text_dumper(args):
     with open(source_file, 'rb') as f:
         id = 1
         # READ POINTER BLOCKS
-        for block, pointer_block in enumerate(POINTER_BLOCKS):
+        for block, pointer_block in enumerate(POINTER_BLOCKS, start=1):
             pointers = {}
             f.seek(pointer_block[0])
             while f.tell() < pointer_block[1]:
                 p_offset = f.tell()
                 p_value = 0
-                if block == 0:
+                if block == 1:
                     pointer = f.read(3)
                     p_value = struct.unpack('i', pointer[:3] + b'\x00')[0] - 0x868000
                 else:
@@ -62,9 +62,9 @@ def spike_text_dumper(args):
                 pointer_addresses = ';'.join(hex(x) for x in p_addresses)
                 text = read_text(f, text_address, end_byte=b'\xf0', cmd_list={b'\xf4': 2, b'\xf6': 1, b'\xf8': 1, b'\xfa': 4, b'\xfc': 1, b'\xfd': 4, b'\xfe': 1, b'\xff': 2})
                 text_decoded = table1.decode(text, cmd_list={0xf4: 2, 0xf6: 1, 0xf8: 1, 0xfa: 4, 0xfc: 1, 0xfd: 4, 0xfe: 1, 0xff: 2})
-                ref = f'[ID {id} - BLOCK {block + 1} - {hex(text_address)} - {pointer_addresses}]'
+                ref = f'[ID={id} BLOCK={block} START={hex(text_address)} POINTERS={pointer_addresses}]'
                 # dump - db
-                insert_text(cur, id, text, text_decoded, text_address, pointer_addresses, str(block + 1), ref)
+                insert_text(cur, id, text, text_decoded, text_address, pointer_addresses, block, ref)
                 # dump - txt
                 filename = os.path.join(dump_path, 'dump_eng.txt')
                 with open(filename, 'a+', encoding='utf-8') as out:
@@ -164,7 +164,7 @@ def spike_misc_inserter(args):
         # Enemies
         translation_file = os.path.join(translation_path, 'monsters.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for i, (_, t_address, t_value) in enumerate(translated_texts):
+        for _, (_, t_address, t_value) in enumerate(translated_texts):
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
             if len(text) > 9:
                 sys.exit(f"{t_value} exceeds")
