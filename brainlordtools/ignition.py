@@ -43,22 +43,22 @@ def ignition_text_dumper(args):
             p_value = struct.unpack('i', f2.read(2) + f1.read(1) + b'\x00')[0] & 0x3fffff
             block_pointers.append((p_value, p_offset1, p_offset2))
         #
-        for i, block_pointer in enumerate(block_pointers):
+        for block, block_pointer in enumerate(block_pointers, start=1):
             b_address = block_pointer[0]
-            p_qty = POINTER_TABLES_SIZES[i]
+            p_qty = POINTER_TABLES_SIZES[block -1]
             pointers = []
             f1.seek(b_address)
             for _ in range(0, p_qty):
                 p_offset = f1.tell()
                 p_value = struct.unpack('H', f1.read(2))[0] + (b_address & 0xff0000)
                 pointers.append((p_value, p_offset))
-            for index, (t_address, p_addresses) in enumerate(pointers):
+            for index, (text_address, p_addresses) in enumerate(pointers):
                 pointer_addresses = hex(p_addresses)
-                text = read_text(f1, t_address, end_byte=b'\xff', cmd_list={b'\xfc': 2}, append_end_byte=True)
+                text = read_text(f1, text_address, end_byte=b'\xff', cmd_list={b'\xfc': 2}, append_end_byte=True)
                 text_decoded = table.decode(text)
-                ref = f'[ID {id} - BLOCK {i} - ORDER {index} - {hex(t_address)} - {pointer_addresses}]'
+                ref = f'[ID={id} BLOCK={block} ORDER={index} START={hex(text_address)} POINTERS={pointer_addresses}]'
                 # dump - db
-                insert_text(cur, id, text, text_decoded, t_address, pointer_addresses, str(i + 1), ref)
+                insert_text(cur, id, text, text_decoded, text_address, pointer_addresses, block, ref)
                 # dump - txt
                 filename = os.path.join(dump_path, 'dump_eng.txt')
                 with open(filename, 'a+', encoding='utf-8') as out:
