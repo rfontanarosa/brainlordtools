@@ -311,7 +311,7 @@ def brainlord_text_segment_dumper(f, dump_path, table, id, block, cur, start=0x0
         insert_text(cur, id, text, text_decoded, text_address, '', block, '')
         # dump - txt
         filename = os.path.join(dump_path, 'dump_eng.txt')
-        with open(filename, 'a+') as out:
+        with open(filename, 'a+', encoding='utf-8') as out:
             out.write(text_decoded)
         id += 1
     return id

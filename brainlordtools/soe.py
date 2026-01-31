@@ -12,6 +12,8 @@ from rhutils.rom import crc32
 
 CRC32 = 'A5C0045E'
 
+# TEXT_POINTERS = (0x11D000, 0x11F32B)
+
 TEXT_BLOCK = {}
 TEXT_BLOCK['currency_names'] = (0x460AE, 0x460CF)
 TEXT_BLOCK['weapons_names'] = (0x460D0, 0x46195)
@@ -31,6 +33,8 @@ TEXT_BLOCK['charm_names'] = (0x472EA, 0x47396)
 TEXT_BLOCK['rare_item_names'] = (0x47397, 0x473D3)
 TEXT_BLOCK['rare_item_descriptions'] = (0x473D4, 0x473DD)
 TEXT_BLOCK['charm_descriptions'] = (0x473DE, 0x47712)
+# TEXT_BLOCK['dte'] = (0x11f32e, 0x11f32e + 128)
+# TEXT_BLOCK['mte'] = (0x11f66c, 0x11fe88)
 
 POINTER_BLOCK = {}
 POINTER_BLOCK['currency_names'] = (0xf8704, 0xf870f, 3)
@@ -102,7 +106,7 @@ def get_translated_texts(filename):
     return translated_texts
 
 def repoint_custom(filename, f, table, next_text_address=0x360000):
-    with open(filename, 'r') as csv_file:
+    with open(filename, 'r', encoding='utf-8') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         for row in csv_reader:
             text_address = row.get('text_address')
@@ -149,7 +153,7 @@ def repoint(f, pointers, new_pointers, offset=0x40000):
     for _, (p_value, p_addresses) in enumerate(pointers.items()):
         p_new_value = new_pointers.get(p_value)
         if not p_new_value:
-            print('NOT FOUND 1')
+            print(f'NOT FOUND: {", ".join(list(map(hex, p_addresses)))}')
         else:
             for p_address in p_addresses:
                 f.seek(p_address)
@@ -159,7 +163,7 @@ def repoint_npc_enemy_names(f, pointers, new_pointers, offset=0x340000):
     for _, (p_value, p_addresses) in enumerate(pointers.items()):
         p_new_value = new_pointers.get(p_value)
         if not p_new_value:
-            print('NOT FOUND 2')
+            print(f'NOT FOUND: {", ".join(list(map(hex, p_addresses)))}')
         else:
             for p_address in p_addresses:
                 f.seek(p_address)
@@ -210,8 +214,8 @@ def soe_misc_inserter(args):
         # new pointers
         new_pointers = {}
         t_new_address = 0x460ae
-        for i, (block_name, translated_texts) in enumerate(translated_blocks.items()):
-            for i, (t_address, t_value) in enumerate(translated_texts.items()):
+        for _, (block_name, translated_texts) in enumerate(translated_blocks.items()):
+            for _, (t_address, t_value) in enumerate(translated_texts.items()):
                 new_pointers[t_address] = t_new_address
                 t_value = table.encode(t_value, mte_resolver=False, dict_resolver=False)
                 if block_name not in ('npc_enemy_names1', 'npc_enemy_names2'):
@@ -236,9 +240,9 @@ def soe_misc_inserter(args):
         # npc/enemies new pointers
         new_pointers = {}
         t_new_address = 0x340000
-        for i, (block_name, translated_texts) in enumerate(translated_blocks.items()):
+        for _, (block_name, translated_texts) in enumerate(translated_blocks.items()):
             if block_name in ('npc_enemy_names1', 'npc_enemy_names2'):
-                for i, (t_address, t_value) in enumerate(translated_texts.items()):
+                for _, (t_address, t_value) in enumerate(translated_texts.items()):
                     new_pointers[t_address] = t_new_address
                     t_value = table.encode(t_value, mte_resolver=False, dict_resolver=False)
                     t_new_address = write_text(f1, t_new_address, t_value, end_byte=b'\x00')

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-BRAINLORD_PATH="$HOME/git"
-RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/soe"
-TOOLS_PATH="$BRAINLORD_PATH/brainlordtools/brainlordtools"
+GAME_ID="soe"
+
+source ./_common.sh
 
 SOURCE="$RESOURCE_PATH/roms/evermore.sfc"
 DESTINATION="$RESOURCE_PATH/roms/patched_evermore.sfc"

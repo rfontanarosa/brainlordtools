@@ -157,7 +157,7 @@ def som_text_dumper(args):
                     filename = dump_path / 'dump_events_eng.txt'
                 else:
                     filename = dump_path / 'dump_texts_eng.txt'
-                with open(filename, 'a+') as out:
+                with open(filename, 'a+', encoding='utf-8') as out:
                     out.write(ref + '\n' + text_decoded + "\n\n")
                 id += 1
     cur.close()

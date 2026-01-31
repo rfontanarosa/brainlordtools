@@ -55,7 +55,7 @@ def neugier_text_dumper(args):
             pointer_addresses = ';'.join(str(hex(x)) for x in p_addresses)
             text = read_text(f, text_address, end_byte=b'\x00')
             text_decoded = table.decode(text)
-            ref = f'[BLOCK {id}: {hex(text_address)} to {hex(f.tell() -1)}]'
+            ref = f'[ID={id} START={hex(text_address)} END={hex(f.tell() -1)} POINTERS={pointer_addresses}]'
             # dump - db
             insert_text(cur, id, text, text_decoded, text_address, pointer_addresses, 1, ref)
             # dump - txt
@@ -203,15 +203,15 @@ def neugier_credits_dumper(args):
             p_value = f.read(2)
             text_address = snes2pc_lorom(struct.unpack('H', p_value)[0] + 0x1a0000)
             pointers.setdefault(text_address, []).append(p_address)
-        with open(filename, 'a+', encoding='utf-8') as txt_file:
-            for i, (text_address, p_addresses) in enumerate(pointers.items()):
+        with open(filename, 'a+', encoding='utf-8') as out:
+            for _, (text_address, _) in enumerate(pointers.items()):
                 f.seek(text_address)
                 number_of_lines = int.from_bytes(f.read(1), "little")
-                txt_file.write(f'[{number_of_lines}]' + '\n')
-                for i in range(number_of_lines):
+                out.write(f'[{number_of_lines}]' + '\n')
+                for _ in range(number_of_lines):
                     text = read_text(f, f.tell() + 1, end_byte=b'\x00')
                     text_decoded = table.decode(text)
-                    txt_file.write(text_decoded + '\n')
+                    out.write(text_decoded + '\n')
 
 import argparse
 parser = argparse.ArgumentParser()
