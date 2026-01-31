@@ -183,7 +183,7 @@ def som_text_inserter(args):
                 current_text_address = f.tell()
                 rows = select_translation_by_author(cur, 'clomax', [str(block),])
                 for row in rows:
-                    id, _, text_decoded, _, pointer_address, translation, _ = row
+                    id, _, text_decoded, _, pointer_addresses, translation, _, _, _ = row
                     text = translation if translation else text_decoded
                     # CREDITS
                     if id == 1278:
@@ -211,8 +211,9 @@ def som_text_inserter(args):
                     # REPOINTER
                     new_pointer_value = struct.pack('<I', current_text_address)[:2]
                     current_text_address = f.tell()
-                    f.seek(int(pointer_address, 16))
-                    f.write(new_pointer_value)
+                    for pointer_address in pointer_addresses.split(';'):
+                        f.seek(int(pointer_address, 16))
+                        f.write(new_pointer_value)
                     f.seek(current_text_address)
                 print(f'Free space: {text_block_end - f.tell()} bytes')
             else:
@@ -223,7 +224,7 @@ def som_text_inserter(args):
                     current_text_address = f.tell()
                     rows = select_translation_by_author(cur, 'clomax', [str(block),])
                     for row in rows:
-                        _, _, text_decoded, _, pointer_address, translation, _ = row
+                        _, _, text_decoded, _, pointer_addresses, translation, _, _, _ = row
                         text = translation if translation else text_decoded
                         text_encoded = table.encode(text)
                         if f.tell() + len(text_encoded) > text_block_end:
@@ -237,15 +238,16 @@ def som_text_inserter(args):
                         snes_offset = pc2snes_hirom(current_text_address)
                         new_pointer_value = struct.pack('<I', snes_offset)[:3]
                         current_text_address = f.tell()
-                        f.seek(int(pointer_address, 16))
-                        f.write(new_pointer_value)
+                        for pointer_address in pointer_addresses.split(';'):
+                            f.seek(int(pointer_address, 16))
+                            f.write(new_pointer_value)
                         f.seek(current_text_address)
                 elif block == 7:
                     f.seek(text_block_start)
                     current_text_address = f.tell()
                     rows = select_translation_by_author(cur, 'clomax', [str(block),])
                     for row in rows:
-                        _, _, text_decoded, _, pointer_addresses, translation, _ = row
+                        _, _, text_decoded, _, pointer_addresses, translation, _, _, _ = row
                         text = translation if translation else text_decoded
                         text_encoded = table.encode(text)
                         if f.tell() + len(text_encoded) > text_block_end:
@@ -266,7 +268,7 @@ def som_text_inserter(args):
                     current_text_address = f.tell()
                     rows = select_translation_by_author(cur, 'clomax', [str(block),])
                     for row in rows:
-                        _, _, text_decoded, _, pointer_addresses, translation, _ = row
+                        _, _, text_decoded, _, pointer_addresses, translation, _, _, _ = row
                         text = translation if translation else text_decoded
                         text_encoded = table.encode(text)
                         if f.tell() + len(text_encoded) > text_block_end:
@@ -290,7 +292,7 @@ def som_text_inserter(args):
         current_text_address = f.tell()
         rows = select_translation_by_author(cur, 'clomax', ['3', '4', '6'])
         for row in rows:
-            id, _, text_decoded, _, pointer_addresses, translation, _ = row
+            id, _, text_decoded, _, pointer_addresses, translation, _, _, _ = row
             # SKIP
             if id in (2579, 2580, 2582, 2583, 2585, 2586, 2588, 2589, 2591, 2592, 2594, 2595, 2596, 2597, 2599, 2600, 2602, 2603, 2605):
                 continue

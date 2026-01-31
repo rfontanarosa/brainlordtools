@@ -82,7 +82,7 @@ def neugier_text_inserter(args):
         rows = select_translation_by_author(cur, user_name, ['1'])
         for row in rows:
             # INSERTER X
-            id, _, text_decoded, address, pointer_addresses, translation, _ = row
+            id, _, text_decoded, _, pointer_addresses, translation, _, _, _ = row
             text = translation if translation else text_decoded
             text_encoded = table.encode(text)
             new_text_address = f.tell()

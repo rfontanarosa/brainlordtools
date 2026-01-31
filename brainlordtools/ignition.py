@@ -96,7 +96,7 @@ def ignition_text_inserter(args):
         rows = select_translation_by_author(cur, user_name)
         for row in rows:
             # INSERTER X
-            _, _, text_decoded, _, _, translation, _ = row
+            _, _, text_decoded, _, _, translation, _, _, _ = row
             text = translation if translation else text_decoded
             text_encoded = table.encode(text)
             f.seek(new_text_address)
