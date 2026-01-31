@@ -5,7 +5,7 @@ GAME_ID="som"
 source ./_common.sh
 
 USER="clomax"
-DB="$RESOURCE_PATH/db/som.sqlite3"
+DB="$RESOURCE_PATH/db/$GAME_ID.sqlite3"
 SOURCE="$RESOURCE_PATH/roms/Secret of Mana (USA).sfc"
 DESTINATION="$RESOURCE_PATH/roms/Secret of Mana (ITA).sfc"
 

@@ -1,11 +1,11 @@
 #!/bin/bash
 
-BRAINLORD_PATH="$HOME/git"
-RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/lufia"
-TOOLS_PATH="$BRAINLORD_PATH/brainlordtools/brainlordtools"
+GAME_ID="lufia"
+
+source ./_common.sh
 
 USER="clomax"
-DB="$RESOURCE_PATH/db/lufia.sqlite3"
+DB="$RESOURCE_PATH/db/$GAME_ID.sqlite3"
 SOURCE="$RESOURCE_PATH/roms/Lufia & The Fortress of Doom (U) [!].sfc"
 DESTINATION="$RESOURCE_PATH/roms/Lufia & The Fortress of Doom (I) [!].sfc"
 
