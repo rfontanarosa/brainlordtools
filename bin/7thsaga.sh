@@ -1,11 +1,11 @@
 #!/bin/bash
 
-BRAINLORD_PATH="$HOME/git"
-RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/7thsaga"
-TOOLS_PATH="$BRAINLORD_PATH/brainlordtools/brainlordtools"
+GAME_ID="7thsaga"
+
+source ./_common.sh
 
 USER="clomax"
-DB="$RESOURCE_PATH/db/7thsaga.sqlite3"
+DB="$RESOURCE_PATH/db/$GAME_ID.sqlite3"
 SOURCE="$RESOURCE_PATH/roms/7th Saga, The (U) [!] - decompressed.sfc"
 DESTINATION="$RESOURCE_PATH/roms/7th Saga, The (I) [!].sfc"
 
