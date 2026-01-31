@@ -1,11 +1,11 @@
 #!/bin/bash
 
-BRAINLORD_PATH="$HOME/git"
-RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/bof2"
-TOOLS_PATH="$BRAINLORD_PATH/brainlordtools/brainlordtools"
+GAME_ID="bof2"
+
+source ./_common.sh
 
 USER="clomax"
-DB="$RESOURCE_PATH/db/bof2.sqlite3"
+DB="$RESOURCE_PATH/db/$GAME_ID.sqlite3"
 SOURCE="$RESOURCE_PATH/roms/Breath of Fire II (U) [!].sfc"
 DESTINATION="$RESOURCE_PATH/roms/Breath of Fire II (I) [!].sfc"
 

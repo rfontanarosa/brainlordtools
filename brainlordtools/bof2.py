@@ -49,13 +49,13 @@ def bof2_text_dumper(args):
                 # if len(pointers[p_value]) > 1 and pointers[p_value][-2] != pointers[p_value][-1] - 2:
                 #     pass
             # READ TEXT BLOCK
-            for _, (taddress, paddresses) in enumerate(pointers.items()):
+            for _, (text_address, paddresses) in enumerate(pointers.items()):
                 pointer_addresses = ';'.join(hex(x) for x in paddresses)
-                text = read_text(f, taddress, end_byte=b'\x01', cmd_list={b'\x03': 1, b'\x07': 1, b'\x08': 1, b'\x09': 1, b'\x11': 1, b'\x12': 1, b'\x13': 1}, append_end_byte=True)
+                text = read_text(f, text_address, end_byte=b'\x01', cmd_list={b'\x03': 1, b'\x07': 1, b'\x08': 1, b'\x09': 1, b'\x11': 1, b'\x12': 1, b'\x13': 1}, append_end_byte=True)
                 text_decoded = table.decode(text)
-                ref = f'[ID {id} - ID2 {id2} - BLOCK {i} - TEXT {hex(taddress)} - POINTER {pointer_addresses}]'
+                ref = f'[ID={id} ID2={id2} BLOCK={i} START={hex(text_address)} POINTERS={pointer_addresses}]'
                 # dump - db
-                insert_text(cur, id, text, text_decoded, taddress, pointer_addresses, i, ref)
+                insert_text(cur, id, text, text_decoded, text_address, pointer_addresses, i, ref)
                 # dump - txt
                 filename = os.path.join(dump_path, 'dump_eng.txt')
                 with open(filename, 'a+', encoding='utf-8') as out:
@@ -65,7 +65,6 @@ def bof2_text_dumper(args):
     cur.close()
     conn.commit()
     conn.close()
-
 
 def bof2_text_inserter(args):
     source_file = args.source_file
@@ -83,8 +82,9 @@ def bof2_text_inserter(args):
     with open(translation_file, 'r', encoding='utf-8') as f:
         buffer = ['', 0]
         for line in f:
-            if '[ID ' in line:
-                number_of_pointers = len(line.split(' ')[-1].split(';'))
+            if '[ID=' in line and 'POINTERS=' in line:
+                pointers_part = line.split('POINTERS=')[-1].split(']')[0]
+                number_of_pointers = len(pointers_part.split(';')) if pointers_part else 0
                 buffer = ['', number_of_pointers]
                 entries.append(buffer)
             else:
@@ -110,7 +110,7 @@ def bof2_text_inserter(args):
                 current_text_offset = current_bank_offset
             # pointer
             f.seek(ptr_table_offset)
-            new_pointer = (current_text_offset & 0x00FFFF).to_bytes(2,  byteorder='little')
+            new_pointer = (current_text_offset & 0x00FFFF).to_bytes(2, byteorder='little')
             for _ in range(0, number_of_pointers):
                 f.write(new_pointer)
             ptr_table_offset = f.tell()
@@ -122,7 +122,7 @@ def bof2_text_inserter(args):
         f.seek(0x22ddf2)
         print(bank_entries)
         for bank_entry in bank_entries:
-            f.write(bank_entry.to_bytes(2,  byteorder='little'))
+            f.write(bank_entry.to_bytes(2, byteorder='little'))
 
 def bof2_misc_dumper(args):
     source_file = args.source_file
