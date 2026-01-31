@@ -26,6 +26,46 @@ POINTER_BLOCKS = ((0x1a0ad, 0x1a0c1), (0x425db, 0x4269a))
 
 FONT1_BLOCK = (0x13722d, 0x13B22d)
 
+sparse_pointers = tuple()
+sparse_pointers += (0x56f0a, 0x56f10, 0x56f16, 0x56f1c, 0x56f22, 0x56f28) # Lemele
+sparse_pointers += (0x56f88, 0x56f8e, 0x56f94, 0x56f9a, 0x56fa0, 0x56fa6, 0x56fac, 0x56fb2, 0x56fb8) # Rablesk
+sparse_pointers += (0x57012, 0x57018, 0x5701e, 0x57024, 0x5702a) # Bonro
+sparse_pointers += (0x57090, 0x57096, 0x5709c, 0x570a2, 0x570a8) # Zellis
+sparse_pointers += (0x57114, 0x5711a, 0x57120, 0x57126, 0x5712c, 0x57132, 0x57138, 0x5713e, 0x57144) # Eygus
+sparse_pointers += (0x57192, 0x57198) # Pell
+sparse_pointers += (0x57204, 0x5720a, 0x57210, 0x57216, 0x5721c, 0x57222, 0x57228) # Guntz
+sparse_pointers += (0x57288, 0x5728e, 0x5729a, 0x572dc, 0x572e2, 0x572e8, 0x572ee) # Patrof
+sparse_pointers += (0x572f4,) # Patrof 0x572f4
+sparse_pointers += (0x5731e, 0x57324, 0x5732a, 0x57330, 0x57336, 0x5733c, 0x5737e, 0x57384, 0x5738a, 0x57390, 0x57396, 0x5739c) # Bone
+sparse_pointers += (0x573e4, 0x573ea, 0x573f0, 0x573f6, 0x573fc, 0x57402) # Dowaine
+sparse_pointers += (0x5745c, 0x57462, 0x57468, 0x5746e, 0x57474, 0x5747a, 0x57480, 0x57486, 0x5748c) # Belaine
+sparse_pointers += (0x5750a, 0x57510, 0x57516, 0x57b94, 0x57b9a, 0x57ba0, 0x57ba5, 0x57bfa)
+sparse_pointers += (0x159d37,)
+sparse_pointers += (0x15a511, 0x15a541, 0x15a547, 0x15a54d, 0x15a559, 0x15a55f, 0x15a60d, 0x15a61f, 0x15a625, 0x15a62b, 0x15aebf, 0x15aec5, 0x15aecb, 0x15aef5)
+sparse_pointers += (0x15b123, 0x15b1b9)
+sparse_pointers += (0x158fd5, 0x158fe7, 0x158fff, 0x15901d, 0x159035, 0x15903b, 0x15905f, 0x159065, 0x15906b, 0x1590bf, 0x1590c5, 0x1590d7, 0x1590f5)
+sparse_pointers += (0x159131, 0x15914f, 0x159185, 0x15918b, 0x15919d, 0x1591af, 0x1591c1, 0x1591d3, 0x1591d9, 0x1591eb, 0x1591f1)
+sparse_pointers += (0x15920f, 0x159215, 0x15921b, 0x15924b, 0x159251, 0x159281, 0x159287, 0x15928d, 0x15929f, 0x1592a5, 0x1592b7, 0x1592bd, 0x1592c3, 0x1592c9, 0x1592cf, 0x1592e1, 0x1592e7, 0x1592ed, 0x1592f3, 0x1592f9, 0x1592ff)
+sparse_pointers += (0x159347, 0x15934d, 0x15936b, 0x159371, 0x159395, 0x1593cb, 0x1593e9, 0x1593ef)
+sparse_pointers += (0x15940d, 0x159413, 0x159419, 0x15941f, 0x15943d, 0x159455, 0x159485, 0x159497, 0x15949d, 0x1594b5, 0x1594d9, 0x1594eb, 0x1594fd)
+sparse_pointers += (0x159515, 0x15954b, 0x15957b, 0x15958d, 0x15959f, 0x1595b1, 0x1595c3, 0x1595d5)
+sparse_pointers += (0x159629, 0x15964d, 0x159653, 0x159665, 0x15966b, 0x159671, 0x159683, 0x159695, 0x1596a7, 0x1596bf, 0x1596dd, 0x1596fb)
+sparse_pointers += (0x159701, 0x159737, 0x1597fd, 0x159a13, 0x159bbd, 0x159deb, 0x15a151, 0x15a2ad, 0x15a59b, 0x15a89b, 0x15a9e5, 0x15aa15, 0x15aa51, 0x15aa6f, 0x15ab8f, 0x15ac0d, 0x15af1f, 0x15af61, 0x15b057, 0x15b11d, 0x15b25b, 0x15b453, 0x15baa7, 0x15bafb, 0x15bc21, 0x15d0f1, 0x15c035)
+sparse_pointers += (0x15989f, 0x1598b7, 0x1598d5, 0x1598e7, 0x159911, 0x159917, 0x15991d, 0x159935, 0x159995) # Bone
+sparse_pointers += (0x1599a7, 0x1599b9, 0x1599cb, 0x1599dd, 0x159a0d) # Dowaine
+sparse_pointers += (0x159c05, 0x159c0b, 0x159c11, 0x159c17, 0x159c1d, 0x159c8f, 0x159c95, 0x159d07, 0x159d07, 0x159ea5, 0x159eab, 0x159eb1, 0x159eb7, 0x159ebd, 0x159ec3, 0x15b0ff, 0x15b105, 0x15b16b, 0x15b1cb, 0x15bd05, 0x15bd1d, 0x15bd35, 0x15bf2d, 0x15bf3f)
+sparse_pointers += (0x15a7db, 0x15a81d, 0x15a8c5, 0x15abd7, 0x15aceb, 0x15acf1, 0x15ad09, 0x15ad0f, 0x15ad15, 0x15ad1b, 0x15ad39)
+sparse_pointers += (0x15d57d, 0x15d697, 0x15d69d, 0x15d967, 0x15d96d)
+sparse_pointers += (0xf349a, 0x5774a, 0x5783a, 0x57ad4, 0x57978, 0x15b0c3, 0x15a7ff, 0x15b0ed, 0x15b0bd, 0x15b0e7, 0x15b2cd, 0x15b351, 0x15b3f3, 0x15b3f9, 0x15bcc3, 0x15c281, 0x15d061, 0x15e5a3, 0x15e681, 0x15e687)
+sparse_pointers += (0x159017, 0x159233, 0x159329, 0x15946d, 0x159611, 0x15975b, 0x159965, 0x159a6d, 0x159ba5, 0x159e39, 0x15a187, 0x15a21d, 0x15a87d, 0x15abc5, 0x15abef) # Welcome to our store! (0x60003)
+sparse_pointers += (0x159149, 0x159269, 0x159389, 0x1593b3, 0x1595f3, 0x15973d, 0x15976d, 0x15978b, 0x1597a9, 0x1597bb, 0x1597cd, 0x1597d3, 0x15987b, 0x159a4f, 0x159aa9, 0x159ac7, 0x159adf, 0x159af7, 0x159e21, 0x15a19f) # Hello! I have a large selection of weapons here. (0x6002d)
+sparse_pointers += (0x159167, 0x15926f, 0x15938f, 0x15952d, 0x1595f9, 0x159791, 0x159881, 0x1599f5) # Hello! I sell armor. (0x6005a)
+
+def resolve_pointer(f, offset):
+    f.seek(offset)
+    pointer = f.read(3)
+    return struct.unpack('i', pointer + b'\x00')[0] - 0xc00000
+
 def get_pointers(f, start, count, step):
     pointers = {}
     end = start + (count * step)
@@ -49,7 +89,7 @@ def get_translated_texts(filename):
 
 def repoint_misc(f, pointers, offset_map, table=None):
     for i, (p_value, p_addresses) in enumerate(pointers.items()):
-        p_new_value = offset_map.get(p_value)
+        p_new_value, _ = offset_map.get(p_value, (None, None))
         if not p_new_value:
             print('repoint_misc - Text not found - Text offset: ' + hex(p_value) + ' - Pointer offsets: ' + str(list(map(lambda x: hex(x), p_addresses))))
         else:
@@ -59,18 +99,22 @@ def repoint_misc(f, pointers, offset_map, table=None):
             f.seek(p_new_value)
             f.seek(a)
             for p_address in p_addresses:
-                print(f'repoint_misc - {t2} - Text offset: {hex(p_value)}' + ' - Pointer offset: ' + hex(f.tell()))
+                # print(f'repoint_misc - {t2} - Text offset: {hex(p_value)}' + ' - Pointer offset: ' + hex(f.tell()))
                 f.seek(p_address)
                 packed = struct.pack('i', p_new_value + 0xc00000)
                 f.write(packed[:-1])
 
 def seventhsaga_text_segment_dumper(f, dump_path, table, id, block, cur, start=0x0, end=0x0):
+    text_offsets = [resolve_pointer(f, offset) for offset in sparse_pointers]
     f.seek(start)
     while f.tell() < end:
         text_offset = f.tell()
         text = read_text(f, text_offset, end_byte=b'\xf7', cmd_list={b'\xfc': 5})
         text_decoded = table.decode(text, mte_resolver=True, dict_resolver=False, cmd_list={0xf6: 1, 0xfb: 5, 0xfc: 5, 0xfd: 2, 0xfe: 2, 0xff: 3})
-        ref = '[BLOCK {}: {} to {}]'.format(str(id), hex(text_offset), hex(f.tell()))
+        text_offset_indexes = [i for i, value in enumerate(text_offsets) if value == text_offset]
+        pointers_offsets = [sparse_pointers[i] for i in text_offset_indexes]
+        pointers_offsets_str = ';'.join(hex(x) for x in pointers_offsets)
+        ref = f'[ID={id} START={hex(text_offset)} END={hex(f.tell() - 1)} POINTERS={pointers_offsets_str}]'
         # dump - db
         insert_text(cur, id, text, text_decoded, text_offset, '', block, ref)
         # dump - txt
@@ -125,11 +169,15 @@ def seventhsaga_text_inserter(args):
         rows = select_most_recent_translation(cur, ['1', '2', '3'])
         for row in rows:
             _, _, text_decoded, address, _, translation, _, _, _ = row
+            # if id in (247, 248):
+            #     print(text_decoded)
+            #     print(translation)
+            #     print(hex(fw.tell()))
             text = translation if translation else text_decoded
             encoded_text = table.encode(text, mte_resolver=True, dict_resolver=False)
             if fw.tell() < 0x310000 and fw.tell() + len(encoded_text) > 0x30ffff:
                 fw.seek(0x310000)
-            offset_map[int(address)] = fw.tell()
+            offset_map[int(address)] = (fw.tell(), False)
             fw.write(encoded_text)
             fw.write(b'\xf7')
         NEW_TEXT_SEGMENT_1_END = fw.tell()
@@ -169,37 +217,6 @@ def seventhsaga_text_inserter(args):
         # repoint_two_bytes_pointer(fw, 0x2bb64, offset_map, b'\xc6') # 0x6e447
     # repoint sparse pointers
     with open(dest_file, 'r+b') as fw:
-        sparse_pointers = tuple()
-        sparse_pointers += (0x56f0a, 0x56f10, 0x56f16, 0x56f1c, 0x56f22, 0x56f28) # Lemele
-        sparse_pointers += (0x56f88, 0x56f8e, 0x56f94, 0x56f9a, 0x56fa0, 0x56fa6, 0x56fac, 0x56fb2, 0x56fb8) # Rablesk
-        sparse_pointers += (0x57012, 0x57018, 0x5701e, 0x57024, 0x5702a) # Bonro
-        sparse_pointers += (0x57090, 0x57096, 0x5709c, 0x570a2, 0x570a8) # Zellis
-        sparse_pointers += (0x57114, 0x5711a, 0x57120, 0x57126, 0x5712c, 0x57132, 0x57138, 0x5713e, 0x57144) # Eygus
-        sparse_pointers += (0x57192, 0x57198) # Pell
-        sparse_pointers += (0x57204, 0x5720a, 0x57210, 0x57216, 0x5721c, 0x57222, 0x57228) # Guntz
-        sparse_pointers += (0x57288, 0x5728e, 0x5729a, 0x572dc, 0x572e2, 0x572e8, 0x572ee) # Patrof
-        sparse_pointers += (0x572f4,) # Patrof 0x572f4
-        sparse_pointers += (0x5731e, 0x57324, 0x5732a, 0x57330, 0x57336, 0x5733c, 0x5737e, 0x57384, 0x5738a, 0x57390, 0x57396, 0x5739c) # Bone
-        sparse_pointers += (0x573e4, 0x573ea, 0x573f0, 0x573f6, 0x573fc, 0x57402) # Dowaine
-        sparse_pointers += (0x5745c, 0x57462, 0x57468, 0x5746e, 0x57474, 0x5747a, 0x57480, 0x57486, 0x5748c) # Belaine
-        #
-        sparse_pointers += (0x158fd5, 0x158fe7, 0x158fff, 0x15901d, 0x159035, 0x15903b, 0x15905f, 0x159065, 0x15906b, 0x1590bf, 0x1590c5, 0x1590d7, 0x1590f5)
-        sparse_pointers += (0x159131, 0x15914f, 0x159185, 0x15918b, 0x15919d, 0x1591af, 0x1591c1, 0x1591d3, 0x1591d9, 0x1591eb, 0x1591f1)
-        sparse_pointers += (0x15920f, 0x159215, 0x15921b, 0x15924b, 0x159251, 0x159281, 0x159287, 0x15928d, 0x15929f, 0x1592a5, 0x1592b7, 0x1592bd, 0x1592c3, 0x1592c9, 0x1592cf, 0x1592e1, 0x1592e7, 0x1592ed, 0x1592f3, 0x1592f9, 0x1592ff)
-        sparse_pointers += (0x159347, 0x15934d, 0x15936b, 0x159371, 0x159395, 0x1593cb, 0x1593e9, 0x1593ef)
-        sparse_pointers += (0x15940d, 0x159413, 0x159419, 0x15941f, 0x15943d, 0x159455, 0x159485, 0x159497, 0x15949d, 0x1594b5, 0x1594d9, 0x1594eb, 0x1594fd)
-        sparse_pointers += (0x159515, 0x15954b, 0x15957b, 0x15958d, 0x15959f, 0x1595b1, 0x1595c3, 0x1595d5)
-        sparse_pointers += (0x159629, 0x15964d, 0x159653, 0x159665, 0x15966b, 0x159671, 0x159683, 0x159695, 0x1596a7, 0x1596bf, 0x1596dd, 0x1596fb)
-        sparse_pointers += (0x159701, 0x159737, 0x1597fd, 0x159a13, 0x159bbd, 0x159deb, 0x15a151, 0x15a2ad, 0x15a59b, 0x15a89b, 0x15ab8f, 0x15ac0d, 0x15af1f, 0x15af61, 0x15b057, 0x15b11d, 0x15b25b, 0x15b453, 0x15baa7, 0x15bafb, 0x15bc21, 0x15d0f1)
-        sparse_pointers += (0x15989f, 0x1598b7, 0x1598d5, 0x1598e7, 0x159911, 0x159917, 0x15991d, 0x159935, 0x159995) # Bone
-        sparse_pointers += (0x1599a7, 0x1599b9, 0x1599cb, 0x1599dd, 0x159a0d) # Dowaine
-        sparse_pointers += (0x15aceb, 0x15acf1, 0x15ad09, 0x15ad0f, 0x15ad15, 0x15ad1b, 0x15ad39)
-        sparse_pointers += (0x15d57d, 0x15d697, 0x15d69d, 0x15d967, 0x15d96d)
-        sparse_pointers += (0x15e5a3,)
-        #
-        sparse_pointers += (0x159017, 0x159233, 0x159329, 0x15946d, 0x159611, 0x15975b, 0x159965, 0x159a6d, 0x159ba5, 0x159e39, 0x15a187, 0x15a21d, 0x15a511, 0x15a87d, 0x15abc5, 0x15abef) # Welcome to our store! (0x60003)
-        sparse_pointers += (0x159149, 0x159269, 0x159389, 0x1593b3, 0x1595f3, 0x15973d, 0x15976d, 0x15978b, 0x1597a9, 0x1597bb, 0x1597cd, 0x1597d3, 0x15987b, 0x159a4f, 0x159aa9, 0x159ac7, 0x159adf, 0x159af7, 0x159e21, 0x15a19f) # Hello! I have a large selection of weapons here. (0x6002d)
-        sparse_pointers += (0x159167, 0x15926f, 0x15938f, 0x15952d, 0x1595f9, 0x159791, 0x159881, 0x1599f5) # Hello! I sell armor. (0x6005a)
         for sparse_pointer in sparse_pointers:
             repoint_three_bytes_pointer(fw, sparse_pointer, offset_map, 'Sparse pointer')
     # two bytes pointers
@@ -230,6 +247,14 @@ def seventhsaga_text_inserter(args):
         repoint_two_bytes_pointer(fw, 0xa39, offset_map, b'\xc6') # 0x60 # Intro 4
         repoint_two_bytes_pointer(fw, 0xb34, offset_map, b'\xc6') # 0x60 # Intro 5
         repoint_two_bytes_pointer(fw, 0x28b78, offset_map, b'\xc6')
+        # DEBUG
+        count = 0
+        for original_text_offset, data_tuple in offset_map.items():
+            new_offset, flag = data_tuple
+            if not flag:
+                count += 1
+                print(f"Original: {hex(original_text_offset)}, New: {hex(new_offset)}")
+        print(f'Not found: {count}')
     cur.close()
     conn.commit()
     conn.close()
@@ -308,8 +333,8 @@ def seventhsaga_misc_inserter(args):
         translated_texts = get_translated_texts(translation_file)
         offset_map = {}
         t_new_address = 0x350000
-        for i, (t_address, t_value) in enumerate(translated_texts.items()):
-            offset_map[t_address] = t_new_address
+        for _, (t_address, t_value) in enumerate(translated_texts.items()):
+            offset_map[t_address] = (t_new_address, False)
             text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
             t_new_address = write_text(f1, t_new_address, text, end_byte=b'\xf7')
         # repointing misc1
@@ -328,7 +353,7 @@ def repoint_two_bytes_pointer(fw, pointer_offset, offset_map, third_byte, type=N
     fw.seek(pointer_offset)
     pointer = fw.read(2)
     original_text_offset = struct.unpack('i', pointer + third_byte + b'\x00')[0] - 0xc00000
-    new_text_offset = offset_map.get(original_text_offset)
+    new_text_offset, _ = offset_map.get(original_text_offset, (None, None))
     if new_text_offset:
         fw.seek(-2, os.SEEK_CUR)
         new_pointer_value = struct.pack('i', new_text_offset + 0xc00000)
@@ -348,13 +373,14 @@ def repoint_three_bytes_pointer(f, pointer_offset, offset_map, type=None):
     original_text_offset = struct.unpack('i', pointer + b'\x00')[0] - 0xc00000
     # if unpacked in (0x60000, 0x60001, 0x60002, 0x60003):
     #     return
-    new_text_offset = offset_map.get(original_text_offset)
+    new_text_offset, _ = offset_map.get(original_text_offset, (None, None))
     if new_text_offset:
+        offset_map[original_text_offset] = (new_text_offset, True)
         new_pointer_value = struct.pack('i', new_text_offset + 0xc00000)
         if original_text_offset == 0x65081:
             seek_cur = f.tell()
             f.seek(0x2d8af)
-            f.write(b'\xc9' + new_pointer_value[:-2])
+            f.write(b'\xc9' + new_pointer_value[:-2]) # 0xc9 = CMP
             f.seek(seek_cur)
         f.seek(-3, os.SEEK_CUR)
         f.write(new_pointer_value[:-1])
