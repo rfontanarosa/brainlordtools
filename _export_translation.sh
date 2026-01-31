@@ -14,8 +14,20 @@ case $GAME_ID in
 
     mkdir -p "$DUMP_DIR"
     echo "Processing $GAME_ID for user $USER..."
-    python -m brainlordutils.utils export_user_translation \
+    python -m brainlordutils.utils export_translation \
         -u "$USER" -db "$DB" -d "$DEST_FILE"
+    echo "Done! Files saved in $DUMP_DIR"
+    ;;
+
+  "ffmq" | "lufia")
+    DUMP_DIR="$RESOURCE_PATH/translation_text"
+    DEST_FILE="$DUMP_DIR/dump_ita.txt"
+    DEST_USER_FILE="$DUMP_DIR/dump_ita_$USER.txt"
+
+    mkdir -p "$DUMP_DIR"
+    echo "Processing $GAME_ID for user $USER..."
+    python -m brainlordutils.utils export_translation \
+       -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -b 1
     echo "Done! Files saved in $DUMP_DIR"
     ;;
 
@@ -26,9 +38,9 @@ case $GAME_ID in
 
     mkdir -p "$DUMP_DIR"
     echo "Processing $GAME_ID for user $USER..."
-    python -m brainlordutils.utils export_user_translation \
+    python -m brainlordutils.utils export_translation \
         -u "$USER" -db "$DB" -d "$DEST_EVENTS_FILE" -b 1 2
-    python -m brainlordutils.utils export_user_translation \
+    python -m brainlordutils.utils export_translation \
         -u "$USER" -db "$DB" -d "$DEST_TEXT_FILE" -b 3 4 5 6 7 8
     echo "Done! Files saved in $DUMP_DIR"
     ;;
