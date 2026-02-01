@@ -12,7 +12,7 @@ def _dump_reader(dump_fullpath):
   with open(dump_fullpath, 'r', encoding='utf-8') as f:
     current_id = 0
     for line in f:
-      if line.startswith('[BLOCK '):
+      if line.startswith('[BLOCK ') or line.startswith('[ID='):
         current_id += 1
         buffer[current_id] = ['', line.strip('\r\n')]
       elif current_id > 0:
