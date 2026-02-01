@@ -1,11 +1,11 @@
 #!/bin/bash
 
-BRAINLORD_PATH="$HOME/git"
-RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/gaia"
-TOOLS_PATH="$BRAINLORD_PATH/brainlordtools/brainlordtools"
+GAME_ID="gaia"
+
+source ./_common.sh
 
 USER="clomax"
-DB="$RESOURCE_PATH/db/gaia.sqlite3"
+DB="$RESOURCE_PATH/db/$GAME.sqlite3"
 SOURCE="$RESOURCE_PATH/roms/Illusion of Gaia (U) [!] + Sprint hack.sfc"
 DESTINATION="$RESOURCE_PATH/roms/Illusion of Gaia (I) [!].sfc"
 

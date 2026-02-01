@@ -8,41 +8,46 @@ RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/$GAME_ID"
 DB="$RESOURCE_PATH/db/$GAME_ID.sqlite3"
 
 case $GAME_ID in
-  "ignition" | "spike")
-    DUMP_DIR="$RESOURCE_PATH/translation_text"
-    DEST_FILE="$DUMP_DIR/dump_ita_$USER.txt"
+  "gaia" | "ignition" | "spike")
+    TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
+    DEST_FILE="$TRANSLATED_DUMP_DIR/dump_ita.txt"
+    DEST_USER_FILE="$TRANSLATED_DUMP_DIR/dump_ita_$USER.txt"
 
-    mkdir -p "$DUMP_DIR"
+    mkdir -p "$TRANSLATED_DUMP_DIR"
     echo "Processing $GAME_ID for user $USER..."
     python -m brainlordutils.utils export_translation \
-        -u "$USER" -db "$DB" -d "$DEST_FILE"
-    echo "Done! Files saved in $DUMP_DIR"
+        -db "$DB" -d "$DEST_FILE"
+    python -m brainlordutils.utils export_translation \
+        -db "$DB" -d "$DEST_USER_FILE" -u "$USER"
+    echo "Done! Translations have been saved in $TRANSLATED_DUMP_DIR"
     ;;
 
   "ffmq" | "lufia")
-    DUMP_DIR="$RESOURCE_PATH/translation_text"
-    DEST_FILE="$DUMP_DIR/dump_ita.txt"
-    DEST_USER_FILE="$DUMP_DIR/dump_ita_$USER.txt"
+    TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
+    DEST_FILE="$TRANSLATED_DUMP_DIR/dump_ita.txt"
+    DEST_USER_FILE="$TRANSLATED_DUMP_DIR/dump_ita_$USER.txt"
 
-    mkdir -p "$DUMP_DIR"
+    mkdir -p "$TRANSLATED_DUMP_DIR"
     echo "Processing $GAME_ID for user $USER..."
     python -m brainlordutils.utils export_translation \
+       -db "$DB" -d "$DEST_FILE" -b 1
+    python -m brainlordutils.utils export_translation \
        -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -b 1
-    echo "Done! Files saved in $DUMP_DIR"
+    echo "Done! Translations have been saved in $TRANSLATED_DUMP_DIR"
     ;;
 
   "som")
-    DUMP_DIR="$RESOURCE_PATH/translation_text"
-    DEST_EVENTS_FILE="$DUMP_DIR/dump_events_$USER.txt"
-    DEST_TEXT_FILE="$DUMP_DIR/dump_texts_$USER.txt"
+    TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
+    DEST_USER_EVENTS_FILE="$TRANSLATED_DUMP_DIR/dump_events_$USER.txt"
+    DEST_USER_TEXT_FILE="$TRANSLATED_DUMP_DIR/dump_texts_$USER.txt"
 
-    mkdir -p "$DUMP_DIR"
+    mkdir -p "$TRANSLATED_DUMP_DIR"
     echo "Processing $GAME_ID for user $USER..."
     python -m brainlordutils.utils export_translation \
-        -u "$USER" -db "$DB" -d "$DEST_EVENTS_FILE" -b 1 2
+        -db "$DB" -d "$DEST_USER_EVENTS_FILE" -u "$USER" -b 1 2
     python -m brainlordutils.utils export_translation \
-        -u "$USER" -db "$DB" -d "$DEST_TEXT_FILE" -b 3 4 5 6 7 8
-    echo "Done! Files saved in $DUMP_DIR"
+        -db "$DB" -d "$DEST_USER_TEXT_FILE" -u "$USER" -b 3 4 5 6 7 8
+    echo "Done! Translations have been saved in $TRANSLATED_DUMP_DIR"
     ;;
 
   *)

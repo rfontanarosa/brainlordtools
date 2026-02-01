@@ -270,11 +270,11 @@ def gaia_text_dumper(args):
         pointers[0x1ff36] = []
         pointers[0x1ff48] = []
         pointers[0x1cb66] = []
-        for i, (text_offset, pointers_offsets) in enumerate(pointers.items()):
+        for block, (text_offset, pointers_offsets) in enumerate(pointers.items(), start=1):
             text = gaia_read_text(f, text_offset, end_byte=(b'\xc0', b'\xca'), cmd_list=cmd_list, append_end_byte=True)
             text_decoded = table1.decode(text, mte_resolver=True, dict_resolver=True)
             pointers_offsets_str = ';'.join(hex(x) for x in pointers_offsets)
-            ref = f'[BLOCK {id}: {hex(text_offset)} to {hex(f.tell() - 1)} - {pointers_offsets_str}]'
+            ref = f'[ID={id} START={hex(text_offset)} END={hex(f.tell() - 1)} POINTERS={pointers_offsets_str}]'
             # dump - db
             # insert_text(cur, id, text, text_decoded, text_offset, '', 1, ref)
             # dump - txt
@@ -304,7 +304,7 @@ def gaia_text_dumper(args):
             text = gaia_read_text(f, text_offset, end_byte=(b'\xc0', b'\xca'), cmd_list=cmd_list, append_end_byte=True)
             text_decoded = table1.decode(text, mte_resolver=True, dict_resolver=True)
             pointers_offsets_str = ';'.join(hex(x) for x in pointers_offsets)
-            ref = f'[BLOCK {id}: {hex(text_offset)} to {hex(f.tell() - 1)} - {pointers_offsets_str}]'
+            ref = f'[ID={id} START={hex(text_offset)} END={hex(f.tell() - 1)} POINTERS={pointers_offsets_str}]'
             # dump - db
             # insert_text(cur, id, text, text_decoded, text_offset, '', 2, ref)
             # dump - txt
@@ -335,9 +335,9 @@ def gaia_text_dumper(args):
                     text += f.read(4)
                 text_decoded = table.decode(text, mte_resolver=mte_resolver, dict_resolver=dict_resolver)
                 pointers_offsets_str = ';'.join(hex(x) for x in pointers_offsets_list)
-                ref = f'[BLOCK {id}: {hex(text_offset)} to {hex(f.tell() - 1)} - {pointers_offsets_str}]'
+                ref = f'[ID={id} START={hex(text_offset)} END={hex(f.tell() - 1)} POINTERS={pointers_offsets_str}]'
                 # dump - db
-                # insert_text(cur, id, text, text_decoded, text_address, '', 2, ref)
+                # insert_text(cur, id, text, text_decoded, text_offset, '', 2, ref)
                 # dump - txt
                 with open(filepath, 'a+', encoding='utf-8') as out:
                     out.write(f'{ref}\n{text_decoded}\n\n')

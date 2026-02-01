@@ -8,7 +8,7 @@ RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/$GAME_ID"
 DB="$RESOURCE_PATH/db/$GAME_ID.sqlite3"
 
 case $GAME_ID in
-  "ffmq")
+  "ffmq" | "gaia")
     DUMP_DIR="$RESOURCE_PATH/dump_text"
     SOURCE_FILE="$DUMP_DIR/dump_eng.txt"
 
