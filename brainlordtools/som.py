@@ -346,6 +346,13 @@ def som_tilemap_dumper(args):
         # INTRO TILEMAP
         dump_binary(f, 0x14a6, 928, dump_path / 'intro-tilemap.bin')
 
+def som_tilemap_inserter(args):
+    dest_file = args.dest_file
+    translation_path = pathlib.Path(args.translation_path)
+    with open(dest_file, 'r+b') as f:
+        # INTRO TILEMAP
+        insert_binary(f, 0x14a6, translation_path / 'intro-tilemap.bin', max_length=928)
+
 def som_misc_inserter(args):
     dest_file = args.dest_file
     table1_file = args.table1
@@ -399,8 +406,12 @@ dump_misc_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_p
 dump_misc_parser.set_defaults(func=som_misc_dumper)
 dump_tilemap_parser = subparsers.add_parser('dump_tilemap', help='Execute TILEMAP DUMP')
 dump_tilemap_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-dump_tilemap_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
+dump_tilemap_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', required=True, help='Dump path')
 dump_tilemap_parser.set_defaults(func=som_tilemap_dumper)
+insert_tilemap_parser = subparsers.add_parser('insert_tilemap', help='Execute TILEMAP INSERTER')
+insert_tilemap_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+insert_tilemap_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', required=True, help='Translation path')
+insert_tilemap_parser.set_defaults(func=som_tilemap_inserter)
 insert_misc_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
 insert_misc_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')

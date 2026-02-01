@@ -55,6 +55,8 @@ else
   asar "$RESOURCE_PATH/asm/intro_ram.asm" "$TRANSLATION_MISC_PATH/intro-code.bin"
 fi
 
+python "$TOOLS_PATH/som.py" insert_tilemap -d "$TRANSLATION_MISC_PATH/intro-data.bin" -tp "$TRANSLATION_MISC_PATH"
+
 python "$TOOLS_PATH/somtools/decomp.py" "$TRANSLATION_MISC_PATH/intro-code.bin" "$TRANSLATION_MISC_PATH/intro-code-compressed.bin" --compress --compression-key="1"
 python "$TOOLS_PATH/somtools/decomp.py" "$TRANSLATION_MISC_PATH/intro-data.bin" "$TRANSLATION_MISC_PATH/intro-data-compressed.bin" --compress --compression-key="4"
 python "$TOOLS_PATH/somtools/decomp.py" "$TRANSLATION_MISC_PATH/title.bin" "$TRANSLATION_MISC_PATH/title-compressed.bin" --compress --compression-key="3"
