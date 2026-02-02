@@ -1,4 +1,4 @@
-import os, csv
+import csv, re
 
 def read_text(f, offset=None, length=None, end_byte=None, cmd_list=None, append_end_byte=False):
     text = b''
@@ -31,18 +31,21 @@ def write_text(f, offset, text, length=None, end_byte=None, limit=None):
         raise Exception()
     return f.tell()
 
-def read_dump(filename):
+def read_dump(filename: str) -> dict:
     buffer = {}
-    with open(filename, 'r') as f:
+    with open(filename, 'r', encoding='utf-8') as f:
         for line in f:
-            if '[BLOCK ' in line:
-                splitted_line = line.split(' ')
-                block = int(splitted_line[1].replace(':', ''))
-                offset_from = int(splitted_line[2], 16)
-                offset_to = int(splitted_line[4].replace(']\n', ''), 16)
-                buffer[block] = ['', [offset_from, offset_to]]
+            if '[ID=' in line:
+                matches = re.findall(r'(\w+)=([^\s\]]+)', line)
+                metadata = dict(matches)
+                current_id = int(metadata['ID'])
+                text_offset_from = int(metadata['START'], 16)
+                text_offset_to = int(metadata['END'], 16)
+                pointers_str = metadata.get('POINTERS', '')
+                pointer_offsets = [int(p, 16) for p in pointers_str.split(';') if p.strip()]
+                buffer[current_id] = ['', [text_offset_from, text_offset_to], pointer_offsets]
             else:
-                buffer[block][0] += line
+                buffer[current_id][0] += line
     return buffer
 
 def write_byte(f, offset, byte):
