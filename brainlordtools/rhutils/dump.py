@@ -38,10 +38,14 @@ def write_text(f, offset, text, length=None, end_byte=None, limit=None):
     return f.tell()
 
 def read_dump(filename: str) -> dict:
-    buffer = {}
+    dump = {}
+    current_id = None
+    lines_accumulator = []
     with open(filename, 'r', encoding='utf-8') as f:
         for line in f:
             if '[ID=' in line:
+                if current_id is not None:
+                    dump[current_id][0] = "".join(lines_accumulator)
                 matches = re.findall(r'(\w+)=([^\s\]]+)', line)
                 metadata = dict(matches)
                 current_id = int(metadata['ID'])
@@ -49,10 +53,14 @@ def read_dump(filename: str) -> dict:
                 text_offset_to = int(metadata['END'], 16)
                 pointers_str = metadata.get('POINTERS', '')
                 pointer_offsets = [int(p, 16) for p in pointers_str.split(';') if p.strip()]
-                buffer[current_id] = ['', [text_offset_from, text_offset_to], pointer_offsets]
+                dump[current_id] = ['', [text_offset_from, text_offset_to], pointer_offsets]
+                lines_accumulator = []
             else:
-                buffer[current_id][0] += line
-    return buffer
+                if current_id is not None:
+                    lines_accumulator.append(line)
+        if current_id is not None:
+            dump[current_id][0] = "".join(lines_accumulator)
+    return dump
 
 def write_byte(f, offset, byte):
     f.seek(offset)
