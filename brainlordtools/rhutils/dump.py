@@ -1,3 +1,9 @@
+__author__ = "Roberto Fontanarosa"
+__license__ = "GPLv2"
+__version__ = ""
+__maintainer__ = "Roberto Fontanarosa"
+__email__ = "robertofontanarosa@gmail.com"
+
 import csv, re
 
 def read_text(f, offset=None, length=None, end_byte=None, cmd_list=None, append_end_byte=False):

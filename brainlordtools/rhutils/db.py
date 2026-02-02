@@ -1,3 +1,9 @@
+__author__ = "Roberto Fontanarosa"
+__license__ = "GPLv2"
+__version__ = ""
+__maintainer__ = "Roberto Fontanarosa"
+__email__ = "robertofontanarosa@gmail.com"
+
 import sqlite3
 from enum import IntEnum
 from typing import NamedTuple
