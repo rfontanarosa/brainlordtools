@@ -19,15 +19,39 @@ def _parse_dump(file_path: str) -> dict:
         buffer[current_id][0] += line
   return buffer
 
+def _parse_starocean_dump(file_path: str) -> dict:
+  buff = {}
+  with open(file_path, 'r', encoding='utf-8') as f:
+    current_id = 0
+    iterator = iter(f)
+    for line in iterator:
+      if line.startswith('<HEADER '):
+        current_id += 1
+        next_line = next(iterator)
+        buff[current_id] = ['', line + next_line.strip('\r\n')]
+      elif line.startswith('<BLOCK '):
+        current_id += 1
+        buff[current_id] = ['', line.strip('\r\n')]
+      else:
+        buff[current_id][0] += line
+  return buff
+
+GAME_PARSERS = {
+    'starocean': _parse_starocean_dump,
+    'default': _parse_dump
+}
+
 def import_dump(args):
-  source_dump_path = args.source
   db = args.database_file
+  source_dump_path = args.source
+  game = args.game
+  parse_func = GAME_PARSERS.get(game, GAME_PARSERS['default'])
   with sqlite3.connect(db) as conn:
     conn.text_factory = str
     cur = conn.cursor()
-    buffer = _parse_dump(source_dump_path)
-    for current_id, value in buffer.items():
-      [text, ref] = value
+    entries = parse_func(source_dump_path)
+    for current_id, value in entries.items():
+      text, ref = value
       text_decoded = text.strip('\r\n')
       insert_text(cur, current_id, b'', text_decoded, '', '', 1, ref)
 
@@ -96,6 +120,7 @@ subparsers = parser.add_subparsers()
 p_import_dump = subparsers.add_parser('import_dump', help='Import dump from a dump file')
 p_import_dump.add_argument('-db', '--database', action='store', dest='database_file', required=True, help='Path to the SQLite database')
 p_import_dump.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the source .txt dump file')
+p_import_dump.add_argument('-g', '--game', action='store', dest='game', required=False, help='Optional: Game ID(s) to use for custom parsing logic')
 p_import_dump.set_defaults(func=import_dump)
 p_import_user_translation = subparsers.add_parser('import_user_translation', help='Import translations from a dump file')
 p_import_user_translation.add_argument('-db', '--database', action='store', dest='database_file', required=True, help='Path to the SQLite database')

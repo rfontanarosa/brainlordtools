@@ -5,7 +5,7 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import os, sqlite3, time
-from rhutils.db import insert_text, insert_translation, select_translation_by_author, TranslationStatus
+from rhutils.db import insert_translation, TranslationStatus
 
 user_name = 'clomax'
 resources_path = '/Users/robertofontanarosa/git/brainlordresources/starocean'
@@ -22,7 +22,6 @@ dump2_fullpath = os.path.join(dump_path, 'dump_eng_2.txt')
 dump1_deepl_fullpath = os.path.join(translation_path, 'dump_ita_deepl_1.txt')
 dump2_deepl_fullpath = os.path.join(translation_path, 'dump_ita_deepl_2.txt')
 
-import_dump = False
 translate_dump_amazon = False
 translate_dump_deepl = False
 import_user_translation = False
@@ -43,20 +42,6 @@ def starocean_dump_reader(dump_fullpath):
       else:
         buff[id][0] += line
   return buff
-
-if import_dump:
-  conn = sqlite3.connect(db)
-  conn.text_factory = str
-  cur = conn.cursor()
-  buff = starocean_dump_reader(dump_fullpath)
-  for id, value in buff.items():
-    [text, ref] = value
-    text_length = len(text)
-    text_decoded = text.rstrip('\n\r')
-    insert_text(cur, id, b'', text_decoded, '', '', 1, ref)
-  cur.close()
-  conn.commit()
-  conn.close()
 
 if translate_dump_amazon:
   import boto3
