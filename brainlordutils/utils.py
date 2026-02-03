@@ -7,9 +7,9 @@ __email__ = "robertofontanarosa@gmail.com"
 import argparse, re, sqlite3
 from brainlordtools.rhutils.db import select_most_recent_translation, select_translation_by_author, insert_text, insert_translation, TranslationStatus
 
-def _dump_reader(dump_fullpath):
+def _parse_dump(file_path: str) -> dict:
   buffer = {}
-  with open(dump_fullpath, 'r', encoding='utf-8') as f:
+  with open(file_path, 'r', encoding='utf-8') as f:
     current_id = 0
     for line in f:
       if line.startswith('[BLOCK ') or line.startswith('[ID='):
@@ -25,7 +25,7 @@ def import_dump(args):
   with sqlite3.connect(db) as conn:
     conn.text_factory = str
     cur = conn.cursor()
-    buffer = _dump_reader(source_dump_path)
+    buffer = _parse_dump(source_dump_path)
     for current_id, value in buffer.items():
       [text, ref] = value
       text_decoded = text.strip('\r\n')
