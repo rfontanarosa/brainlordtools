@@ -76,6 +76,20 @@ def export_translation(args):
         text = translation if translation else text_decoded
         f.write(f"{ref}\r\n{text}\r\n\r\n")
 
+def mark_empty_texts_as_translated(args):
+  user_name = args.user_name
+  db = args.database_file
+  with sqlite3.connect(db) as conn:
+    conn.text_factory = str
+    read_cur = conn.cursor()
+    write_curr = conn.cursor()
+    rows = select_texts(read_cur)
+    for row in rows:
+      id, text_decoded = row
+      clear_text = re.sub(r'\[.*?\]\n?', '', text_decoded)
+      if clear_text == '':
+        insert_translation(write_curr, id, 'TEST', user_name, text_decoded, TranslationStatus.DONE, 60, '', '')
+
 parser = argparse.ArgumentParser()
 parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
@@ -94,6 +108,10 @@ p_export_translation.add_argument('-d', '--destination', action='store', dest='d
 p_export_translation.add_argument('-u', '--user', action='store', dest='user_name', required=False, help='The author whose translations you want to export')
 p_export_translation.add_argument('-b', '--blocks', action='store', dest='blocks', required=False, nargs='+', help='Optional: Filter by specific block IDs')
 p_export_translation.set_defaults(func=export_translation)
+p_mark_empty = subparsers.add_parser('mark_empty', help='Mark empty texts as done')
+p_mark_empty.add_argument('-db', '--database', dest='database_file', required=True)
+p_mark_empty.add_argument('-u', '--user', dest='user_name', required=True)
+p_mark_empty.set_defaults(func=mark_empty_texts_as_translated)
 
 if __name__ == "__main__":
   args = parser.parse_args()
