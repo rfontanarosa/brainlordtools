@@ -6,6 +6,8 @@ __email__ = "robertofontanarosa@gmail.com"
 
 import csv, re
 
+HEADER_PATTERN = r'(\w+)=([^\s\]]+)'
+
 def read_text(f, offset=None, length=None, end_byte=None, cmd_list=None, append_end_byte=False):
     text = b''
     if offset is not None:
@@ -43,10 +45,10 @@ def read_dump(filename: str) -> dict:
     lines_accumulator = []
     with open(filename, 'r', encoding='utf-8') as f:
         for line in f:
-            if '[ID=' in line:
+            if line.startswith('[ID='):
                 if current_id is not None:
                     dump[current_id][0] = "".join(lines_accumulator)
-                matches = re.findall(r'(\w+)=([^\s\]]+)', line)
+                matches = re.findall(HEADER_PATTERN, line)
                 metadata = dict(matches)
                 current_id = int(metadata['ID'])
                 text_offset_from = int(metadata['START'], 16)
@@ -70,14 +72,14 @@ def fill(f, start_offset, length, byte=b'\x00') -> None:
     f.seek(start_offset)
     f.write(byte * length)
 
-def dump_binary(f, start_offset, length, filepath):
+def dump_binary(f, start_offset, length, file_path):
     f.seek(start_offset)
     block = f.read(length)
-    with open(filepath, 'wb') as f1:
+    with open(file_path, 'wb') as f1:
         f1.write(block)
 
-def insert_binary(f, start_offset, filepath, max_length=None):
-    with open(filepath, 'rb') as f1:
+def insert_binary(f, start_offset, file_path, max_length=None):
+    with open(file_path, 'rb') as f1:
         block = f1.read()
         if max_length is not None and len(block) > max_length:
             raise ValueError(f"Insertion exceeds the specified limit of {max_length} bytes.")
