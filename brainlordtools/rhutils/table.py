@@ -58,7 +58,6 @@ class Table():
             if line.startswith(Table.COMMENT_CHAR) or line.startswith('//'):
                 pass
             elif line.startswith(Table.END_TOKEN_CHAR):
-                print('brooooooo')
                 self.end_token = bytes.fromhex(line[1:])
                 control_code = ControlCode(line[1:], '[END]')
                 self._create_graph(self._table, control_code.key, control_code)
@@ -171,7 +170,7 @@ if __name__ == "__main__":
 *fd
 /ff
 01=A
-02=°
+02=😆
 03=aa
 0400=bb
 050001=ccc
@@ -184,7 +183,7 @@ $08=[08]\\n,%X,%X
         (b'\xfd', "\n"),
         (b'\xff', "[END]"),
         (b'\x01', "A"),
-        (b'\x02', "°"),
+        (b'\x02', "😆"),
         (b'\x03', "aa"),
         (b'\x04\x00', "bb"),
         (b'\x05\x00\x01', "ccc"),
@@ -195,9 +194,9 @@ $08=[08]\\n,%X,%X
     for source_bytes, expected_str in test_cases:
         decoded = table.decode(source_bytes)
         encoded = table.encode(decoded)
-        status = "PASS" if decoded == expected_str and encoded == source_bytes else "FAIL"
+        status = "\033[32m" + "PASS" + "\033[0m" if decoded == expected_str and encoded == source_bytes else "\033[31m" + "FAIL" + "\033[0m"
         print(f"Source:  {source_bytes.hex().upper()}")
         print(f"Decoded: {decoded} (Expected: {expected_str})")
         print(f"Encoded: {encoded.hex().upper()}")
         print(f"Result:  {status}")
-        print("-" * 20)
+        print("-" * 40)
