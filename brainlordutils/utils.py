@@ -7,15 +7,21 @@ __email__ = "robertofontanarosa@gmail.com"
 import argparse, re, sqlite3
 from brainlordtools.rhutils.db import select_most_recent_translation, select_translation_by_author, insert_text, insert_translation, TranslationStatus
 
+def _parse_metadata(text: str) -> dict:
+  matches = re.findall(r'(\w+)=([^\s\]]+)', text)
+  return dict(matches)
+
 def _parse_dump(file_path: str) -> dict:
   buffer = {}
   with open(file_path, 'r', encoding='utf-8') as f:
-    current_id = 0
+    current_id = None
     for line in f:
-      if line.startswith('[BLOCK ') or line.startswith('[ID='):
-        current_id += 1
-        buffer[current_id] = ['', line.strip('\r\n')]
-      elif current_id > 0:
+      if line.startswith('[ID='):
+        metadata = _parse_metadata(line)
+        current_id = metadata.get('ID')
+        if current_id is not None:
+          buffer[current_id] = ['', line.strip()]
+      elif current_id is not None:
         buffer[current_id][0] += line
   return buffer
 
