@@ -4,8 +4,8 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import argparse, re, sqlite3
-from brainlordtools.rhutils.db import select_most_recent_translation, select_translation_by_author, insert_text, insert_translation, TranslationStatus
+import argparse, re, sqlite3, time
+from brainlordtools.rhutils.db import select_most_recent_translation, select_texts, select_translation_by_author, insert_text, insert_translation, TranslationStatus
 
 def _parse_metadata(text: str) -> dict:
   matches = re.findall(r'(\w+)=([^\s\]]+)', text)
@@ -76,7 +76,7 @@ def import_translation(args):
       if original_dump and original_dump.get(current_id, [None])[0] == text:
         continue
       text_decoded = text.rstrip('\r\n')
-      insert_translation(cur, current_id, 'TEST', 'user_name', text_decoded, TranslationStatus.PARTIALLY, time.time(), '', '')
+      insert_translation(cur, current_id, 'TEST', user_name, text_decoded, TranslationStatus.PARTIALLY, time.time(), '', '')
 
 def export_translation(args):
   db = args.database_file
