@@ -24,13 +24,13 @@ class TranslationRecord(NamedTuple):
     ref: str
     date: str
 
-def insert_text(cur, id, text, decoded_text, address, pointer_adresses, block, ref):
+def insert_text(cur, id, text, decoded_text, address, pointer_adresses, block, ref) -> None:
     cur.execute('INSERT OR REPLACE INTO texts VALUES (?, ?, ?, ?, ?, ?, ?, ?)', (id, sqlite3.Binary(text), decoded_text, address, pointer_adresses, len(text), str(block), ref))
 
-def insert_translation(cur, id_text, project, author, translation, status, date, tags, comment):
+def insert_translation(cur, id_text, project, author, translation, status, date, tags, comment) -> None:
     cur.execute('INSERT OR REPLACE INTO translations VALUES (?, ?, ?, ?, ?, ?, ?, ?)', (id_text, project, author, translation, status, date, tags, comment))
 
-def update_translation(cur, id_text, project, author, translation, status, date, tags, comment):
+def update_translation(cur, id_text, project, author, translation, status, date, tags, comment) -> None:
     cur.execute('UPDATE translations SET translation=?, status=?, date=?, tags=?, comment=? WHERE id_text=? AND project=? AND author=?', (translation, status, date, tags, comment, id_text, project, author))
 
 def select_texts(cur, blocks=None):

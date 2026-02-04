@@ -47,7 +47,7 @@ GAME_PARSERS = {
     'default': _parse_dump
 }
 
-def import_dump(args):
+def import_dump(args) -> None:
   db = args.database_file
   source_dump_path = args.source
   game = args.game
@@ -60,7 +60,7 @@ def import_dump(args):
       text_decoded = text.strip('\r\n')
       insert_text(cur, current_id, b'', text_decoded, '', '', 1, ref)
 
-def import_translation(args):
+def import_translation(args) -> None:
   db = args.database_file
   source_dump_path = args.source
   user_name = args.user_name
@@ -78,7 +78,7 @@ def import_translation(args):
       text_decoded = text.rstrip('\r\n')
       insert_translation(cur, current_id, 'TEST', user_name, text_decoded, TranslationStatus.PARTIALLY, time.time(), '', '')
 
-def export_translation(args):
+def export_translation(args) -> None:
   db = args.database_file
   destination_dump_path = args.destination
   user_name = args.user_name
@@ -97,7 +97,7 @@ def export_translation(args):
         text = translation if translation else text_decoded
         f.write(f"{ref}\r\n{text}\r\n\r\n")
 
-def mark_empty_texts_as_translated(args):
+def mark_empty_texts_as_translated(args) -> None:
   user_name = args.user_name
   db = args.database_file
   with sqlite3.connect(db) as conn:
