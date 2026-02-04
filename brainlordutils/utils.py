@@ -51,13 +51,12 @@ def import_dump(args):
   db = args.database_file
   source_dump_path = args.source
   game = args.game
-  parse_func = GAME_PARSERS.get(game, GAME_PARSERS['default'])
+  parse_dump_func = GAME_PARSERS.get(game, GAME_PARSERS['default'])
   with sqlite3.connect(db) as conn:
     conn.text_factory = str
     cur = conn.cursor()
-    entries = parse_func(source_dump_path)
-    for current_id, value in entries.items():
-      text, ref = value
+    entries = parse_dump_func(source_dump_path)
+    for current_id, (text, ref) in entries.items():
       text_decoded = text.strip('\r\n')
       insert_text(cur, current_id, b'', text_decoded, '', '', 1, ref)
 
