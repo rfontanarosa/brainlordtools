@@ -4,7 +4,7 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import re
+import io, os, pprint, re
 
 class ControlCode():
 
@@ -42,38 +42,44 @@ class Table():
     HEX_FORMAT = '{{{:02x}}}'
     DOUBLE_HEX_FORMAT =  HEX_FORMAT + HEX_FORMAT
 
-    def __init__(self, filepath, encoding='utf-8'):
-
+    def __init__(self, source, encoding='utf-8'):
         self.end_token, self.end_line = None, None
         self._table, self._reverse_table = {}, {}
+        if isinstance(source, str) and os.path.exists(source):
+            with open(source, 'r', encoding=encoding) as f:
+                self._parse(f)
+        else:
+            buffer = io.StringIO(source)
+            self._parse(buffer)
 
-        with open(filepath, 'r', encoding=encoding) as file:
-            for line in file:
-                line = line.strip('\r\n').replace('\\n', '\n')
-                if line.startswith(Table.COMMENT_CHAR) or line.startswith('//'):
-                    pass
-                elif line.startswith(Table.END_TOKEN_CHAR):
-                    self.end_token = bytes.fromhex(line[1:])
-                    control_code = ControlCode(line[1:], '[END]')
-                    self._create_graph(self._table, control_code.key, control_code)
-                    self._create_graph(self._reverse_table, control_code.value, control_code)
-                elif line.startswith(Table.END_LINE_CHAR):
-                    part_key = line[1:]
-                    self.line_token = bytes.fromhex(part_key)
-                    self._create_graph(self._table, bytes.fromhex(part_key), '\n')
-                    self._create_graph(self._reverse_table, '\n', bytes.fromhex(part_key))
-                else:
-                    part_key, _, part_value = line.partition('=')
-                    if part_value:
-                        if len(part_key) % 2 == 0:
-                            self._create_graph(self._table, bytes.fromhex(part_key), part_value)
-                            self._create_graph(self._reverse_table, part_value, bytes.fromhex(part_key))
-                        elif part_key.startswith('$') and len(part_key[1:]) % 2 == 0:
-                            control_code = ControlCode(part_key[1:], part_value)
-                            self._create_graph(self._table, control_code.key, control_code)
-                            self._create_graph(self._reverse_table, control_code.value, control_code)
-                        else:
-                            raise Exception(line)
+    def _parse(self, file_object):
+        for line in file_object:
+            line = line.strip('\r\n').replace('\\n', '\n')
+            if line.startswith(Table.COMMENT_CHAR) or line.startswith('//'):
+                pass
+            elif line.startswith(Table.END_TOKEN_CHAR):
+                print('brooooooo')
+                self.end_token = bytes.fromhex(line[1:])
+                control_code = ControlCode(line[1:], '[END]')
+                self._create_graph(self._table, control_code.key, control_code)
+                self._create_graph(self._reverse_table, control_code.value, control_code)
+            elif line.startswith(Table.END_LINE_CHAR):
+                part_key = line[1:]
+                self.line_token = bytes.fromhex(part_key)
+                self._create_graph(self._table, bytes.fromhex(part_key), '\n')
+                self._create_graph(self._reverse_table, '\n', bytes.fromhex(part_key))
+            else:
+                part_key, _, part_value = line.partition('=')
+                if part_value:
+                    if len(part_key) % 2 == 0:
+                        self._create_graph(self._table, bytes.fromhex(part_key), part_value)
+                        self._create_graph(self._reverse_table, part_value, bytes.fromhex(part_key))
+                    elif part_key.startswith('$') and len(part_key[1:]) % 2 == 0:
+                        control_code = ControlCode(part_key[1:], part_value)
+                        self._create_graph(self._table, control_code.key, control_code)
+                        self._create_graph(self._reverse_table, control_code.value, control_code)
+                    else:
+                        raise Exception(line)
 
     def _create_graph(self, node, key, value):
         if len(key) == 1:
@@ -155,18 +161,43 @@ class Table():
         return encoded
 
     def __str__(self):
-        import pprint
         pp = pprint.PrettyPrinter(indent=2)
         pp.pprint(self._reverse_table)
         return self._table.__str__()
 
 if __name__ == "__main__":
-    filepath = '/Users/robertofontanarosa/Desktop/table.tbl'
-    table = Table(filepath)
-    source = b'\x09\x25\x09\x26\xf8\x01\x02\xff\xcc\x04\xff\x05\xff\x99\xfc\x02\x01\xfb\x88\x88\x88\x00\xdd\xff'
-    print(table)
-    decoded = table.decode(source)
-    print(f'decoded: {decoded}')
-    encoded = table.encode(decoded)
-    print(f'encoded: {encoded}')
-    print(f'encoded hex: {encoded.hex()}')
+    test_table_data = '''
+;comment
+*fd
+/ff
+01=A
+02=°
+03=aa
+0400=bb
+050001=ccc
+060001=ddd\\n
+$07=[07],%X
+$08=[08]\\n,%X,%X
+'''
+    table = Table(test_table_data)
+    test_cases = [
+        (b'\xfd', "\n"),
+        (b'\xff', "[END]"),
+        (b'\x01', "A"),
+        (b'\x02', "°"),
+        (b'\x03', "aa"),
+        (b'\x04\x00', "bb"),
+        (b'\x05\x00\x01', "ccc"),
+        (b'\x06\x00\x01', "ddd\n"),
+        (b'\x07\x00', "[07 00]"),
+        (b'\x08\x00\x01', "[08 00 01]\n"),
+    ]
+    for source_bytes, expected_str in test_cases:
+        decoded = table.decode(source_bytes)
+        encoded = table.encode(decoded)
+        status = "PASS" if decoded == expected_str and encoded == source_bytes else "FAIL"
+        print(f"Source:  {source_bytes.hex().upper()}")
+        print(f"Decoded: {decoded} (Expected: {expected_str})")
+        print(f"Encoded: {encoded.hex().upper()}")
+        print(f"Result:  {status}")
+        print("-" * 20)
