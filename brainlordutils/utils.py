@@ -58,8 +58,9 @@ def _parse_starocean_dump(file_path: str) -> dict:
   return buff
 
 GAME_PARSERS = {
-    'starocean': _parse_starocean_dump,
-    'default': _parse_dump
+  'soe': _parse_soe_dump,
+  'starocean': _parse_starocean_dump,
+  'default': _parse_dump
 }
 
 def import_dump(args) -> None:

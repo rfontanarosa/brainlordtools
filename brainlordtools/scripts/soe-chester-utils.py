@@ -5,7 +5,7 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import os, sqlite3, time
-from rhutils.db import insert_text, select_translation_by_author, insert_translation
+from rhutils.db import select_translation_by_author, insert_translation
 
 user_name = 'clomax'
 resources_path = '/Users/robertofontanarosa/git/brainlordresources/soe'
@@ -16,28 +16,8 @@ dump_fullpath = os.path.join(dump_path, 'dump_eng.txt')
 dump_ita_fullpath = os.path.join(translation_path, 'dump_ita.txt')
 dump_user_fullpath = os.path.join(translation_path, f'dump_ita_{user_name}.txt')
 
-import_dump = False
 import_user_translation = False
 export_user_translation = False
-
-if import_dump:
-  conn = sqlite3.connect(db)
-  conn.text_factory = str
-  cur = conn.cursor()
-  with open(dump_fullpath, 'r') as f:
-    id = 1
-    text_decoded = ''
-    for index, line in enumerate(f):
-      if '<End>' in line:
-        text_decoded += line[:-6]
-        insert_text(cur, id, '', text_decoded, '', '', 1, '')
-        id += 1
-        text_decoded = ''
-      else:
-        text_decoded += line
-  cur.close()
-  conn.commit()
-  conn.close()
 
 if import_user_translation:
   conn = sqlite3.connect(db)

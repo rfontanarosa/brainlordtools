@@ -39,7 +39,7 @@ case $GAME_ID in
     python -m brainlordutils.utils import_translation \
         -db "$DB" -s "$SOURCE_EVENTS_FILE" -u "$USER"
     python -m brainlordutils.utils import_translation \
-        -db "$DB" -s "$SOURCE_TEXT_FILE" -u "$USER" 
+        -db "$DB" -s "$SOURCE_TEXT_FILE" -u "$USER"
     echo "Done! Dumps have been imported into $DB"
     ;;
 
