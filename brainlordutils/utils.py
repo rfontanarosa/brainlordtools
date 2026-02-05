@@ -25,6 +25,21 @@ def _parse_dump(file_path: str) -> dict:
         buffer[current_id][0] += line
   return buffer
 
+def _parse_soe_dump(file_path: str) -> dict:
+  buffer = {}
+  with open(file_path, 'r', encoding='utf-8') as f:
+    real_id = 1
+    current_text = ""
+    for line in f:
+      if '<End>' in line:
+        clean_text = current_text + line.replace('<End>', '')
+        buffer[real_id] = [clean_text.strip(), ''] 
+        real_id += 1
+        current_text = ""
+      else:
+        current_text += line
+  return buffer
+
 def _parse_starocean_dump(file_path: str) -> dict:
   buff = {}
   with open(file_path, 'r', encoding='utf-8') as f:
@@ -56,9 +71,13 @@ def import_dump(args) -> None:
     conn.text_factory = str
     cur = conn.cursor()
     entries = parse_dump_func(source_dump_path)
-    for current_id, (text, ref) in entries.items():
+    for incremental_id, (text, ref) in entries.items():
+      should_parse = game not in {'evermore', 'starocean'} and ref != ''
+      metadata = _parse_metadata(ref) if should_parse else {}
+      current_id = metadata.get('ID') or incremental_id
+      block = metadata.get('BLOCK', 1)
       text_decoded = text.strip('\r\n')
-      insert_text(cur, current_id, b'', text_decoded, '', '', 1, ref)
+      insert_text(cur, current_id, b'', text_decoded, '', '', block, ref)
 
 def import_translation(args) -> None:
   db = args.database_file

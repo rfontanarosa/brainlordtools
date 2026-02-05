@@ -18,6 +18,16 @@ case $GAME_ID in
     echo "Done!"
     ;;
 
+  "soe")
+    DUMP_DIR="$RESOURCE_PATH/dump_text"
+    SOURCE_FILE="$DUMP_DIR/dump_eng.txt"
+
+    echo "Processing $GAME_ID..."
+    python -m brainlordutils.utils import_dump \
+       -db "$DB" -s "$SOURCE_FILE" -g "$GAME_ID"
+    echo "Done!"
+    ;;
+
   "starocean")
     DUMP_DIR="$RESOURCE_PATH/chester/resources"
     SOURCE_FILE="$DUMP_DIR/dialogues.txt"
