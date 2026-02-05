@@ -345,6 +345,9 @@ def som_tilemap_dumper(args):
     with open(source_file, 'rb') as f:
         # INTRO TILEMAP
         dump_binary(f, 0x14a6, 928, dump_path / 'intro-tilemap.bin')
+        # THE END
+        dump_binary(f, 0x07c0, 544, dump_path / 'the-end-gfx.bin')
+        dump_binary(f, 0x10c8, 928, dump_path / 'the-end-tilemap.bin')
 
 def som_tilemap_inserter(args):
     dest_file = args.dest_file
@@ -352,6 +355,9 @@ def som_tilemap_inserter(args):
     with open(dest_file, 'r+b') as f:
         # INTRO TILEMAP
         insert_binary(f, 0x14a6, translation_path / 'intro-tilemap.bin', max_length=928)
+        # THE END
+        insert_binary(f, 0x07c0, translation_path / 'the-end-gfx.bin', max_length=544)
+        insert_binary(f, 0x10c8, translation_path / 'the-end-tilemap.bin', max_length=928)
 
 def som_misc_inserter(args):
     dest_file = args.dest_file
