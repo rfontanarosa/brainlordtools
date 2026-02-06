@@ -12,8 +12,7 @@ from rhutils.rom import crc32
 from rhutils.snes import pc2snes_hirom
 from rhutils.table import Table
 
-CRC32 = 'D0176B24'
-# CRC32 = '31114AAC' # SADNESS
+CRC32 = 'C5CB2F26'
 
 import enum
 
