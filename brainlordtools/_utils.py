@@ -10,7 +10,7 @@ import shutil
 import sys
 import zlib
 
-from _config import CRC_TABLE
+from _config import CRC_TABLE, EXPAND_TABLE
 
 def copy_file(args):
     try:
@@ -44,6 +44,26 @@ def crc_check(args):
 
     print(f"[{game_id.upper()}] Checksum Verified: {calc_crc} [OK]")
     return True
+
+def expand_file(args):
+    dest_file = args.dest_file
+    game_id = args.game_id
+
+    if game_id not in EXPAND_TABLE:
+        print(f"Error: No expansion size defined for '{game_id}'")
+        sys.exit(1)
+
+    if not os.path.exists(dest_file):
+        print(f"Error: File '{dest_file}' not found.")
+        return sys.exit(1)
+
+    target_size = EXPAND_TABLE[game_id]
+
+    with open(dest_file, 'r+b') as f:
+        f.seek(0, os.SEEK_END)
+        f.write(b'\x00' * target_size)
+
+    print(f"[{game_id.upper()}] Expanded to {target_size // 1024} KB [OK]")
     return True
 
 parser = argparse.ArgumentParser(description="Utilities")
@@ -57,6 +77,10 @@ p_crc_check = subparsers.add_parser('crc_check', help='Check file CRC')
 p_crc_check.add_argument('-s', '--source', dest='source_file', required=True, help='Path to the file file')
 p_crc_check.add_argument('-g', '--game', dest='game_id', required=True, help='Game ID (e.g., som, ff6)')
 p_crc_check.set_defaults(func=crc_check)
+p_expand = subparsers.add_parser('expand')
+p_expand.add_argument('-d', '--dest', dest='dest_file', required=True, help="Path to the destination file to be expanded")
+p_expand.add_argument('-g', '--game', dest='game_id', required=True, help="Game ID (e.g., som, ff6)")
+p_expand.set_defaults(func=expand_file)
 
 if __name__ == "__main__":
     args = parser.parse_args()

@@ -24,8 +24,8 @@ TANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
 TANSLATION_CREDITS_PATH="$RESOURCE_PATH/translation_credits"
 
 python "$TOOLS_PATH/_utils.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
-python "$TOOLS_PATH/_utils.py" copy_file -s "$SOURCE" -d "$DESTINATION"
-python "$TOOLS_PATH/brainlord.py" expand -s "$SOURCE" -d "$DESTINATION"
+python "$TOOLS_PATH/_utils.py" copy_file -s "$SOURCE" -d "$DESTINATION" || exit 1
+python "$TOOLS_PATH/_utils.py" expand -d "$DESTINATION" -g "$GAME_ID" || exit 1
 
 python "$TOOLS_PATH/brainlord.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH" -db "$DB"
 # python "$TOOLS_PATH/brainlord.py" dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"

@@ -8,12 +8,9 @@ import csv, os, re, shutil, sqlite3, struct, sys
 
 from rhtools3.Table import Table
 from rhutils.dump import get_csv_translated_texts, read_dump, fill, write_byte
-from rhutils.rom import expand_rom
 from rhutils.snes import pc2snes_hirom, snes2pc_hirom
 from quintettools.quintet_comp import compress as quintet_compress
 from quintettools.quintet_decomp import decompress as quintet_decompress
-
-EXP_SIZE = 0x80000
 
 pointers_offsets_to_exclude = (0x5c94, 0x64e1c, 0xa0f3e, 0xaf75e, 0xdbdc, 0x11318, 0xd2ebc, 0x13321, 0x329b9, 0x80f93, 0xbe1ec, 0xba2dc, 0xba4f3, 0x80f93, 0xaedf9, 0xa468b, 0x226ab, 0x31732, 0xd3016, 0xdd242, 0xdd244, 0xdf92a, 0xe7728, 0xe7e76, 0xf3496, 0x1032df, 0x103c2a, 0x10d8c7, 0x118258, 0x12846b, 0x12b8f4, 0x13c9dd, 0x13f292, 0x14bd72, 0x151bc7, 0x1527eb, 0x15637d, 0x16c614, 0x16c61e, 0x171027, 0x184e15, 0x188d3b, 0x1909f0, 0x19853c, 0x1ddd09, 0x1e6886, 0x1ebcf8, 0x1edec7, 0x1f0973, 0x1f0b8b, 0x1f0bcb, 0x1f189b, 0x1f8cb2, 0x1f8e28, 0x1f9e90)
 
@@ -801,10 +798,6 @@ def gaia_gfx_inserter(args):
             out.write(compressed_data)
             offset = out.tell()
 
-def gaia_expander(args):
-    dest_file = args.dest_file
-    expand_rom(dest_file, EXP_SIZE)
-
 #####
 
 TOTAL_SIZE = 128 * 128  # Total map size
@@ -934,9 +927,6 @@ insert_gfx_parser = subparsers.add_parser('insert_gfx', help='Execute GFX INSERT
 insert_gfx_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
 insert_gfx_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
 insert_gfx_parser.set_defaults(func=gaia_gfx_inserter)
-expand_parser = subparsers.add_parser('expand', help='Execute EXPANDER')
-expand_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-expand_parser.set_defaults(func=gaia_expander)
 
 if __name__ == "__main__":
     args = parser.parse_args()

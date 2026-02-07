@@ -9,7 +9,6 @@ import sys, os, struct, sqlite3, shutil, csv
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_most_recent_translation
 from rhutils.dump import read_text, write_text, dump_binary, insert_binary
-from rhutils.rom import expand_rom
 
 TEXT_BLOCK1_START = 0x170000
 TEXT_BLOCK1_END = 0x17fac9
@@ -733,14 +732,6 @@ def item_pointers_finder(fw, start, end):
             fw.seek(3, os.SEEK_CUR)
     return pointers
 
-def brainlord_expander(args):
-    source_file = args.source_file
-    dest_file = args.dest_file
-    shutil.copy(source_file, dest_file)
-    with open(dest_file, 'r+b') as f:
-        f.seek(0, os.SEEK_END)
-        f.write(b'\x00' * 524288)
-
 import argparse
 parser = argparse.ArgumentParser()
 parser.set_defaults(func=None)
@@ -779,10 +770,6 @@ insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1'
 insert_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
 insert_misc_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
 insert_misc_parser.set_defaults(func=brainlord_misc_inserter)
-expand_parser = subparsers.add_parser('expand', help='Execute EXPANDER')
-expand_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-expand_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-expand_parser.set_defaults(func=brainlord_expander)
 dump_credits_parser = subparsers.add_parser('dump_credits', help='Execute CREDITS DUMP')
 dump_credits_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 dump_credits_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Credits table filename')
