@@ -1,3 +1,9 @@
+__author__ = "Roberto Fontanarosa"
+__license__ = "GPLv2"
+__version__ = ""
+__maintainer__ = "Roberto Fontanarosa"
+__email__ = "robertofontanarosa@gmail.com"
+
 CRC_TABLE = {
     '7thsaga': '2979C59', # UNPACKED GFX
     '7hsaga_original': 'B3ABDDE6',
