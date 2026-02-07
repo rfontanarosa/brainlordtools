@@ -318,14 +318,14 @@ def brainlord_text_dumper(args):
         conn.text_factory = str
         cur = conn.cursor()
         with open(source_file, 'rb') as f:
-            id = 1
-            id = _brainlord_text_block_dumper(f, dump_path, table, id, 1, cur, TEXT_BLOCK1_START, TEXT_BLOCK1_END)
-            id = _brainlord_text_block_dumper(f, dump_path, table, id, 2, cur, TEXT_BLOCK2_START, TEXT_BLOCK2_END)
-            id = _brainlord_text_block_dumper(f, dump_path, table, id, 3, cur, TEXT_BLOCK3_START, TEXT_BLOCK3_END)
-            id = _brainlord_text_block_dumper(f, dump_path, table, id, 4, cur, TEXT_BLOCK4_START, TEXT_BLOCK4_END)
-            id = _brainlord_text_block_dumper(f, dump_path, table, id, 5, cur, TEXT_BLOCK5_START, TEXT_BLOCK5_END)
-            id = _brainlord_text_block_dumper(f, dump_path, table, id, 6, cur, TEXT_BLOCK6_START, TEXT_BLOCK6_END)
-            id = _brainlord_text_block_dumper(f, dump_path, table, id, 7, cur, TEXT_BLOCK7_START, TEXT_BLOCK7_END)
+            current_id = 1
+            current_id = _brainlord_text_block_dumper(f, dump_path, table, current_id, 1, cur, TEXT_BLOCK1_START, TEXT_BLOCK1_END)
+            current_id = _brainlord_text_block_dumper(f, dump_path, table, current_id, 2, cur, TEXT_BLOCK2_START, TEXT_BLOCK2_END)
+            current_id = _brainlord_text_block_dumper(f, dump_path, table, current_id, 3, cur, TEXT_BLOCK3_START, TEXT_BLOCK3_END)
+            current_id = _brainlord_text_block_dumper(f, dump_path, table, current_id, 4, cur, TEXT_BLOCK4_START, TEXT_BLOCK4_END)
+            current_id = _brainlord_text_block_dumper(f, dump_path, table, current_id, 5, cur, TEXT_BLOCK5_START, TEXT_BLOCK5_END)
+            current_id = _brainlord_text_block_dumper(f, dump_path, table, current_id, 6, cur, TEXT_BLOCK6_START, TEXT_BLOCK6_END)
+            current_id = _brainlord_text_block_dumper(f, dump_path, table, current_id, 7, cur, TEXT_BLOCK7_START, TEXT_BLOCK7_END)
 
 def brainlord_text_inserter(args):
     source_file = args.source_file
