@@ -8,12 +8,8 @@ import csv, pathlib, re, shutil, sqlite3, struct, sys
 
 from rhutils.db import insert_text, select_most_recent_translation, select_translation_by_author
 from rhutils.dump import dump_binary, read_text, get_csv_translated_texts, insert_binary, write_byte
-from rhutils.rom import crc32
 from rhutils.snes import pc2snes_hirom
 from rhutils.table import Table
-
-CRC32 = 'D0176B24'
-# CRC32 = '31114AAC' # SADNESS
 
 import enum
 
@@ -71,8 +67,6 @@ def som_text_dumper(args):
     table2_file = args.table2
     dump_path = pathlib.Path(args.dump_path)
     db = args.database_file
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table_file)
     table2 = Table(table2_file)
     conn = sqlite3.connect(db)
@@ -321,8 +315,6 @@ def som_misc_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
     dump_path = pathlib.Path(args.dump_path)
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
     pathlib.Path.mkdir(dump_path)
@@ -385,7 +377,6 @@ def som_misc_inserter(args):
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--no_crc32_check', action='store_true', dest='no_crc32_check', required=False, default=False, help='CRC32 Check')
 parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
 dump_text_parser = subparsers.add_parser('dump_text', help='Execute TEXT DUMP')

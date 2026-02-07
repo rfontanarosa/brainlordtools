@@ -1,5 +1,16 @@
+__author__ = "Roberto Fontanarosa"
+__license__ = "GPLv2"
+__version__ = ""
+__maintainer__ = "Roberto Fontanarosa"
+__email__ = "robertofontanarosa@gmail.com"
+
 import argparse
+import os
 import shutil
+import sys
+import zlib
+
+from _config import CRC_TABLE
 
 def copy_file(args):
     try:
@@ -8,13 +19,39 @@ def copy_file(args):
     except Exception as e:
         print(f"Copy failed: {e}")
 
+def crc_check(args):
+    if args.game_id not in CRC_TABLE:
+        print(f"Error: Game ID '{args.game_id}' not found in database.")
+        return sys.exit(1)
+
+    if not os.path.exists(args.source_file):
+        print(f"Error: File '{args.source_file}' not found.")
+        return sys.exit(1)
+
+    expected = CRC_TABLE[args.game_id].upper()
+
+    with open(args.source_file, 'rb') as f:
+        calc_crc = format(zlib.crc32(f.read()) & 0xFFFFFFFF, '08X')
+    
+    if calc_crc != expected:
+        print(f"[{args.game_id.upper()}] CHECKSUM FAILED!")
+        print(f"Expected: {expected}, Got: {calc_crc}")
+        return sys.exit(1)
+    
+    print(f"[{args.game_id.upper()}] Checksum Verified: {calc_crc} [OK]")
+    return True
+
 parser = argparse.ArgumentParser(description="Utilities")
 parser.set_defaults(func=None)
 subparsers = parser.add_subparsers(dest="command")
-p_copy_file = subparsers.add_parser('file_copy', help='File COPY')
-p_copy_file.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-p_copy_file.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
+p_copy_file = subparsers.add_parser('copy_file', help='File COPY')
+p_copy_file.add_argument('-s', '--source', dest='source_file', required=True, help='Original filename')
+p_copy_file.add_argument('-d', '--dest', dest='dest_file', required=True, help='Destination filename')
 p_copy_file.set_defaults(func=copy_file)
+p_crc_check = subparsers.add_parser('crc_check', help='Check file CRC')
+p_crc_check.add_argument('-s', '--source', dest='source_file', required=True, help='File to check')
+p_crc_check.add_argument('-g', '--game', dest='game_id', required=True, help='Game ID (e.g., som, ff6)')
+p_crc_check.set_defaults(func=crc_check)
 
 if __name__ == "__main__":
     args = parser.parse_args()
