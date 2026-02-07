@@ -8,10 +8,7 @@ import sys, os, struct, shutil, csv
 
 from rhtools3.Table import Table
 from rhutils.dump import read_text, write_text, get_csv_translated_texts
-from rhutils.rom import crc32
 from rhutils.snes import snes2pc_lorom, pc2snes_lorom
-
-CRC32 = '2C52C792'
 
 def ffmq_misc_dumper(args):
     source_file = args.source_file
@@ -137,7 +134,6 @@ def ffmq_misc_inserter(args):
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--no_crc32_check', action='store_true', dest='no_crc32_check', required=False, default=False, help='CRC32 Check')
 parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
 dump_misc_parser = subparsers.add_parser('dump_misc', help='Execute MISC DUMP')

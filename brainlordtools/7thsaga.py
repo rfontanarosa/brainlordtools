@@ -9,10 +9,6 @@ import sys, os, struct, sqlite3, shutil, csv
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_most_recent_translation
 from rhutils.dump import read_text, write_byte, write_text, dump_binary, insert_binary
-from rhutils.rom import crc32
-
-# CRC32 = 'B3ABDDE6'
-CRC32 = '2979C59' # UNPACKED GFX
 
 TEXT_SEGMENT_1 = (0x60000, 0x6fddf)
 TEXT_SEGMENT_X = (0x6fde0, 0x6ffff) # empty
@@ -130,8 +126,6 @@ def seventhsaga_text_dumper(args):
     table1_file = args.table1
     dump_path = args.dump_path
     db = args.database_file
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     conn = sqlite3.connect(db)
     conn.text_factory = str
@@ -154,8 +148,6 @@ def seventhsaga_text_inserter(args):
     translation_path = args.translation_path
     db = args.database_file
     user_name = args.user
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table2_file)
     conn = sqlite3.connect(db)
     conn.text_factory = str
@@ -262,8 +254,6 @@ def seventhsaga_text_inserter(args):
 def seventhsaga_gfx_dumper(args):
     source_file = args.source_file
     dump_path = args.dump_path
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
@@ -279,8 +269,6 @@ def seventhsaga_misc_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
     dump_path = args.dump_path
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
@@ -302,8 +290,6 @@ def seventhsaga_misc_inserter(args):
     source_file, dest_file = args.source_file, args.dest_file
     table1_file, table2_file = args.table1, args.table2
     translation_path = args.translation_path
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table, table2 = Table(table1_file), Table(table2_file)
     # get pointers
     with open(source_file, 'rb') as f:
@@ -389,7 +375,6 @@ def repoint_three_bytes_pointer(f, pointer_offset, offset_map, type=None):
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--no_crc32_check', action='store_true', dest='no_crc32_check', required=False, default=False, help='CRC32 Check')
 parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
 dump_text_parser = subparsers.add_parser('dump_text', help='Execute TEXT DUMP')
