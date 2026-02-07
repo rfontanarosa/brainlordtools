@@ -7,10 +7,7 @@ __email__ = "robertofontanarosa@gmail.com"
 import csv, os, shutil, struct, sys
 
 from rhutils.dump import dump_binary, insert_binary, get_csv_translated_texts, read_text, write_text
-from rhutils.rom import crc32
 from rhutils.table import Table
-
-CRC32 = '693a'
 
 TEXT_POINTERS = (0x16000, 0x16114)
 MISC_POINTERS1 = (0x16114, 0x16122)
@@ -21,8 +18,6 @@ def gargoyle_text_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
     dump_path = args.dump_path
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=False)
     os.mkdir(dump_path)
@@ -56,8 +51,6 @@ def gargoyle_misc_dumper(args):
     table2_file = args.table2
     table3_file = args.table3
     dump_path = args.dump_path
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table1 = Table(table1_file)
     table2 = Table(table2_file)
     table3 = Table(table3_file)
@@ -217,8 +210,6 @@ def gargoyle_text_inserter(args):
     table2_file = args.table2
     translation_dump_path = args.translation_path1
     translation_misc_path = args.translation_path2
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table1 = Table(table1_file)
     table2 = Table(table2_file)
     #
@@ -379,8 +370,6 @@ def gargoyle_misc_inserter(args):
 def gargoyle_gfx_dumper(args):
     source_file = args.source_file
     dump_path = args.dump_path
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
@@ -398,7 +387,6 @@ def gargoyle_gfx_inserter(args):
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--no_crc32_check', action='store_true', dest='no_crc32_check', required=False, default=False, help='CRC32 Check')
 parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
 dump_text_parser = subparsers.add_parser('dump_text', help='Execute TEXT DUMP')

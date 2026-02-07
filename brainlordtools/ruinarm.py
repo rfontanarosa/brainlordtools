@@ -4,13 +4,10 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, struct, sqlite3, shutil
+import os, struct, sqlite3, shutil
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text
-from rhutils.rom import crc32
-
-CRC32 = 'C2ACD40D'
 
 POINTER_BLOCKS = [
     (0x1867E, 0x18842, 0x10000),
@@ -42,8 +39,6 @@ def ruinarm_text_dumper(args):
     table1_file = args.table1
     dump_path = args.dump_path
     db = args.database_file
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     conn = sqlite3.connect(db)
     conn.text_factory = str
@@ -85,8 +80,6 @@ def ruinarm_text_inserter(args):
     translation_path = args.translation_path
     db = args.database_file
     user_name = args.user
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table2_file)
     buffer = {}
     #
@@ -122,11 +115,8 @@ def ruinarm_text_inserter(args):
             #     print(table.decode(swapped_text, tbl_resolver=False, dict_resolver=False, mte_resolver=False, ctrl_resolver=False))
             #     print(hex(f.tell()))
 
-
-
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--no_crc32_check', action='store_true', dest='no_crc32_check', required=False, default=False, help='CRC32 Check')
 parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
 dump_text_parser = subparsers.add_parser('dump_text', help='Execute DUMP')

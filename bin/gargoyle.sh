@@ -24,13 +24,13 @@ TANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
 
 python "$TOOLS_PATH/_utils.py" copy_file -s "$SOURCE" -d "$DESTINATION"
 
-python "$TOOLS_PATH/gargoyle.py" --no_crc32_check dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH"
-python "$TOOLS_PATH/gargoyle.py" --no_crc32_check dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
-python "$TOOLS_PATH/gargoyle.py" --no_crc32_check dump_misc -s "$SOURCE" -t1 "$TABLE1" -t2 "$TABLE2" -t3 "$TABLE5" -dp "$DUMP_MISC_PATH"
+python "$TOOLS_PATH/gargoyle.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH"
+python "$TOOLS_PATH/gargoyle.py" dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
+python "$TOOLS_PATH/gargoyle.py" dump_misc -s "$SOURCE" -t1 "$TABLE1" -t2 "$TABLE2" -t3 "$TABLE5" -dp "$DUMP_MISC_PATH"
 
-python "$TOOLS_PATH/gargoyle.py" --no_crc32_check insert_text -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE4" -t2 "$TABLE3" -tp1 "$TRANSLATION_TEXT_PATH" -tp2 "$TRANSLATION_MISC_PATH"
-python "$TOOLS_PATH/gargoyle.py" --no_crc32_check insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
-python "$TOOLS_PATH/gargoyle.py" --no_crc32_check insert_misc -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2" -t3 "$TABLE5" -tp "$TRANSLATION_MISC_PATH"
+python "$TOOLS_PATH/gargoyle.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE4" -t2 "$TABLE3" -tp1 "$TRANSLATION_TEXT_PATH" -tp2 "$TRANSLATION_MISC_PATH"
+python "$TOOLS_PATH/gargoyle.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
+python "$TOOLS_PATH/gargoyle.py" insert_misc -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2" -t3 "$TABLE5" -tp "$TRANSLATION_MISC_PATH"
 
 if ! command -v bass &> /dev/null
 then

@@ -8,9 +8,6 @@ import sys, os, struct, sqlite3, csv
 
 from rhtools.utils import byte2int, hex2dec, int2hex, clean_text
 from rhtools.Table import Table
-from rhutils.rom import crc32
-
-CRC32 = 'C788B696'
 
 DICT1_POINTER_BLOCK_START = 0x63400
 DICT1_POINTER_BLOCK_END = DICT1_POINTER_BLOCK_LIMIT = 0x635ff
@@ -63,8 +60,6 @@ def bof_text_dumper(args):
 	table1_file = args.table1
 	dump_path = args.dump_path
 	db = args.database_file
-	if not args.no_crc32_check and crc32(source_file) != CRC32:
-		sys.exit('SOURCE ROM CHECKSUM FAILED!')
 	table1 = Table(table1_file)
 	conn = sqlite3.connect(db)
 	conn.text_factory = str
@@ -206,8 +201,6 @@ def bof_mte_finder(args):
 	""" MTE FINDER """
 	source_file = args.source_file
 	table1_file = args.table1
-	if not args.no_crc32_check and crc32(source_file) != CRC32:
-		sys.exit('SOURCE ROM CHECKSUM FAILED!')
 	table1 = Table(table1_file)
 	with open(source_file, 'rb') as f:
 		# MTE POINTERS 1
@@ -319,7 +312,6 @@ def bof_mte_optimizer(args):
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--no_crc32_check', action='store_true', dest='no_crc32_check', required=False, default=False, help='CRC32 Check')
 parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
 a_parser = subparsers.add_parser('dump', help='Execute DUMP')

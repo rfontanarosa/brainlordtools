@@ -1,10 +1,12 @@
 #!/bin/bash
 
-RESOURCE_PATH="../resources/bof"
+GAME_ID="bof"
+
+source ./_common.sh
 
 USER="clomax"
 DUMP_PATH="$RESOURCE_PATH/dump"
-DB="$RESOURCE_PATH/db/bof.db"
+DB="$RESOURCE_PATH/db/$GAME_ID.db"
 SOURCE="$RESOURCE_PATH/roms/Breath of Fire (U) [!].sfc"
 DESTINATION="$RESOURCE_PATH/roms/Breath of Fire (I) [!].sfc"
 MISC="$RESOURCE_PATH/misc.csv"
@@ -21,3 +23,5 @@ python ../brainlordtools/bof.py dump -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_PATH"
 #python ../brainlordtools/bof.py mte_optimizer -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2" -t3 "$TABLE3" -tp "$TEMP_PATH" -mop "$MTE_OPTIMIZER_PATH" -db "$DB" -u "$USER"
 #python ../brainlordtools/bof.py insert -d "$DESTINATION" -t2 "$TABLE2" -db "$DB" -u "$USER"
 #python ../brainlordtools/bof.py insert_misc -d "$DESTINATION" -m1 "$MISC" -t3 "$TABLE3"
+python "$TOOLS_PATH/_utils.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
+
