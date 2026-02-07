@@ -25,6 +25,7 @@ cd "$BRAINLORD_PATH/mcfang-dec"
 "$WINE_PATH/wine" "mccmp.exe" "$SOURCE" "$DESTINATION"
 cd $CURRENT_PATH
 
+python "$TOOLS_PATH/_utils.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
 # python "$TOOLS_PATH/_utils.py" copy_file -s "$SOURCE" -d "$DESTINATION"
 python "$TOOLS_PATH/spike.py" expand -d "$DESTINATION"
 

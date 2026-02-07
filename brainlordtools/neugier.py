@@ -9,11 +9,7 @@ import csv, os, shutil, sqlite3, struct, sys
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_translation_by_author
 from rhutils.dump import read_text, write_text, write_byte, dump_binary, insert_binary, get_csv_translated_texts
-from rhutils.rom import crc32
 from rhutils.snes import snes2pc_lorom, pc2snes_lorom
-
-# CRC32_ORIGINAL = '7F0DDCCF'
-CRC32 = '5497DF2A'
 
 POINTER_BLOCK1_START = 0x11010
 POINTER_BLOCK1_END = POINTER_BLOCK1_LIMIT = 0x112ac
@@ -32,8 +28,6 @@ def neugier_text_dumper(args):
     table1_file = args.table1
     dump_path = args.dump_path
     db = args.database_file
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     conn = sqlite3.connect(db)
     conn.text_factory = str
@@ -111,8 +105,6 @@ def neugier_text_inserter(args):
 def neugier_gfx_dumper(args):
     source_file = args.source_file
     dump_path = args.dump_path
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
@@ -144,8 +136,6 @@ def neugier_misc_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
     dump_path = args.dump_path
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
@@ -189,8 +179,6 @@ def neugier_credits_dumper(args):
     source_file = args.source_file
     table3_file = args.table3
     dump_path = args.dump_path
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table3_file)
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
@@ -215,7 +203,6 @@ def neugier_credits_dumper(args):
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--no_crc32_check', action='store_true', dest='no_crc32_check', required=False, default=False, help='CRC32 Check')
 parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
 dump_text_parser = subparsers.add_parser('dump_text', help='Execute DUMP')

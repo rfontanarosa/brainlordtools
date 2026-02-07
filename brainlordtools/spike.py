@@ -9,10 +9,8 @@ import csv, os, shutil, sqlite3, struct, sys
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_translation_by_author
 from rhutils.dump import read_text, write_text, get_csv_translated_texts
-from rhutils.rom import crc32, expand_rom
+from rhutils.rom import expand_rom
 from rhutils.snes import pc2snes_lorom
-
-CRC32 = '8C2068D1'
 
 POINTER_BLOCKS = (
     (0x62090, 0x622c3),
@@ -33,8 +31,6 @@ def spike_text_dumper(args):
     table1_file = args.table1
     dump_path = args.dump_path
     db = args.database_file
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table1 = Table(table1_file)
     conn = sqlite3.connect(db)
     conn.text_factory = str
@@ -78,8 +74,6 @@ def spike_misc_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
     dump_path = args.dump_path
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
@@ -177,7 +171,6 @@ def spike_expander(args):
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--no_crc32_check', action='store_true', dest='no_crc32_check', required=False, default=False, help='CRC32 Check')
 parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
 dump_text_parser = subparsers.add_parser('dump_text', help='Execute TEXT DUMP')
