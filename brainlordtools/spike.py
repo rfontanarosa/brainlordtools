@@ -9,7 +9,6 @@ import csv, os, shutil, sqlite3, struct, sys
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_translation_by_author
 from rhutils.dump import read_text, write_text, get_csv_translated_texts
-from rhutils.rom import expand_rom
 from rhutils.snes import pc2snes_lorom
 
 POINTER_BLOCKS = (
@@ -164,11 +163,6 @@ def spike_misc_inserter(args):
                 sys.exit(f"{t_value} exceeds")
             write_text(f, t_address, text)
 
-def spike_expander(args):
-    dest_file = args.dest_file
-    size_to_expand = (1048576 + 524288) - os.path.getsize(dest_file)
-    expand_rom(dest_file, size_to_expand)
-
 import argparse
 parser = argparse.ArgumentParser()
 parser.set_defaults(func=None)
@@ -198,9 +192,6 @@ insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1'
 insert_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
 insert_misc_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
 insert_misc_parser.set_defaults(func=spike_misc_inserter)
-expand_parser = subparsers.add_parser('expand', help='Execute EXPANDER')
-expand_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-expand_parser.set_defaults(func=spike_expander)
 
 if __name__ == "__main__":
     args = parser.parse_args()
