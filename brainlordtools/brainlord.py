@@ -48,7 +48,7 @@ ITEM_POINTERS_END = 0x19388
 FONT1_BLOCK = (0x74000, 0x78000, 0x78000 - 0x74000)
 FONT2_BLOCK = (0x80000, 0x82000, 0x82000 - 0x80000)
 
-def dump_blocks(f, table, dump_path):
+def _brainlord_misc_blocks_dumper(f, table, dump_path):
     filename = dump_path / 'misc1.csv'
     with open(filename, 'w+') as csv_file:
         csv_writer = csv.writer(csv_file)
@@ -142,7 +142,7 @@ def brainlord_misc_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_blocks(f, table, dump_path)
+        _brainlord_misc_blocks_dumper(f, table, dump_path)
 
 def brainlord_misc_inserter(args):
     source_file = args.source_file
@@ -291,7 +291,7 @@ def brainlord_gfx_inserter(args):
         insert_binary(f, FONT1_BLOCK[0], translation_path / 'gfx_font1.bin', max_length=FONT1_BLOCK[3])
         insert_binary(f, FONT2_BLOCK[0], translation_path / 'gfx_font2.bin', max_length=FONT2_BLOCK[3])
 
-def brainlord_text_segment_dumper(f, dump_path, table, id, block, cur, start=0x0, end=0x0):
+def _brainlord_text_block_dumper(f, dump_path, table, id, block, cur, start=0x0, end=0x0):
     f.seek(start)
     while f.tell() < end:
         text_address = f.tell()
@@ -312,23 +312,20 @@ def brainlord_text_dumper(args):
     dump_path = pathlib.Path(args.dump_path)
     db = args.database_file
     table = Table(table1_file)
-    conn = sqlite3.connect(db)
-    conn.text_factory = str
-    cur = conn.cursor()
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
-    with open(source_file, 'rb') as f:
-        id = 1
-        id = brainlord_text_segment_dumper(f, dump_path, table, id, 1, cur, TEXT_BLOCK1_START, TEXT_BLOCK1_END)
-        id = brainlord_text_segment_dumper(f, dump_path, table, id, 2, cur, TEXT_BLOCK2_START, TEXT_BLOCK2_END)
-        id = brainlord_text_segment_dumper(f, dump_path, table, id, 3, cur, TEXT_BLOCK3_START, TEXT_BLOCK3_END)
-        id = brainlord_text_segment_dumper(f, dump_path, table, id, 4, cur, TEXT_BLOCK4_START, TEXT_BLOCK4_END)
-        id = brainlord_text_segment_dumper(f, dump_path, table, id, 5, cur, TEXT_BLOCK5_START, TEXT_BLOCK5_END)
-        id = brainlord_text_segment_dumper(f, dump_path, table, id, 6, cur, TEXT_BLOCK6_START, TEXT_BLOCK6_END)
-        id = brainlord_text_segment_dumper(f, dump_path, table, id, 7, cur, TEXT_BLOCK7_START, TEXT_BLOCK7_END)
-    cur.close()
-    conn.commit()
-    conn.close()
+    with sqlite3.connect(db) as conn:
+        conn.text_factory = str
+        cur = conn.cursor()
+        with open(source_file, 'rb') as f:
+            id = 1
+            id = _brainlord_text_block_dumper(f, dump_path, table, id, 1, cur, TEXT_BLOCK1_START, TEXT_BLOCK1_END)
+            id = _brainlord_text_block_dumper(f, dump_path, table, id, 2, cur, TEXT_BLOCK2_START, TEXT_BLOCK2_END)
+            id = _brainlord_text_block_dumper(f, dump_path, table, id, 3, cur, TEXT_BLOCK3_START, TEXT_BLOCK3_END)
+            id = _brainlord_text_block_dumper(f, dump_path, table, id, 4, cur, TEXT_BLOCK4_START, TEXT_BLOCK4_END)
+            id = _brainlord_text_block_dumper(f, dump_path, table, id, 5, cur, TEXT_BLOCK5_START, TEXT_BLOCK5_END)
+            id = _brainlord_text_block_dumper(f, dump_path, table, id, 6, cur, TEXT_BLOCK6_START, TEXT_BLOCK6_END)
+            id = _brainlord_text_block_dumper(f, dump_path, table, id, 7, cur, TEXT_BLOCK7_START, TEXT_BLOCK7_END)
 
 def brainlord_text_inserter(args):
     source_file = args.source_file
