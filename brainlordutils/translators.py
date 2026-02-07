@@ -4,7 +4,13 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import argparse, deepl, boto3
+import argparse
+import boto3
+import deepl
+
+import sys
+import os
+
 from brainlordutils.utils import GAME_PARSERS
 
 def amazon_translate_processor(args) -> None:
@@ -31,6 +37,9 @@ def amazon_translate_processor(args) -> None:
 def deepl_translate_processor(args) -> None:
     source_dump_path = args.source
     destination_dump_path = args.destination
+    auth_key = os.getenv("DEEPL_AUTH_KEY")
+    if not auth_key:
+        sys.exit("Error: DEEPL_AUTH_KEY environment variable not set.")
     translator = deepl.Translator(auth_key)
     try:
         translator.translate_document_from_filepath(
