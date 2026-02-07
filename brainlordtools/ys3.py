@@ -10,10 +10,7 @@ from collections import OrderedDict
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_translation_by_author
 from rhutils.dump import read_text, dump_binary
-from rhutils.rom import crc32
 from rhutils.snes import pc2snes_lorom
-
-CRC32 = '64A91E64'
 
 GFX_BLOCK = (0xf300, 0xff00)
 
@@ -35,8 +32,6 @@ def ys3_text_dumper(args):
     table1_file = args.table1
     dump_path = args.dump_path
     db = args.database_file
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table1 = Table(table1_file)
     conn = sqlite3.connect(db)
     conn.text_factory = str
@@ -81,8 +76,6 @@ def ys3_misc_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
     dump_path = args.dump_path
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
@@ -101,8 +94,6 @@ def ys3_misc_dumper(args):
 def ys3_gfx_dumper(args):
     source_file = args.source_file
     dump_path = args.dump_path
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
@@ -173,7 +164,6 @@ def ys3_text_inserter(args):
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--no_crc32_check', action='store_true', dest='no_crc32_check', required=False, default=False, help='CRC32 Check')
 parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
 dump_text_parser = subparsers.add_parser('dump_text', help='Execute DUMP')

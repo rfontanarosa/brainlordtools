@@ -1,11 +1,11 @@
 #!/bin/bash
 
-BRAINLORD_PATH="$HOME/git"
-RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/ys3"
-TOOLS_PATH="$BRAINLORD_PATH/brainlordtools/brainlordtools"
+GAME_ID="ys3"
+
+source ./_common.sh
 
 USER="clomax"
-DB="$RESOURCE_PATH/db/ys3.sqlite3"
+DB="$RESOURCE_PATH/db/$GAME_ID.sqlite3"
 SOURCE="$RESOURCE_PATH/roms/Ys III - Wanderers from Ys (U) [!].sfc"
 DESTINATION="$RESOURCE_PATH/roms/Ys III - Wanderers from Ys (I) [!].sfc"
 
@@ -20,6 +20,7 @@ DUMP_GFX_PATH="$RESOURCE_PATH/dump_gfx"
 TRANSLATION_TEXT_PATH="$RESOURCE_PATH/translation_text"
 TANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
 
+python "$TOOLS_PATH/_utils.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
 python "$TOOLS_PATH/_utils.py" copy_file -s "$SOURCE" -d "$DESTINATION"
 
 python "$TOOLS_PATH/ys3.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH" -db "$DB"

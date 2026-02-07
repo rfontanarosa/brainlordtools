@@ -8,9 +8,6 @@ import sys, os, sqlite3
 
 from rhtools.utils import string_address2int_address, byte2int, int2hex, hex2dec, int_address2string_address2
 from rhtools.OldTable import Table
-from rhutils.rom import crc32
-
-CRC32 = '9DB396EC'
 
 TEXT_BLOCK_START = 0x280787
 TEXT_BLOCK_END = TEXT_BLOCK_LIMIT = 0x28e189
@@ -26,8 +23,6 @@ def brandish2_dumper(args):
 	table1_file = args.table1
 	dump_path = args.dump_path
 	db = args.database_file
-	if crc32(source_file) != CRC32:
-		sys.exit('SOURCE ROM CHECKSUM FAILED!')
 	table1 = Table(table1_file)
 	conn = sqlite3.connect(db)
 	conn.text_factory = str

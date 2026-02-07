@@ -15,5 +15,7 @@ TABLE6="$RESOURCE_PATH/tables/som_credits.tbl"
 DUMP_TEXT_PATH="$RESOURCE_PATH/$USER/dump_text"
 DUMP_MISC_PATH="$RESOURCE_PATH/$USER/dump_misc"
 
-python "$TOOLS_PATH/som.py" --no_crc32_check dump_text -s "$SOURCE" -t1 "$TABLE3" -t2 "$TABLE6" -dp "$DUMP_TEXT_PATH" -db "$DB"
-python "$TOOLS_PATH/som.py" --no_crc32_check dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_MISC_PATH"
+python "$TOOLS_PATH/_utils.py" crc_check -s "$SOURCE" -g "som_sadnes" || exit 1
+
+python "$TOOLS_PATH/som.py" dump_text -s "$SOURCE" -t1 "$TABLE3" -t2 "$TABLE6" -dp "$DUMP_TEXT_PATH" -db "$DB"
+python "$TOOLS_PATH/som.py" dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_MISC_PATH"

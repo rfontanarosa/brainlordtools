@@ -4,7 +4,11 @@ CRC_TABLE = {
     'bof': 'C788B696',
     'bof2': '67CDACC5',
     'brainlord': 'AC443D87',
+    'brandish': '74F70A0B',
+    'brandish2': '9DB396EC',
     'ffmq': '2C52C792',
+    'gaia': 'D625022B',
+    'gaia_original': '1C3848C0',
     'gargoyle': '693a',
     'ignition': 'EE441564',
     'lufia': '5E1AA1A6',
@@ -16,5 +20,8 @@ CRC_TABLE = {
     'som_pal': 'DE112322',
     'som_pal_10': 'C5CB2F26',
     'som_sadnes': '31114AAC',
-    'spike': '8C2068D1'
+    'spike': '8C2068D1',
+    'ys3': '64A91E64',
+    'ys4': '27577EC8',
+    'ys4_original': 'CA7B4DB9'
 }

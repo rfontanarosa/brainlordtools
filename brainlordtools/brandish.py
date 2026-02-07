@@ -9,11 +9,8 @@ import sys, os, struct, sqlite3, shutil
 from rhtools3.Table import Table
 from rhutils.db import insert_text
 from rhutils.dump import read_text, dump_binary, insert_binary
-from rhutils.rom import crc32
 
 SNES_BANK_SIZE = 0x8000
-
-CRC32 = '74F70A0B'
 
 TEXT_BLOCK_START = 0x50fbe
 TEXT_BLOCK_END = 0x594ef
@@ -40,8 +37,6 @@ def brandish_text_dumper(args):
 	table1_file = args.table1
 	dump_path = args.dump_path
 	db = args.database_file
-	if crc32(source_file) != CRC32:
-		sys.exit('SOURCE ROM CHECKSUM FAILED!')
 	table1 = Table(table1_file)
 	conn = sqlite3.connect(db)
 	conn.text_factory = str
@@ -117,8 +112,6 @@ def brandish_text_inserter(args):
 def brandish_gfx_dumper(args):
 	source_file = args.source_file
 	dump_path = args.dump_path
-	if crc32(source_file) != CRC32:
-		sys.exit('SOURCE ROM CHECKSUM FAILED!')
 	shutil.rmtree(dump_path, ignore_errors=True)
 	os.mkdir(dump_path)
 	with open(source_file, 'rb') as f:

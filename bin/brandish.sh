@@ -1,11 +1,11 @@
 #!/bin/bash
 
-BRAINLORD_PATH="$HOME/git"
-RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/brandish"
-TOOLS_PATH="$BRAINLORD_PATH/brainlordtools/brainlordtools"
+GAME_ID="brandish"
+
+source ./_common.sh
 
 USER="clomax"
-DB="$RESOURCE_PATH/db/brandish.sqlite3"
+DB="$RESOURCE_PATH/db/$GAME_ID.sqlite3"
 SOURCE="$RESOURCE_PATH/roms/Brandish (U) [!].smc"
 DESTINATION="$RESOURCE_PATH/roms/Brandish (I) [!].smc"
 
@@ -16,6 +16,8 @@ DUMP_TEXT_PATH="$RESOURCE_PATH/dump"
 DUMP_GFX_PATH="$RESOURCE_PATH/dump_gfx"
 
 TRANSLATION_TEXT_PATH="$RESOURCE_PATH/translation"
+
+python "$TOOLS_PATH/_utils.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
 
 python "$TOOLS_PATH/brandish.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH" -db "$DB"
 # python "$TOOLS_PATH/brandish.py" insert_text -d "$DESTINATION" -t1 "$TABLE1" -tp "$TRANSLATION_TEXT_PATH" -t2 "$TABLE2" -db "$DB" -u "$USER"

@@ -9,12 +9,8 @@ from collections import OrderedDict
 
 from rhtools.utils import byte2int, int2hex, hex2dec, int_to_bytes, int2byte, clean_text
 from rhtools.Table import Table
-from rhutils.rom import crc32
 
 SNES_BANK_SIZE = 0x8000
-
-#CRC32_ORIGINAL = 'CA7B4DB9'
-CRC32 = '27577EC8'
 
 DICT1_POINTER_BLOCK_START = 0x85000
 #DICT1_POINTER_BLOCK_END = DICT1_POINTER_BLOCK_LIMIT = 0x85839
@@ -89,8 +85,6 @@ def ys4_dumper(args):
 	table1_file = args.table1
 	dump_path = args.dump_path
 	db = args.database_file
-	if crc32(source_file) != CRC32:
-		sys.exit('SOURCE ROM CHECKSUM FAILED!')
 	table1 = Table(table1_file)
 	conn = sqlite3.connect(db)
 	conn.text_factory = str
@@ -329,8 +323,6 @@ def ys4_mte_finder(args):
 	""" MTE FINDER """
 	source_file = args.source_file
 	table1_file = args.table1
-	if crc32(source_file) != CRC32:
-		sys.exit('SOURCE ROM CHECKSUM FAILED!')
 	table1 = Table(table1_file)
 	with open(source_file, 'rb') as f:
 		# MTE POINTERS 1

@@ -8,13 +8,10 @@ import csv, os, re, shutil, sqlite3, struct, sys
 
 from rhtools3.Table import Table
 from rhutils.dump import get_csv_translated_texts, read_dump, fill, write_byte
-from rhutils.rom import crc32, expand_rom
+from rhutils.rom import expand_rom
 from rhutils.snes import pc2snes_hirom, snes2pc_hirom
 from quintettools.quintet_comp import compress as quintet_compress
 from quintettools.quintet_decomp import decompress as quintet_decompress
-
-# CRC32 = '1C3848C0'
-CRC32 = 'D625022B'
 
 EXP_SIZE = 0x80000
 
@@ -233,8 +230,6 @@ def gaia_text_dumper(args):
     table3_file = args.table3
     dump_path = args.dump_path
     db = args.database_file
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table1 = Table(table1_file)
     table3 = Table(table3_file)
     conn = sqlite3.connect(db)
@@ -352,8 +347,6 @@ def gaia_misc_dumper(args):
     table2_file = args.table2
     table3_file = args.table3
     dump_path = args.dump_path
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table1 = Table(table1_file)
     table2 = Table(table2_file)
     table3 = Table(table3_file)
@@ -430,8 +423,6 @@ def gaia_text_inserter(args):
     translation_path = args.translation_path
     db = args.database_file
     user_name = args.user
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table2_file)
     table3 = Table(table3_file)
     #
@@ -902,7 +893,6 @@ def split_tilemap(input_data):
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--no_crc32_check', action='store_true', dest='no_crc32_check', required=False, default=False, help='CRC32 Check')
 parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
 dump_text_parser = subparsers.add_parser('dump_text', help='Execute TEXT DUMP')
