@@ -4,7 +4,11 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import argparse, re, sqlite3, time
+import argparse
+import re
+import sqlite3
+import time
+
 from brainlordtools.rhutils.db import select_most_recent_translation, select_texts, select_translation_by_author, insert_text, insert_translation, TranslationStatus
 
 def _parse_metadata(text: str) -> dict:

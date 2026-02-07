@@ -4,7 +4,9 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, sqlite3
+import os
+import sqlite3
+import sys
 
 from rhtools.utils import string_address2int_address, byte2int, int2hex, hex2dec, int_address2string_address2
 from rhtools.OldTable import Table

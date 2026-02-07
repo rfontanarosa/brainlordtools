@@ -4,7 +4,13 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import csv, os, re, shutil, sqlite3, struct, sys
+import csv
+import os
+import re
+import shutil
+import sqlite3
+import struct
+import sys
 
 from rhtools3.Table import Table
 from rhutils.dump import get_csv_translated_texts, read_dump, fill, write_byte

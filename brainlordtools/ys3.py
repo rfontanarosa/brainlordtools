@@ -4,8 +4,13 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import csv, os, shutil, sqlite3, struct, sys
 from collections import OrderedDict
+import csv
+import os
+import shutil
+import sqlite3
+import struct
+import sys
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_translation_by_author

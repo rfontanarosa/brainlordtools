@@ -4,7 +4,10 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import os, struct, sqlite3, shutil
+import os
+import shutil
+import sqlite3
+import struct
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text

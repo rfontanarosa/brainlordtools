@@ -4,7 +4,10 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import os, struct, shutil, csv
+import csv
+import os
+import shutil
+import struct
 
 from rhtools.utils import byte2int
 from falcomtools.falcom_decompress_v2 import decompress_FALCOM3

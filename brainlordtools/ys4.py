@@ -4,8 +4,11 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, struct, sqlite3
 from collections import OrderedDict
+import os
+import sqlite3
+import struct
+import sys
 
 from rhtools.utils import byte2int, int2hex, hex2dec, int_to_bytes, int2byte, clean_text
 from rhtools.Table import Table
