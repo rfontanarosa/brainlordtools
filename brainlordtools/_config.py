@@ -25,3 +25,10 @@ CRC_TABLE = {
     'ys4': '27577EC8',
     'ys4_original': 'CA7B4DB9'
 }
+
+EXPAND_TABLE = {
+    "brainlord": 0x80000,
+    "gaia": 0x80000,
+    "lufia": 0x100000,
+    "spike": 0x78000
+}
