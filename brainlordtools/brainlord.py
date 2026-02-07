@@ -4,7 +4,8 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import sys, os, struct, sqlite3, shutil, csv
+import pathlib
+import os, struct, sqlite3, shutil, csv
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_most_recent_translation
@@ -44,11 +45,11 @@ POINTER_BLOCK1_END = 0x50285
 ITEM_POINTERS_START = 0x18a02
 ITEM_POINTERS_END = 0x19388
 
-FONT1_BLOCK = (0x74000, 0x78000)
-FONT2_BLOCK = (0x80000, 0x82000)
+FONT1_BLOCK = (0x74000, 0x78000, 0x78000 - 0x74000)
+FONT2_BLOCK = (0x80000, 0x82000, 0x82000 - 0x80000)
 
 def dump_blocks(f, table, dump_path):
-    filename = os.path.join(dump_path, 'misc1.csv')
+    filename = dump_path / 'misc1.csv'
     with open(filename, 'w+') as csv_file:
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(['text_address', 'text', 'trans'])
@@ -59,7 +60,7 @@ def dump_blocks(f, table, dump_path):
             text_decoded = table.decode(text, mte_resolver=True, dict_resolver=False)
             fields = [hex(text_address), text_decoded]
             csv_writer.writerow(fields)
-    filename = os.path.join(dump_path, 'misc2.csv')
+    filename = dump_path / 'misc2.csv'
     with open(filename, 'w+') as csv_file:
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(['text_address', 'text', 'trans'])
@@ -70,7 +71,7 @@ def dump_blocks(f, table, dump_path):
             text_decoded = table.decode(text, mte_resolver=True, dict_resolver=False)
             fields = [hex(text_address), text_decoded]
             csv_writer.writerow(fields)
-    filename = os.path.join(dump_path, 'misc3.csv')
+    filename = dump_path / 'misc3.csv'
     with open(filename, 'w+') as csv_file:
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(['text_address', 'text', 'trans'])
@@ -110,7 +111,7 @@ def get_translated_texts(filename):
     return translated_texts
 
 def repoint_misc(f, pointers, new_pointers):
-    for i, (p_value, p_addresses) in enumerate(pointers.items()):
+    for _, (p_value, p_addresses) in enumerate(pointers.items()):
         p_new_value = new_pointers.get(p_value)
         if not p_new_value:
             print('repoint_misc - Text not found - Text offset: ' + hex(p_value))
@@ -121,7 +122,7 @@ def repoint_misc(f, pointers, new_pointers):
                 f.write(packed[:-1])
 
 def repoint_misc1(f, pointers, new_pointers):
-    for i, (p_value, p_addresses) in enumerate(pointers.items()):
+    for _, (p_value, p_addresses) in enumerate(pointers.items()):
         p_new_value = new_pointers.get(p_value)
         if not p_new_value:
             print('repoint_misc1 - Text not found - Text offset: ' + hex(p_value))
@@ -148,7 +149,7 @@ def brainlord_misc_inserter(args):
     dest_file = args.dest_file
     table1_file = args.table1
     table2_file = args.table2
-    translation_path = args.translation_path
+    translation_path = pathlib.Path(args.translation_path)
     table = Table(table1_file)
     table2 = Table(table2_file)
     # get pointers
@@ -208,7 +209,7 @@ def brainlord_misc_inserter(args):
     # repoint text
     with open(dest_file, 'r+b') as f1:
         # reading misc1.csv and writing texts
-        translation_file = os.path.join(translation_path, 'misc1.csv')
+        translation_file = translation_path / 'misc1.csv'
         translated_texts = get_translated_texts(translation_file)
         new_pointers = {}
         t_new_address = 0x180000
@@ -220,7 +221,7 @@ def brainlord_misc_inserter(args):
         for curr_pointers in (p_1_1, p_1_2, p_1_3, p_1_4, p_1_5):
             repoint_misc(f1, curr_pointers, new_pointers)
         # reading misc2.csv and writing texts
-        translation_file = os.path.join(translation_path, 'misc2.csv')
+        translation_file = translation_path / 'misc2.csv'
         translated_texts = get_translated_texts(translation_file)
         new_pointers = {}
         t_new_address = 0x182000
@@ -234,7 +235,7 @@ def brainlord_misc_inserter(args):
         # repointing other misc2
         repoint_misc1(f1, p_b_1, new_pointers)
         # reading misc3.csv and writing texts
-        translation_file = os.path.join(translation_path, 'misc3.csv')
+        translation_file = translation_path / 'misc3.csv'
         translated_texts = get_translated_texts(translation_file)
         new_pointers = {}
         t_new_address = 0x184000
@@ -248,12 +249,12 @@ def brainlord_misc_inserter(args):
 def brainlord_credits_dumper(args):
     source_file = args.source_file
     table3_file = args.table3
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     table = Table(table3_file)
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        filename = os.path.join(dump_path, 'credits.txt')
+        filename = dump_path / 'credits.txt'
         with open(filename, 'w+') as txt_file:
             text = read_text(f, CREDITS_BLOCK_START, length=CREDITS_BLOCK_END - CREDITS_BLOCK_START)
             text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
@@ -262,9 +263,9 @@ def brainlord_credits_dumper(args):
 def brainlord_credits_inserter(args):
     dest_file = args.dest_file
     table3_file = args.table3
-    translation_path = args.translation_path
+    translation_path = pathlib.Path(args.translation_path)
     table = Table(table3_file)
-    translation_file = os.path.join(translation_path, 'credits.txt')
+    translation_file = translation_path / 'credits.txt'
     with open(translation_file, 'r') as f:
         text = f.read()
         text_encoded = table.encode(text, mte_resolver=False, dict_resolver=False)
@@ -276,19 +277,19 @@ def brainlord_credits_inserter(args):
 
 def brainlord_gfx_dumper(args):
     source_file = args.source_file
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1] - FONT1_BLOCK[0], os.path.join(dump_path, 'gfx_font1.bin'))
-        dump_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[1]- FONT2_BLOCK[0], os.path.join(dump_path, 'gfx_font2.bin'))
+        dump_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[3], dump_path / 'gfx_font1.bin')
+        dump_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[3], dump_path / 'gfx_font2.bin')
 
 def brainlord_gfx_inserter(args):
     dest_file = args.dest_file
-    translation_path = args.translation_path
+    translation_path = pathlib.Path(args.translation_path)
     with open(dest_file, 'r+b') as f:
-        insert_binary(f, FONT1_BLOCK[0], os.path.join(translation_path, 'gfx_font1.bin'), max_length=FONT1_BLOCK[1] - FONT1_BLOCK[0])
-        insert_binary(f, FONT2_BLOCK[0], os.path.join(translation_path, 'gfx_font2.bin'), max_length=FONT2_BLOCK[1] - FONT2_BLOCK[0])
+        insert_binary(f, FONT1_BLOCK[0], translation_path / 'gfx_font1.bin', max_length=FONT1_BLOCK[3])
+        insert_binary(f, FONT2_BLOCK[0], translation_path / 'gfx_font2.bin', max_length=FONT2_BLOCK[3])
 
 def brainlord_text_segment_dumper(f, dump_path, table, id, block, cur, start=0x0, end=0x0):
     f.seek(start)
@@ -299,7 +300,7 @@ def brainlord_text_segment_dumper(f, dump_path, table, id, block, cur, start=0x0
         # dump - db
         insert_text(cur, id, text, text_decoded, text_address, '', block, '')
         # dump - txt
-        filename = os.path.join(dump_path, 'dump_eng.txt')
+        filename = dump_path / 'dump_eng.txt'
         with open(filename, 'a+', encoding='utf-8') as out:
             out.write(text_decoded)
         id += 1
@@ -308,7 +309,7 @@ def brainlord_text_segment_dumper(f, dump_path, table, id, block, cur, start=0x0
 def brainlord_text_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     db = args.database_file
     table = Table(table1_file)
     conn = sqlite3.connect(db)
