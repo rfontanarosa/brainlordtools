@@ -22,7 +22,7 @@ TRANSLATION_TEXT_PATH="$RESOURCE_PATH/translation_text"
 TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
 TANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
 
-python "$TOOLS_PATH/_utils.py" file_copy -s "$SOURCE" -d "$DESTINATION"
+python "$TOOLS_PATH/_utils.py" copy_file -s "$SOURCE" -d "$DESTINATION"
 
 python "$TOOLS_PATH/gargoyle.py" --no_crc32_check dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH"
 python "$TOOLS_PATH/gargoyle.py" --no_crc32_check dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"

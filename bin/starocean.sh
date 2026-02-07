@@ -19,7 +19,7 @@ TRANSLATION_TEXT_PATH="$RESOURCE_PATH/translation_text"
 TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
 TANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
 
-python "$TOOLS_PATH/_utils.py" file_copy -s "$SOURCE_ES" -d "$DESTINATION"
+python "$TOOLS_PATH/_utils.py" copy_file -s "$SOURCE_ES" -d "$DESTINATION"
 
 python "$TOOLS_PATH/starocean.py" dump_misc -s "$SOURCE_ES" -t1 "$TABLE1" -dp "$DUMP_MISC_PATH"
 python "$TOOLS_PATH/starocean.py" dump_gfx -s "$SOURCE_ES" -dp "$DUMP_GFX_PATH"

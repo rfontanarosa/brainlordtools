@@ -23,7 +23,7 @@ TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
 TANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
 TANSLATION_CREDITS_PATH="$RESOURCE_PATH/translation_credits"
 
-python "$TOOLS_PATH/_utils.py" file_copy -s "$SOURCE" -d "$DESTINATION"
+python "$TOOLS_PATH/_utils.py" copy_file -s "$SOURCE" -d "$DESTINATION"
 python "$TOOLS_PATH/brainlord.py" expand -s "$SOURCE" -d "$DESTINATION"
 
 python "$TOOLS_PATH/brainlord.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH" -db "$DB"

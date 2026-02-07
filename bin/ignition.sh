@@ -18,7 +18,7 @@ DUMP_MISC_PATH="$RESOURCE_PATH/dump_misc"
 TRANSLATION_TEXT_PATH="$RESOURCE_PATH/translation_text"
 TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
 
-python "$TOOLS_PATH/_utils.py" file_copy -s "$SOURCE" -d "$DESTINATION"
+python "$TOOLS_PATH/_utils.py" copy_file -s "$SOURCE" -d "$DESTINATION"
 
 python "$TOOLS_PATH/ignition.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH" -db "$DB"
 
