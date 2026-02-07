@@ -21,7 +21,7 @@ class DumpType(enum.Enum):
     EVENTS = 1
     TEXTS = 2
 
-# pointer_block_start, pointer_block_end, text_block_start, text_block_end, bank_offset, pointer_bytes, filename
+# pointer_block_start, pointer_block_end, text_block_start, text_block_end, bank_offset, pointer_size, dump_type
 POINTERS_OFFSETS = (
     (0x90000, 0x90800, 0x90800, 0x9f2d6, 0x90000, 2, DumpType.EVENTS),
     (0xa0000, 0xa0c02, 0xa0c02, 0xab573, 0xa0000, 2, DumpType.EVENTS),
