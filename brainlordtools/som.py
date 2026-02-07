@@ -250,6 +250,7 @@ def som_text_inserter(args):
                         text = translation if translation else text_decoded
                         text_encoded = table.encode(text)
                         if f.tell() + len(text_encoded) > text_block_end:
+                            overflow_amount = (f.tell() + len(text_encoded)) - text_block_end
                             print(f"ERROR: BLOCK OVERFLOW at ID {id}!")
                             print(f"Attempted to write {len(text_encoded)} bytes, but only {text_block_end - f.tell()} remaining.")
                             print(f"Exceeded by: {overflow_amount} bytes.")
@@ -271,6 +272,7 @@ def som_text_inserter(args):
                         text = translation if translation else text_decoded
                         text_encoded = table.encode(text)
                         if f.tell() + len(text_encoded) > text_block_end:
+                            overflow_amount = (f.tell() + len(text_encoded)) - text_block_end
                             print(f"ERROR: BLOCK OVERFLOW at ID {id}!")
                             print(f"Attempted to write {len(text_encoded)} bytes, but only {text_block_end - f.tell()} remaining.")
                             print(f"Exceeded by: {overflow_amount} bytes.")
