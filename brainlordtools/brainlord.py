@@ -339,26 +339,26 @@ def brainlord_text_inserter(args):
     db = args.database_file
     user_name = args.user
     table = Table(table2_file)
-    conn = sqlite3.connect(db)
-    conn.text_factory = str
-    cur = conn.cursor()
-    # collect pointers
-    NEW_TEXT_BLOCK1_START = NEW_TEXT_BLOCK1_END = 0x190000
-    new_pointers = {}
-    with open(dest_file, 'r+b') as fw:
-        fw.seek(NEW_TEXT_BLOCK1_START)
-        # db
-        rows = select_most_recent_translation(cur, ['1', '2', '3', '4', '5', '6', '7'])
-        for row in rows:
-            _, _, text_decoded, address, _, translation, _, _, _ = row
-            text = translation if translation else text_decoded
-            encoded_text = table.encode(text, mte_resolver=True, dict_resolver=False)
-            if fw.tell() < 0x1a0000 and fw.tell() + len(encoded_text) > 0x19ffff:
-                fw.seek(0x1a0000)
-            new_pointers[int(address)] = fw.tell()
-            fw.write(encoded_text)
-            fw.write(b'\xf7')
-        NEW_TEXT_BLOCK1_END = fw.tell()
+    with sqlite3.connect(db) as conn:
+        conn.text_factory = str
+        cur = conn.cursor()
+        # collect pointers
+        NEW_TEXT_BLOCK1_START = NEW_TEXT_BLOCK1_END = 0x190000
+        new_pointers = {}
+        with open(dest_file, 'r+b') as fw:
+            fw.seek(NEW_TEXT_BLOCK1_START)
+            # db
+            rows = select_most_recent_translation(cur, ['1', '2', '3', '4', '5', '6', '7'])
+            for row in rows:
+                _, _, text_decoded, address, _, translation, _, _, _ = row
+                text = translation if translation else text_decoded
+                encoded_text = table.encode(text)
+                if fw.tell() < 0x1a0000 and fw.tell() + len(encoded_text) > 0x19ffff:
+                    fw.seek(0x1a0000)
+                new_pointers[int(address)] = fw.tell()
+                fw.write(encoded_text)
+                fw.write(b'\xf7')
+            NEW_TEXT_BLOCK1_END = fw.tell()
     # pointer block 1
     with open(dest_file, 'r+b') as fw:
         fw.seek(POINTER_BLOCK1_START)
@@ -688,9 +688,6 @@ def brainlord_text_inserter(args):
         repoint_two_bytes_pointer(fw, 0x140140, new_pointers, b'\xc6')
         repoint_two_bytes_pointer(fw, 0x143902, new_pointers, b'\xd7')
         repoint_two_bytes_pointer(fw, 0x1496f2, new_pointers, b'\xd7')
-    cur.close()
-    conn.commit()
-    conn.close()
 
 def repoint_two_bytes_pointer(fw, offset, new_pointers, third_byte):
     fw.seek(offset)
