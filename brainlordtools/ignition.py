@@ -8,11 +8,8 @@ import os, sqlite3, shutil, struct, sys
 
 from rhutils.db import insert_text, select_translation_by_author
 from rhutils.dump import read_text
-from rhutils.rom import crc32
 from rhutils.snes import pc2snes_hirom
 from rhutils.table import Table
-
-CRC32 = 'EE441564'
 
 BLOCK_BANKS_OFFSETS = (0xC7D9, 0xC7EC)
 BLOCK_POINTERS_OFFSET = (0xC7EC, 0xC812)
@@ -24,8 +21,6 @@ def ignition_text_dumper(args):
     table1_file = args.table1
     dump_path = args.dump_path
     db = args.database_file
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     conn = sqlite3.connect(db)
     conn.text_factory = str
@@ -113,7 +108,6 @@ def ignition_text_inserter(args):
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--no_crc32_check', action='store_true', dest='no_crc32_check', required=False, default=False, help='CRC32 Check')
 parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
 dump_text_parser = subparsers.add_parser('dump_text', help='Execute TEXT DUMP')

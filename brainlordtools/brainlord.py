@@ -9,9 +9,7 @@ import sys, os, struct, sqlite3, shutil, csv
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_most_recent_translation
 from rhutils.dump import read_text, write_text, dump_binary, insert_binary
-from rhutils.rom import crc32
-
-CRC32 = 'AC443D87'
+from rhutils.rom import expand_rom
 
 TEXT_BLOCK1_START = 0x170000
 TEXT_BLOCK1_END = 0x17fac9
@@ -140,8 +138,6 @@ def brainlord_misc_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
     dump_path = args.dump_path
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
@@ -154,8 +150,6 @@ def brainlord_misc_inserter(args):
     table1_file = args.table1
     table2_file = args.table2
     translation_path = args.translation_path
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     table2 = Table(table2_file)
     # get pointers
@@ -256,8 +250,6 @@ def brainlord_credits_dumper(args):
     source_file = args.source_file
     table3_file = args.table3
     dump_path = args.dump_path
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table3_file)
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
@@ -286,8 +278,6 @@ def brainlord_credits_inserter(args):
 def brainlord_gfx_dumper(args):
     source_file = args.source_file
     dump_path = args.dump_path
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
@@ -321,8 +311,6 @@ def brainlord_text_dumper(args):
     table1_file = args.table1
     dump_path = args.dump_path
     db = args.database_file
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     conn = sqlite3.connect(db)
     conn.text_factory = str
@@ -349,8 +337,6 @@ def brainlord_text_inserter(args):
     translation_path = args.translation_path
     db = args.database_file
     user_name = args.user
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table2_file)
     conn = sqlite3.connect(db)
     conn.text_factory = str
@@ -750,8 +736,6 @@ def item_pointers_finder(fw, start, end):
 def brainlord_expander(args):
     source_file = args.source_file
     dest_file = args.dest_file
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     shutil.copy(source_file, dest_file)
     with open(dest_file, 'r+b') as f:
         f.seek(0, os.SEEK_END)
@@ -759,7 +743,6 @@ def brainlord_expander(args):
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--no_crc32_check', action='store_true', dest='no_crc32_check', required=False, default=False, help='CRC32 Check')
 parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
 dump_text_parser = subparsers.add_parser('dump_text', help='Execute TEXT DUMP')

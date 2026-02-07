@@ -1,11 +1,11 @@
 #!/bin/bash
 
-BRAINLORD_PATH="$HOME/git"
-RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/brainlord"
-TOOLS_PATH="$BRAINLORD_PATH/brainlordtools/brainlordtools"
+GAME_ID="brainlord"
+
+source ./_common.sh
 
 USER="clomax"
-DB="$RESOURCE_PATH/db/brainlord.sqlite3"
+DB="$RESOURCE_PATH/db/$GAME_ID.sqlite3"
 SOURCE="$RESOURCE_PATH/roms/Brain Lord (U) [!].sfc"
 DESTINATION="$RESOURCE_PATH/roms/Brain Lord (I) [!].sfc"
 
@@ -23,6 +23,7 @@ TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
 TANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
 TANSLATION_CREDITS_PATH="$RESOURCE_PATH/translation_credits"
 
+python "$TOOLS_PATH/_utils.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
 python "$TOOLS_PATH/_utils.py" copy_file -s "$SOURCE" -d "$DESTINATION"
 python "$TOOLS_PATH/brainlord.py" expand -s "$SOURCE" -d "$DESTINATION"
 
