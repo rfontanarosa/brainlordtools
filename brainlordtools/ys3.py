@@ -4,7 +4,6 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-from collections import OrderedDict
 import csv
 import os
 import shutil
@@ -47,7 +46,7 @@ def ys3_text_dumper(args):
         id = 1
         # READ POINTER BLOCKS
         for block, pointer_block in enumerate(POINTER_BLOCKS):
-            pointers = OrderedDict()
+            pointers = {}
             f.seek(pointer_block[0])
             while f.tell() < pointer_block[1]:
                 p_offset = f.tell()

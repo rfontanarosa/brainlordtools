@@ -4,7 +4,6 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-from collections import OrderedDict
 import os
 import sqlite3
 import struct
@@ -95,7 +94,7 @@ def ys4_dumper(args):
 	with open(source_file, 'rb') as f:
 		id = 1
 		# TEXT POINTERS 1
-		pointers = OrderedDict()
+		pointers = {}
 		f.seek(POINTER_BLOCK1_START)
 		while(f.tell() < POINTER_BLOCK1_END):
 			paddress = f.tell()
@@ -139,7 +138,7 @@ def ys4_dumper(args):
 				out.write(text_encoded)
 			id += 1
 		# ITEM POINTERS
-		pointers = OrderedDict()
+		pointers = {}
 		f.seek(POINTER_ITEM_BLOCK_START)
 		while(f.tell() < POINTER_ITEM_BLOCK_END):
 			paddress = f.tell()
@@ -171,7 +170,7 @@ def ys4_dumper(args):
 				out.write(text_encoded)
 			id += 1
 		# PLACES POINTERS
-		pointers = OrderedDict()
+		pointers = {}
 		f.seek(POINTER_PLACES_BLOCK_START)
 		while(f.tell() < POINTER_PLACES_BLOCK_END):
 			paddress = f.tell()
