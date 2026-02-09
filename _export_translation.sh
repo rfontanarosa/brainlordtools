@@ -8,6 +8,20 @@ RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/$GAME_ID"
 DB="$RESOURCE_PATH/db/$GAME_ID.sqlite3"
 
 case $GAME_ID in
+  "brainlord")
+    TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
+    DEST_FILE="$TRANSLATED_DUMP_DIR/dump_ita.txt"
+    DEST_USER_FILE="$TRANSLATED_DUMP_DIR/dump_ita_$USER.txt"
+
+    mkdir -p "$TRANSLATED_DUMP_DIR"
+    echo "Processing $GAME_ID for user $USER..."
+    python -m brainlordutils.utils export_translation \
+       -db "$DB" -d "$DEST_FILE" -b 1 2 3 4 5 6 7
+    python -m brainlordutils.utils export_translation \
+       -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -b 1 2 3 4 5 6 7
+    echo "Done! Translations have been saved in $TRANSLATED_DUMP_DIR"
+    ;;
+
   "gaia" | "ignition" | "spike")
     TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
     DEST_FILE="$TRANSLATED_DUMP_DIR/dump_ita.txt"
