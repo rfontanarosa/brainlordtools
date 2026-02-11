@@ -9,77 +9,8 @@ import re
 import sqlite3
 import time
 
+from brainlordtools.rhutils.parsers import GAME_PARSERS, parse_metadata
 from brainlordtools.rhutils.db import select_most_recent_translation, select_texts, select_translation_by_author, insert_text, insert_translation, TranslationStatus
-
-def _parse_metadata(text: str) -> dict:
-  matches = re.findall(r'(\w+)=([^\s\]]+)', text)
-  return dict(matches)
-
-def _parse_dump(file_path: str) -> dict:
-  buffer = {}
-  with open(file_path, 'r', encoding='utf-8') as f:
-    current_id = None
-    for line in f:
-      if line.startswith('[ID='):
-        metadata = _parse_metadata(line)
-        current_id = metadata.get('ID')
-        if current_id is not None:
-          buffer[current_id] = ['', line.strip()]
-      elif current_id is not None:
-        buffer[current_id][0] += line
-  return buffer
-
-def _parse_soe_dump(file_path: str) -> dict:
-  buffer = {}
-  with open(file_path, 'r', encoding='utf-8') as f:
-    real_id = 1
-    current_text = ""
-    for line in f:
-      if '<End>' in line:
-        clean_text = current_text + line.replace('<End>', '')
-        buffer[real_id] = [clean_text.strip(), ''] 
-        real_id += 1
-        current_text = ""
-      else:
-        current_text += line
-  return buffer
-
-def _parse_starocean_dump(file_path: str) -> dict:
-  buff = {}
-  with open(file_path, 'r', encoding='utf-8') as f:
-    current_id = 0
-    iterator = iter(f)
-    for line in iterator:
-      if line.startswith('<HEADER '):
-        current_id += 1
-        next_line = next(iterator)
-        buff[current_id] = ['', line + next_line.strip('\r\n')]
-      elif line.startswith('<BLOCK '):
-        current_id += 1
-        buff[current_id] = ['', line.strip('\r\n')]
-      else:
-        buff[current_id][0] += line
-  return buff
-
-GAME_PARSERS = {
-  'soe': _parse_soe_dump,
-  'starocean': _parse_starocean_dump,
-  'default': _parse_dump
-}
-
-def diff_dump(args) -> None:
-  source1_dump_path = args.source1
-  source2_dump_path = args.source2
-  destination_dump_path = args.destination
-  game = args.game
-  parse_dump_func = GAME_PARSERS.get(game, GAME_PARSERS['default'])
-  entries1 = parse_dump_func(source1_dump_path)
-  entries2 = parse_dump_func(source2_dump_path)
-  with open(destination_dump_path, 'w', encoding='utf-8') as f:
-    for entry_id, (text2, ref2) in entries2.items():
-      text1, _ = entries1.get(entry_id, (None, None))
-      if text1 is None or text1 != text2:
-          f.write(f"{ref2}\r\n{text2}")
 
 def import_dump(args) -> None:
   db = args.database_file
@@ -92,7 +23,7 @@ def import_dump(args) -> None:
     entries = parse_dump_func(source_dump_path)
     for incremental_id, (text, ref) in entries.items():
       should_parse = game not in {'evermore', 'starocean'} and ref != ''
-      metadata = _parse_metadata(ref) if should_parse else {}
+      metadata = parse_metadata(ref) if should_parse else {}
       current_id = metadata.get('ID', incremental_id)
       text_address = metadata.get('START', '')
       pointer_addresses = metadata.get('POINTERS', '')
@@ -154,12 +85,6 @@ def mark_empty_texts_as_translated(args) -> None:
 parser = argparse.ArgumentParser()
 parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
-p_diff_dump = subparsers.add_parser('diff_dump', help='Generate a diff between two dump files')
-p_diff_dump.add_argument('-s1', '--source1', action='store', dest='source1', required=True, help='Path to the 1st source .txt dump file')
-p_diff_dump.add_argument('-s2', '--source2', action='store', dest='source2', required=True, help='Path to the 2nd source .txt dump file')
-p_diff_dump.add_argument('-d', '--destination', action='store', dest='destination', required=True, help='Output path for the generated .txt dump')
-p_diff_dump.add_argument('-g', '--game', action='store', dest='game', required=False, default='default', help='Optional: Game ID(s) to use for custom parsing logic')
-p_diff_dump.set_defaults(func=diff_dump)
 p_import_dump = subparsers.add_parser('import_dump', help='Import dump from a dump file')
 p_import_dump.add_argument('-db', '--database', action='store', dest='database_file', required=True, help='Path to the SQLite database')
 p_import_dump.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the source .txt dump file')
