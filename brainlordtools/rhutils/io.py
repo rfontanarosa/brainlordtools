@@ -4,6 +4,8 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
+from typing import BinaryIO, Optional, Union
+
 def read_text(f, offset=None, length=None, end_byte=None, cmd_list=None, append_end_byte=False):
     text = b''
     if offset is not None:
@@ -24,21 +26,43 @@ def read_text(f, offset=None, length=None, end_byte=None, cmd_list=None, append_
                 text += byte
     return text
 
-def write_text(f, offset, text, length=None, end_byte=None, limit=None):
-    if length and len(text) > length:
-        raise Exception()
+def write_text(
+    f: BinaryIO,
+    offset: int,
+    text: bytes,
+    length: Optional[int] = None,
+    end_byte: Optional[bytes] = None,
+    limit: Optional[int] = None
+) -> int:
+    """
+    Writes a byte string to the specified offset with boundary checks.
+    Returns: The file offset after the write operation finishes.
+    """
+    if length is not None and len(text) > length:
+        raise ValueError(f"Text length ({len(text)}) exceeds fixed length ({length})")
     f.seek(offset)
     f.write(text)
-    if end_byte:
+    if end_byte is not None:
         f.write(end_byte)
-    if limit and f.tell() > limit:
-        raise Exception()
-    return f.tell()
+    current_pos = f.tell()
+    if limit is not None and current_pos > limit:
+        raise BufferError(f"Write operation exceeded limit! Current: {hex(current_pos)}, Limit: {hex(limit)}")
+    return current_pos
 
-def write_byte(f, offset, byte):
+def write_byte(f: BinaryIO, offset: int, byte: Union[int, bytes])-> None:
+    """
+    Writes a single byte to the specified offset. 
+    Converts integer values (0-255) to raw bytes automatically.
+    """
     f.seek(offset)
+    if isinstance(byte, int):
+        byte = bytes([byte])
     f.write(byte)
 
-def fill(f, start_offset, length, byte=b'\x00') -> None:
-    f.seek(start_offset)
+def fill(f: BinaryIO, offset: int, length: int, byte: bytes = b'\x00') -> None:
+    """
+    Fills a region of the file with a specific byte pattern.
+    Commonly used to clear SNES ROM free space.
+    """
+    f.seek(offset)
     f.write(byte * length)
