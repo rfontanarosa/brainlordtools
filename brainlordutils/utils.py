@@ -93,10 +93,12 @@ def import_dump(args) -> None:
     for incremental_id, (text, ref) in entries.items():
       should_parse = game not in {'evermore', 'starocean'} and ref != ''
       metadata = _parse_metadata(ref) if should_parse else {}
-      current_id = metadata.get('ID') or incremental_id
+      current_id = metadata.get('ID', incremental_id)
+      text_address = metadata.get('START', '')
+      pointer_addresses = metadata.get('POINTERS', '')
       block = metadata.get('BLOCK', 1)
       text_decoded = text.strip('\r\n')
-      insert_text(cur, current_id, b'', text_decoded, '', '', block, ref)
+      insert_text(cur, current_id, b'', text_decoded, text_address, pointer_addresses, block, ref)
 
 def import_translation(args) -> None:
   db = args.database_file
