@@ -67,6 +67,20 @@ GAME_PARSERS = {
   'default': _parse_dump
 }
 
+def diff_dump(args) -> None:
+  source1_dump_path = args.source1
+  source2_dump_path = args.source2
+  destination_dump_path = args.destination
+  game = args.game
+  parse_dump_func = GAME_PARSERS.get(game, GAME_PARSERS['default'])
+  entries1 = parse_dump_func(source1_dump_path)
+  entries2 = parse_dump_func(source2_dump_path)
+  with open(destination_dump_path, 'w', encoding='utf-8') as f:
+    for entry_id, (text2, ref2) in entries2.items():
+      text1, _ = entries1.get(entry_id, (None, None))
+      if text1 is None or text1 != text2:
+          f.write(f"{ref2}\r\n{text2}")
+
 def import_dump(args) -> None:
   db = args.database_file
   source_dump_path = args.source
@@ -138,6 +152,12 @@ def mark_empty_texts_as_translated(args) -> None:
 parser = argparse.ArgumentParser()
 parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
+p_diff_dump = subparsers.add_parser('diff_dump', help='Generate a diff between two dump files')
+p_diff_dump.add_argument('-s1', '--source1', action='store', dest='source1', required=True, help='Path to the 1st source .txt dump file')
+p_diff_dump.add_argument('-s2', '--source2', action='store', dest='source2', required=True, help='Path to the 2nd source .txt dump file')
+p_diff_dump.add_argument('-d', '--destination', action='store', dest='destination', required=True, help='Output path for the generated .txt dump')
+p_diff_dump.add_argument('-g', '--game', action='store', dest='game', required=False, default='default', help='Optional: Game ID(s) to use for custom parsing logic')
+p_diff_dump.set_defaults(func=diff_dump)
 p_import_dump = subparsers.add_parser('import_dump', help='Import dump from a dump file')
 p_import_dump.add_argument('-db', '--database', action='store', dest='database_file', required=True, help='Path to the SQLite database')
 p_import_dump.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the source .txt dump file')
