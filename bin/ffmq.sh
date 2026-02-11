@@ -16,7 +16,7 @@ DUMP_MISC_PATH="$RESOURCE_PATH/dump_misc"
 
 TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
 
-python "$TOOLS_PATH/_utils.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
+python "$MANAGER_PATH/manager.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
 
 python "$TOOLS_PATH/ffmq.py" dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_MISC_PATH"
 

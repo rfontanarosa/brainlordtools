@@ -20,8 +20,8 @@ TANSLATION_TEXT_PATH="$RESOURCE_PATH/translation_text"
 TANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
 TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
 
-python "$TOOLS_PATH/_utils.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
-python "$TOOLS_PATH/_utils.py" copy_file -s "$SOURCE" -d "$DESTINATION" || exit 1
+python "$MANAGER_PATH/manager.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
+python "$MANAGER_PATH/manager.py" copy_file -s "$SOURCE" -d "$DESTINATION" || exit 1
 
 python "$TOOLS_PATH/7thsaga.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH" -db "$DB"
 python "$TOOLS_PATH/7thsaga.py" dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"

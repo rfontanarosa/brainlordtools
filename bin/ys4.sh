@@ -18,7 +18,7 @@ TABLE3="$RESOURCE_PATH/tables/Ys IV - Mask of the Sun.base.tbl"
 MTE_OPTIMIZER_PATH="$RESOURCE_PATH/../.."
 TEMP_PATH="$RESOURCE_PATH/../../temp"
 
-python "$TOOLS_PATH/_utils.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
+python "$MANAGER_PATH/manager.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
 
 #python ../brainlordtools/ys4.py mte_finder -s "$SOURCE" -t1 "$TABLE1"
 python ../brainlordtools/ys4.py dump -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_PATH" -db "$DB"

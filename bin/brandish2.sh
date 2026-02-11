@@ -14,7 +14,7 @@ TABLE2="$RESOURCE_PATH/tables/Brandish 2 (I) [!].tbl"
 
 DUMP_PATH="$RESOURCE_PATH/dump"
 
-python "$TOOLS_PATH/_utils.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
+python "$MANAGER_PATH/manager.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
 
 python "$TOOLS_PATH/brandish2.py" dump -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_PATH" -db "$DB"
 # python "$TOOLS_PATH/brandish2.py" insert -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE2" -db "$DB" -u "$USER"

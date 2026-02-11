@@ -17,7 +17,7 @@ DUMP_GFX_PATH="$RESOURCE_PATH/dump_gfx"
 
 TRANSLATION_TEXT_PATH="$RESOURCE_PATH/translation"
 
-python "$TOOLS_PATH/_utils.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
+python "$MANAGER_PATH/manager.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
 
 python "$TOOLS_PATH/brandish.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH" -db "$DB"
 # python "$TOOLS_PATH/brandish.py" insert_text -d "$DESTINATION" -t1 "$TABLE1" -tp "$TRANSLATION_TEXT_PATH" -t2 "$TABLE2" -db "$DB" -u "$USER"
