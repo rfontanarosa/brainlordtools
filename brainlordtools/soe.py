@@ -10,7 +10,8 @@ import shutil
 import struct
 
 from rhtools3.Table import Table
-from rhutils.dump import read_text, write_text, dump_binary, insert_binary
+from rhutils.dump import dump_binary, insert_binary
+from rhutils.io import read_text, write_text
 
 # TEXT_POINTERS = (0x11D000, 0x11F32B)
 

@@ -13,7 +13,8 @@ import sys
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_translation_by_author
-from rhutils.dump import read_text, write_text, get_csv_translated_texts
+from rhutils.dump import get_csv_translated_texts
+from rhutils.io  import read_text, write_text
 from rhutils.snes import pc2snes_lorom
 
 POINTER_BLOCKS = (

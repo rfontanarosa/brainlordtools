@@ -11,7 +11,8 @@ import struct
 import sys
 
 from rhtools3.Table import Table
-from rhutils.dump import read_text, write_text, get_csv_translated_texts
+from rhutils.dump import get_csv_translated_texts
+from rhutils.io import read_text, write_text
 from rhutils.snes import snes2pc_lorom, pc2snes_lorom
 
 def ffmq_misc_dumper(args):

@@ -12,7 +12,8 @@ import struct
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_most_recent_translation
-from rhutils.dump import read_text, write_byte, write_text, dump_binary, insert_binary
+from rhutils.dump import dump_binary, insert_binary
+from rhutils.io import read_text, write_byte, write_text
 
 TEXT_SEGMENT_1 = (0x60000, 0x6fddf)
 TEXT_SEGMENT_X = (0x6fde0, 0x6ffff) # empty

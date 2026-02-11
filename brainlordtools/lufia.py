@@ -13,7 +13,8 @@ import sys
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_most_recent_translation
-from rhutils.dump import read_text, write_text, dump_binary, insert_binary, get_csv_translated_texts
+from rhutils.dump import dump_binary, insert_binary, get_csv_translated_texts
+from rhutils.io import read_text, write_text
 from rhutils.snes import snes2pc_lorom, pc2snes_lorom
 
 FONT1_BLOCK = (0x54250, 0x54b40)

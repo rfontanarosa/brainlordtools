@@ -13,7 +13,8 @@ import sys
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_translation_by_author
-from rhutils.dump import read_text, write_text, write_byte, dump_binary, insert_binary, get_csv_translated_texts
+from rhutils.dump import dump_binary, insert_binary, get_csv_translated_texts
+from rhutils.io import read_text, write_text, write_byte
 from rhutils.snes import snes2pc_lorom, pc2snes_lorom
 
 POINTER_BLOCK1_START = 0x11010

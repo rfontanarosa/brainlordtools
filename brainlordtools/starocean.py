@@ -9,7 +9,8 @@ import os
 import shutil
 import struct
 
-from rhutils.dump import dump_binary, insert_binary, get_csv_translated_texts, read_text
+from rhutils.dump import dump_binary, insert_binary, get_csv_translated_texts
+from rhutils.io import read_text
 from rhutils.table import Table
 
 def starocean_misc_dumper(args):

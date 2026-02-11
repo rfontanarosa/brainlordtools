@@ -13,7 +13,8 @@ import struct
 import sys
 
 from rhtools3.Table import Table
-from rhutils.dump import get_csv_translated_texts, read_dump, fill, write_byte
+from rhutils.dump import get_csv_translated_texts, read_dump
+from rhutils.io import fill, write_byte
 from rhutils.snes import pc2snes_hirom, snes2pc_hirom
 from quintettools.quintet_comp import compress as quintet_compress
 from quintettools.quintet_decomp import decompress as quintet_decompress

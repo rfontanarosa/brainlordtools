@@ -8,7 +8,8 @@ import sys, os, struct, sqlite3, shutil
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text
-from rhutils.dump import read_text, dump_binary, insert_binary
+from rhutils.dump import dump_binary, insert_binary
+from rhutils.io import read_text
 
 SNES_BANK_SIZE = 0x8000
 
@@ -50,20 +51,16 @@ def brandish_text_dumper(args):
 			paddress = f1.tell()
 			pvalue = f1.read(2)
 			taddress = struct.unpack('H', pvalue)[0] + (SNES_BANK_SIZE * 0xa)
-			size = get_size(f1, taddress)
+			size = get_size(f2, taddress)
 			#
-			f2.seek(taddress)
-			text = f2.read(size)
-			text_encoded = table1.encode(text, False, False)
-			text_binary = sqlite3.Binary(text)
-			text_address = int2hex(taddress)
-			text_length = len(text_binary)
-			pointer_address = int2hex(int(paddress))
-			cur.execute('insert or replace into texts values (?, ?, ?, ?, ?, ?, 1)', (id, buffer(text_binary), text_encoded, text_address, pointer_address, text_length))
-			# DUMP - TXT
-			dump_file = os.path.join(dump_path, '%s - %d.txt' % (str(id).zfill(3), pointer_address))
-			with open(dump_file, 'w') as out:
-				out.write(text_encoded)
+			text = read_text(f2, taddress, length=size)
+			text_decoded = table1.decode(text, False, False)
+			# dump - db
+			insert_text(cur, id, text, text_decoded, hex(taddress), hex(paddress), 1, id)
+			# dump - txt
+			filename = os.path.join(dump_path, 'dump_eng.txt')
+			with open(filename, 'a+') as out:
+				out.write(str(id) + ' - ' + hex(paddress) + '\n' + text_decoded + "\n\n")
 			id += 1
 	cur.close()
 	conn.commit()

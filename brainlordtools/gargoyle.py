@@ -10,7 +10,8 @@ import shutil
 import struct
 import sys
 
-from rhutils.dump import dump_binary, insert_binary, get_csv_translated_texts, read_text, write_text
+from rhutils.dump import dump_binary, insert_binary, get_csv_translated_texts
+from rhutils.io import read_text, write_text
 from rhutils.table import Table
 
 TEXT_POINTERS = (0x16000, 0x16114)

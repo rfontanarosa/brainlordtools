@@ -13,7 +13,8 @@ import struct
 import sys
 
 from rhutils.db import insert_text, select_most_recent_translation, select_translation_by_author
-from rhutils.dump import dump_binary, read_text, get_csv_translated_texts, insert_binary
+from rhutils.dump import dump_binary, get_csv_translated_texts, insert_binary
+from rhutils.io import read_text
 from rhutils.snes import pc2snes_hirom
 from rhutils.table import Table
 

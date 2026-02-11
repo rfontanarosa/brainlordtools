@@ -10,7 +10,7 @@ import sqlite3
 import struct
 
 from rhutils.db import insert_text, select_translation_by_author
-from rhutils.dump import read_text
+from rhutils.io import read_text
 from rhutils.snes import pc2snes_hirom
 from rhutils.table import Table
 

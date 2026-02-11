@@ -11,7 +11,8 @@ import sqlite3
 import struct
 
 from rhutils.db import insert_text
-from rhutils.dump import dump_binary, insert_binary, read_text
+from rhutils.dump import dump_binary, insert_binary
+from rhutils.io import read_text
 from rhutils.table import Table
 
 POINTERS_BLOCKS = (

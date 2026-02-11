@@ -12,7 +12,8 @@ import sqlite3
 import struct
 
 from rhutils.db import insert_text, select_most_recent_translation
-from rhutils.dump import read_text, write_text, dump_binary, insert_binary
+from rhutils.dump import dump_binary, insert_binary
+from rhutils.io import read_text, write_text
 from rhutils.table import Table
 
 TEXT_BLOCK1_START = 0x170000

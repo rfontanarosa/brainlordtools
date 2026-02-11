@@ -13,7 +13,8 @@ import sys
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_translation_by_author
-from rhutils.dump import read_text, dump_binary
+from rhutils.dump import dump_binary
+from rhutils.io import read_text
 from rhutils.snes import pc2snes_lorom
 
 GFX_BLOCK = (0xf300, 0xff00)
