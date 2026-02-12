@@ -10,6 +10,7 @@ CRC_TABLE = {
     'bof': 'C788B696',
     'bof2': '67CDACC5',
     'brainlord': 'AC443D87',
+    'brainlord_pt': 'AC443D87',
     'brandish': '74F70A0B',
     'brandish2': '9DB396EC',
     'ffmq': '2C52C792',
@@ -34,6 +35,7 @@ CRC_TABLE = {
 
 EXPAND_TABLE = {
     "brainlord": 0x80000,
+    "brainlord_pt": 0x80000,
     "gaia": 0x80000,
     "lufia": 0x100000,
     "spike": 0x78000
