@@ -5,6 +5,8 @@ USER=${2:-"clomax"}
 
 source ./_common.sh
 
+log_info "Starting process for Game ID: ${YELLOW}$GAME_ID${NC}"
+
 case $GAME_ID in
   "brainlord")
     TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
@@ -12,10 +14,26 @@ case $GAME_ID in
     ORIGINAL_DUMP_DIR="$RESOURCE_PATH/dump_text"
     ORIGINAL_DUMP_PATH="$ORIGINAL_DUMP_DIR/dump_eng.txt"
 
-    echo "Processing $GAME_ID for user $USER..."
-    python -m brainlordutils.utils import_translation \
+    check_file "$SOURCE_FILE"
+    check_file "$ORIGINAL_DUMP_PATH"
+
+    log_step "Importing $SOURCE_FILE for user $USER"
+    python "$SCRIPT_DIR/manager.py" import_translation \
         -db "$DB" -s "$SOURCE_FILE" -u "$USER" -od "$ORIGINAL_DUMP_PATH"
-    echo "Done! Dump has been imported into $DB"
+    ;;
+
+  "brainlord_pt")
+    TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
+    SOURCE_FILE="$TRANSLATED_DUMP_DIR/dump_por.txt"
+    ORIGINAL_DUMP_DIR="$RESOURCE_PATH/dump_text"
+    ORIGINAL_DUMP_PATH="$ORIGINAL_DUMP_DIR/dump_eng.txt"
+
+    check_file "$SOURCE_FILE"
+    check_file "$ORIGINAL_DUMP_PATH"
+
+    log_step "Importing $SOURCE_FILE for user $USER"
+    python "$SCRIPT_DIR/manager.py" import_translation \
+        -db "$DB" -s "$SOURCE_FILE" -u "$USER" -od "$ORIGINAL_DUMP_PATH"
     ;;
 
   "gaia")
@@ -24,20 +42,23 @@ case $GAME_ID in
     ORIGINAL_DUMP_DIR="$RESOURCE_PATH/dump_text"
     ORIGINAL_DUMP_PATH="$ORIGINAL_DUMP_DIR/dump_eng.txt"
 
-    echo "Processing $GAME_ID for user $USER..."
-    python -m brainlordutils.utils import_translation \
+    check_file "$SOURCE_FILE"
+    check_file "$ORIGINAL_DUMP_PATH"
+
+    log_step "Importing $SOURCE_FILE for user $USER"
+    python "$SCRIPT_DIR/manager.py" import_translation \
         -db "$DB" -s "$SOURCE_FILE" -u "$USER" -od "$ORIGINAL_DUMP_PATH"
-    echo "Done! Dump has been imported into $DB"
     ;;
 
   "ignition" | "spike")
     TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
     SOURCE_FILE="$TRANSLATED_DUMP_DIR/dump_ita_$USER.txt"
 
-    echo "Processing $GAME_ID for user $USER..."
-    python -m brainlordutils.utils import_translation \
+    check_file "$SOURCE_FILE"
+
+    log_step "Importing $SOURCE_FILE for user $USER"
+    python "$SCRIPT_DIR/manager.py" import_translation \
         -db "$DB" -s "$SOURCE_FILE" -u "$USER"
-    echo "Done! Dump has been imported into $DB"
     ;;
 
   "som")
@@ -45,12 +66,15 @@ case $GAME_ID in
     SOURCE_EVENTS_FILE="$TRANSLATED_DUMP_DIR/dump_events_$USER.txt"
     SOURCE_TEXT_FILE="$TRANSLATED_DUMP_DIR/dump_texts_$USER.txt"
 
-    echo "Processing $GAME_ID for user $USER..."
-    python -m brainlordutils.utils import_translation \
+    check_file "$SOURCE_EVENTS_FILE"
+    check_file "$SOURCE_TEXT_FILE"
+
+    log_step "Importing $SOURCE_FILE for user $USER"
+    python "$SCRIPT_DIR/manager.py" import_translation \
         -db "$DB" -s "$SOURCE_EVENTS_FILE" -u "$USER"
-    python -m brainlordutils.utils import_translation \
+    log_step "Importing $SOURCE_FILE for user $USER"
+    python "$SCRIPT_DIR/manager.py" import_translation \
         -db "$DB" -s "$SOURCE_TEXT_FILE" -u "$USER"
-    echo "Done! Dumps have been imported into $DB"
     ;;
 
   "starocean")
@@ -59,14 +83,19 @@ case $GAME_ID in
     ORIGINAL_DUMP_DIR="$RESOURCE_PATH/chester/resources"
     ORIGINAL_DUMP_PATH="$ORIGINAL_DUMP_DIR/dialogues.txt"
 
-    echo "Processing $GAME_ID for user $USER..."
-    python -m brainlordutils.utils import_translation \
+    check_file "$SOURCE_FILE"
+    check_file "$ORIGINAL_DUMP_PATH"
+
+    log_step "Importing $SOURCE_FILE for user $USER"
+    python "$SCRIPT_DIR/manager.py" import_translation \
         -db "$DB" -s "$SOURCE_FILE" -u "$USER" -od "$ORIGINAL_DUMP_PATH" -g $GAME_ID
-    echo "Done! Dump has been imported into $DB"
     ;;
 
   *)
-    echo "Unknown GAME_ID: $GAME_ID"
+    log_error "Unknown GAME_ID: $GAME_ID"
     exit 1
     ;;
 esac
+
+log_success "All tasks completed successfully!"
+log_info "Database location: ${YELLOW}$DB${NC}"
