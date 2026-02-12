@@ -1,3 +1,10 @@
+#!/bin/bash
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BRAINLORD_PATH="$HOME/git"
+RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/$GAME_ID"
+DB="$RESOURCE_PATH/db/$GAME_ID.sqlite3"
+
 GREEN='\033[0;32m'
 CYAN='\033[0;36m'
 YELLOW='\033[1;33m'

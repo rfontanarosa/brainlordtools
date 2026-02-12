@@ -3,9 +3,7 @@
 GAME_ID=${1:-"som"}
 USER=${2:-"clomax"}
 
-BRAINLORD_PATH="$HOME/git"
-RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/$GAME_ID"
-DB="$RESOURCE_PATH/db/$GAME_ID.sqlite3"
+source ./_common.sh
 
 case $GAME_ID in
   "brainlord")

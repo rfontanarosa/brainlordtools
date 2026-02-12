@@ -1,12 +1,10 @@
 #!/bin/bash
 
-source ./_common.sh
-
 SOURCE_FILE_1=${1:-""}
 SOURCE_FILE_2=${2:-""}
 DESTINATION_FILE=${3:-""}
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source ./_common.sh
 
 if [ -z "$SOURCE_FILE_1" ] || [ -z "$SOURCE_FILE_2" ] || [ -z "$DESTINATION_FILE" ]; then
     log_error "Missing arguments."

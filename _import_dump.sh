@@ -1,12 +1,8 @@
 #!/bin/bash
 
-source ./_common.sh
-
 GAME_ID=${1:-"som"}
 
-BRAINLORD_PATH="$HOME/git"
-RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/$GAME_ID"
-DB="$RESOURCE_PATH/db/$GAME_ID.sqlite3"
+source ./_common.sh
 
 log_info "Starting process for Game ID: ${YELLOW}$GAME_ID${NC}"
 
