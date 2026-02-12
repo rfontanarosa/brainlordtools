@@ -580,89 +580,28 @@ def brainlord_text_inserter(args):
             repoint_text(fw, fw.tell(), new_pointers)
     # two bytes pointers
     with open(dest_file, 'r+b') as fw:
-        repoint_two_bytes_pointer(fw, 0x2990, new_pointers, b'\xc6')
-        repoint_two_bytes_pointer(fw, 0x2cc0, new_pointers, b'\xc6')
-        repoint_two_bytes_pointer(fw, 0x2cf3, new_pointers, b'\xc6')
-        repoint_two_bytes_pointer(fw, 0xa137, new_pointers, b'\xc6')
-        repoint_two_bytes_pointer(fw, 0xa14e, new_pointers, b'\xc6')
-        repoint_two_bytes_pointer(fw, 0x221e8, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x2234c, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x223c3, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x2254c, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x225ff, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x22616, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x22627, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x22786, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x227c0, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x227d9, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x22803, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x229a7, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x22a5f, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x22cec, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x23099, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x2313e, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x23155, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x23166, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x231d6, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x2332c, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x2334d, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x23406, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x234ec, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x23a2c, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x23c59, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x23c7a, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x23da6, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x23e8c, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x23f7c, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x23fb9, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x240e1, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x2435c, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x2422c, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x244da, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x24518, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x247d3, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x247f0, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x24bf6, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x24c17, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x24c55, new_pointers, b'\xc6')
-        repoint_two_bytes_pointer(fw, 0x24d3a, new_pointers, b'\xc6')
-        repoint_two_bytes_pointer(fw, 0x248fc, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x24939, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x21cb9, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x21daf, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x21e05, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x21e57, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x21eb6, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x21ed7, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x222de, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x22949, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x22ca9, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x22f23, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x232ef, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x237e6, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x23946, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x235ce, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x23b32, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x24442, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x24730, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x251c2, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x251e8, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x25253, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x252a4, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x25664, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x25a6e, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x25bcd, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x25c07, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x25c88, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x25dd9, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x25e14, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x25fb8, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x26623, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x6f06e, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x14005d, new_pointers, b'\xc6')
-        repoint_two_bytes_pointer(fw, 0x140140, new_pointers, b'\xc6')
-        repoint_two_bytes_pointer(fw, 0x143902, new_pointers, b'\xd7')
-        repoint_two_bytes_pointer(fw, 0x1496f2, new_pointers, b'\xd7')
+        two_bytes_pointers = {
+            b'\xc6': [
+                0x2990, 0x2CC0, 0x2CF3, 0xA137, 0xA14E, 0x24C55,
+                0x24D3A, 0x14005D, 0x140140
+            ],
+            b'\xd7': [
+                0x221E8, 0x2234C, 0x223C3, 0x2254C, 0x225FF, 0x22616, 0x22627,
+                0x22786, 0x227C0, 0x227D9, 0x22803, 0x229A7, 0x22A5F, 0x22CEC,
+                0x23099, 0x2313E, 0x23155, 0x23166, 0x231D6, 0x2332C, 0x2334D,
+                0x23406, 0x234EC, 0x23A2C, 0x23C59, 0x23C7A, 0x23DA6, 0x23E8C,
+                0x23F7C, 0x23FB9, 0x240E1, 0x2435C, 0x2422C, 0x244DA, 0x24518,
+                0x247D3, 0x247F0, 0x24BF6, 0x24C17, 0x248FC, 0x24939, 0x21CB9,
+                0x21DAF, 0x21E05, 0x21E57, 0x21EB6, 0x21ED7, 0x222DE, 0x22949,
+                0x22CA9, 0x22F23, 0x232EF, 0x237E6, 0x23946, 0x235CE, 0x23B32,
+                0x24442, 0x24730, 0x251C2, 0x251E8, 0x25253, 0x252A4, 0x25664,
+                0x25A6E, 0x25BCD, 0x25C07, 0x25C88, 0x25DD9, 0x25E14, 0x25FB8,
+                0x26623, 0x6F06E, 0x143902, 0x1496F2
+            ]
+        }
+        for bank_byte, offsets in two_bytes_pointers.items():
+            for offset in offsets:
+                repoint_two_bytes_pointer(fw, offset, new_pointers, bank_byte)
 
 def repoint_two_bytes_pointer(fw, offset, new_pointers, third_byte):
     fw.seek(offset)
