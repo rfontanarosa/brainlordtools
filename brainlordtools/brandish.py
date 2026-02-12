@@ -8,7 +8,7 @@ import sys, os, struct, sqlite3, shutil
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text
-from rhutils.dump import dump_binary, insert_binary
+from rhutils.dump import extract_binary, insert_binary
 from rhutils.io import read_text
 
 SNES_BANK_SIZE = 0x8000
@@ -112,9 +112,9 @@ def brandish_gfx_dumper(args):
 	shutil.rmtree(dump_path, ignore_errors=True)
 	os.mkdir(dump_path)
 	with open(source_file, 'rb') as f:
-		dump_binary(f, 0x13400, 0x13800 - 0x13400, os.path.join(dump_path, 'gfx_yes-or-no.bin'))
-		dump_binary(f, 0x20000, 0x21400 - 0x20000, os.path.join(dump_path, 'gfx_font.bin'))
-		dump_binary(f, 0x40000, 0x4c000- 0x40000, os.path.join(dump_path, 'gfx_zones_h.bin'))
+		extract_binary(f, 0x13400, 0x13800 - 0x13400, os.path.join(dump_path, 'gfx_yes-or-no.bin'))
+		extract_binary(f, 0x20000, 0x21400 - 0x20000, os.path.join(dump_path, 'gfx_font.bin'))
+		extract_binary(f, 0x40000, 0x4c000- 0x40000, os.path.join(dump_path, 'gfx_zones_h.bin'))
 
 def brandish_gfx_inserter(args):
 	dest_file = args.dest_file

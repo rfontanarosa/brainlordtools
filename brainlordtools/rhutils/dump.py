@@ -33,17 +33,21 @@ def read_dump(filename: str) -> dict:
             dump[current_id][0] = "".join(lines_accumulator)
     return dump
 
-def dump_binary(f, start_offset, length, file_path):
+def extract_binary(f, start_offset, length, file_path) -> None:
+    """Extracts a specific block of bytes from the opened file to a new file."""
     f.seek(start_offset)
     block = f.read(length)
-    with open(file_path, 'wb') as f1:
-        f1.write(block)
+    if len(block) < length:
+        print(f"Warning: Requested {length} bytes, but only read {len(block)} before EOF.")
+    with open(file_path, 'wb') as f_out:
+        f_out.write(block)
 
-def insert_binary(f, start_offset, file_path, max_length=None):
-    with open(file_path, 'rb') as f1:
-        block = f1.read()
+def insert_binary(f, start_offset, file_path, max_length=None) -> None:
+    """Inserts a binary file into the opened file at a specific offset."""
+    with open(file_path, 'rb') as f_in:
+        block = f_in.read()
         if max_length is not None and len(block) > max_length:
-            raise ValueError(f"Insertion exceeds the specified limit of {max_length} bytes.")
+            raise ValueError(f"Error: {file_path} ({len(block)} bytes) exceeds the limit of {max_length} bytes!")
         f.seek(start_offset)
         f.write(block)
 

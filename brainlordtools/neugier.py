@@ -13,7 +13,7 @@ import sys
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_translation_by_author
-from rhutils.dump import dump_binary, insert_binary, get_csv_translated_texts
+from rhutils.dump import extract_binary, insert_binary, get_csv_translated_texts
 from rhutils.io import read_text, write_text, write_byte
 from rhutils.snes import snes2pc_lorom, pc2snes_lorom
 
@@ -114,11 +114,11 @@ def neugier_gfx_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_binary(f, GFX_NEW_GAME_OFFSETS[0], GFX_NEW_GAME_OFFSETS[1] - GFX_NEW_GAME_OFFSETS[0], os.path.join(dump_path, 'gfx_new_game.bin'))
-        dump_binary(f, GFX_TITLE[0], GFX_TITLE[1] - GFX_TITLE[0], os.path.join(dump_path, 'gfx_title.bin'))
-        dump_binary(f, GFX_STATUS_OFFSETS[0], GFX_STATUS_OFFSETS[1] - GFX_STATUS_OFFSETS[0], os.path.join(dump_path, 'gfx_status.bin'))
-        dump_binary(f, GFX_FONT_OFFSETS[0], GFX_FONT_OFFSETS[1] - GFX_FONT_OFFSETS[0], os.path.join(dump_path, 'gfx_font.bin'))
-        dump_binary(f, GFX_INTRO_OFFSETS[0], GFX_INTRO_OFFSETS[1] - GFX_INTRO_OFFSETS[0], os.path.join(dump_path, 'gfx_intro.bin'))
+        extract_binary(f, GFX_NEW_GAME_OFFSETS[0], GFX_NEW_GAME_OFFSETS[1] - GFX_NEW_GAME_OFFSETS[0], os.path.join(dump_path, 'gfx_new_game.bin'))
+        extract_binary(f, GFX_TITLE[0], GFX_TITLE[1] - GFX_TITLE[0], os.path.join(dump_path, 'gfx_title.bin'))
+        extract_binary(f, GFX_STATUS_OFFSETS[0], GFX_STATUS_OFFSETS[1] - GFX_STATUS_OFFSETS[0], os.path.join(dump_path, 'gfx_status.bin'))
+        extract_binary(f, GFX_FONT_OFFSETS[0], GFX_FONT_OFFSETS[1] - GFX_FONT_OFFSETS[0], os.path.join(dump_path, 'gfx_font.bin'))
+        extract_binary(f, GFX_INTRO_OFFSETS[0], GFX_INTRO_OFFSETS[1] - GFX_INTRO_OFFSETS[0], os.path.join(dump_path, 'gfx_intro.bin'))
 
 def neugier_gfx_inserter(args):
     dest_file = args.dest_file
@@ -160,7 +160,7 @@ def neugier_misc_dumper(args):
                 csv_writer.writerow(fields)
         # Credits
         with open(source_file, 'rb') as f:
-            dump_binary(f, 0xd0919, 0xd0f37 - 0xd0919, os.path.join(dump_path, 'credits.bin'))
+            extract_binary(f, 0xd0919, 0xd0f37 - 0xd0919, os.path.join(dump_path, 'credits.bin'))
 
 def neugier_misc_inserter(args):
     dest_file = args.dest_file

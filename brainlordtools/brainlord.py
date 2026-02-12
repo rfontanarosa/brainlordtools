@@ -12,7 +12,7 @@ import sqlite3
 import struct
 
 from rhutils.db import insert_text, select_most_recent_translation
-from rhutils.dump import dump_binary, get_csv_translated_texts, insert_binary
+from rhutils.dump import extract_binary, get_csv_translated_texts, insert_binary
 from rhutils.io import read_text, write_text
 from rhutils.table import Table
 
@@ -273,8 +273,8 @@ def brainlord_gfx_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[2], dump_path / 'gfx_font1.bin')
-        dump_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[2], dump_path / 'gfx_font2.bin')
+        extract_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[2], dump_path / 'gfx_font1.bin')
+        extract_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[2], dump_path / 'gfx_font2.bin')
 
 def brainlord_gfx_inserter(args):
     dest_file = args.dest_file

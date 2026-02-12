@@ -12,7 +12,7 @@ import struct
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_most_recent_translation
-from rhutils.dump import dump_binary, insert_binary
+from rhutils.dump import extract_binary, insert_binary
 from rhutils.io import read_text, write_byte, write_text
 
 TEXT_SEGMENT_1 = (0x60000, 0x6fddf)
@@ -262,7 +262,7 @@ def seventhsaga_gfx_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1] - FONT1_BLOCK[0], os.path.join(dump_path, 'gfx_font1.bin'))
+        extract_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1] - FONT1_BLOCK[0], os.path.join(dump_path, 'gfx_font1.bin'))
 
 def seventhsaga_gfx_inserter(args):
     dest_file = args.dest_file

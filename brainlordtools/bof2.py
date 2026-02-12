@@ -11,7 +11,7 @@ import sqlite3
 import struct
 
 from rhutils.db import insert_text
-from rhutils.dump import dump_binary, insert_binary
+from rhutils.dump import extract_binary, insert_binary
 from rhutils.io import read_text
 from rhutils.table import Table
 
@@ -159,7 +159,7 @@ def bof2_gfx_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_binary(f, 0x176000, 0x179000 - 0x176000, os.path.join(dump_path, 'gfx_font.bin'))
+        extract_binary(f, 0x176000, 0x179000 - 0x176000, os.path.join(dump_path, 'gfx_font.bin'))
 
 def bof2_gfx_inserter(args):
     dest_file = args.dest_file

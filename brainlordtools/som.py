@@ -13,7 +13,7 @@ import struct
 import sys
 
 from rhutils.db import insert_text, select_most_recent_translation, select_translation_by_author
-from rhutils.dump import dump_binary, get_csv_translated_texts, insert_binary
+from rhutils.dump import extract_binary, get_csv_translated_texts, insert_binary
 from rhutils.io import read_text
 from rhutils.snes import pc2snes_hirom
 from rhutils.table import Table
@@ -344,10 +344,10 @@ def som_tilemap_dumper(args):
     dump_path = pathlib.Path(args.dump_path)
     with open(source_file, 'rb') as f:
         # INTRO TILEMAP
-        dump_binary(f, 0x14a6, 928, dump_path / 'intro-tilemap.bin')
+        extract_binary(f, 0x14a6, 928, dump_path / 'intro-tilemap.bin')
         # THE END
-        dump_binary(f, 0x07c0, 544, dump_path / 'the-end-gfx.bin')
-        dump_binary(f, 0x10c8, 928, dump_path / 'the-end-tilemap.bin')
+        extract_binary(f, 0x07c0, 544, dump_path / 'the-end-gfx.bin')
+        extract_binary(f, 0x10c8, 928, dump_path / 'the-end-tilemap.bin')
 
 def som_tilemap_inserter(args):
     dest_file = args.dest_file

@@ -9,7 +9,7 @@ import os
 import shutil
 import struct
 
-from rhutils.dump import dump_binary, insert_binary, get_csv_translated_texts
+from rhutils.dump import extract_binary, insert_binary, get_csv_translated_texts
 from rhutils.io import read_text
 from rhutils.table import Table
 
@@ -97,9 +97,9 @@ def starocean_gfx_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_binary(f, 0x3f0000, 3392, os.path.join(dump_path, '3F0000_font.bin'))
-        dump_binary(f, 0x3f0d40, (4 * 13) + 1, os.path.join(dump_path, '3F0d40_font_vwf.bin'))
-        dump_binary(f, 0xa0268, 16, os.path.join(dump_path, 'a0268_menu_hand_pointer.bin'))
+        extract_binary(f, 0x3f0000, 3392, os.path.join(dump_path, '3F0000_font.bin'))
+        extract_binary(f, 0x3f0d40, (4 * 13) + 1, os.path.join(dump_path, '3F0d40_font_vwf.bin'))
+        extract_binary(f, 0xa0268, 16, os.path.join(dump_path, 'a0268_menu_hand_pointer.bin'))
 
 def starocean_gfx_inserter(args):
     dest_file = args.dest_file

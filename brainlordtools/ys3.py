@@ -13,7 +13,7 @@ import sys
 
 from rhtools3.Table import Table
 from rhutils.db import insert_text, select_translation_by_author
-from rhutils.dump import dump_binary
+from rhutils.dump import extract_binary
 from rhutils.io import read_text
 from rhutils.snes import pc2snes_lorom
 
@@ -102,7 +102,7 @@ def ys3_gfx_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_binary(f, GFX_BLOCK[0], GFX_BLOCK[1] - GFX_BLOCK[0], os.path.join(dump_path, 'gfx_1.bin'))
+        extract_binary(f, GFX_BLOCK[0], GFX_BLOCK[1] - GFX_BLOCK[0], os.path.join(dump_path, 'gfx_1.bin'))
 
 def ys3_text_inserter(args):
     dest_file = args.dest_file

@@ -10,7 +10,7 @@ import shutil
 import struct
 import sys
 
-from rhutils.dump import dump_binary, insert_binary, get_csv_translated_texts
+from rhutils.dump import extract_binary, insert_binary, get_csv_translated_texts
 from rhutils.io import read_text, write_text
 from rhutils.table import Table
 
@@ -378,8 +378,8 @@ def gargoyle_gfx_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_binary(f, 0x18000, 0x18800 - 0x18000, os.path.join(dump_path, '18000_title.bin'))
-        dump_binary(f, 0x14000, 0x14200 - 0x14000, os.path.join(dump_path, '14000_font.bin'))
+        extract_binary(f, 0x18000, 0x18800 - 0x18000, os.path.join(dump_path, '18000_title.bin'))
+        extract_binary(f, 0x14000, 0x14200 - 0x14000, os.path.join(dump_path, '14000_font.bin'))
 
 def gargoyle_gfx_inserter(args):
     dest_file = args.dest_file

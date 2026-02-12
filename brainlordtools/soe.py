@@ -10,7 +10,7 @@ import shutil
 import struct
 
 from rhtools3.Table import Table
-from rhutils.dump import dump_binary, insert_binary
+from rhutils.dump import extract_binary, insert_binary
 from rhutils.io import read_text, write_text
 
 # TEXT_POINTERS = (0x11D000, 0x11F32B)
@@ -262,14 +262,14 @@ def soe_gfx_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        dump_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1] - (16 * 8 * 3) - FONT1_BLOCK[0], os.path.join(dump_path, 'gfx_font1.bin'))
-        dump_binary(f, FONT1_VWF_TABLE[0], FONT1_VWF_TABLE[1] - 16 - FONT1_VWF_TABLE[0], os.path.join(dump_path, 'gfx_vwf1.bin'))
-        dump_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[1] - (16 * 8 * 3) - FONT2_BLOCK[0], os.path.join(dump_path, 'gfx_font2.bin'))
-        dump_binary(f, FONT2_VWF_TABLE[0], FONT2_VWF_TABLE[1] - 16 - FONT2_VWF_TABLE[0], os.path.join(dump_path, 'gfx_vwf2.bin'))
-        dump_binary(f, FONT1_BLOCK[0], 16 * 8 * 3, os.path.join(dump_path, 'gfx_exp_font1.bin'))
-        dump_binary(f, FONT1_VWF_TABLE[0], 16, os.path.join(dump_path, 'gfx_exp_vwf1.bin'))
-        dump_binary(f, FONT2_BLOCK[0], 16 * 8 * 3, os.path.join(dump_path, 'gfx_exp_font2.bin'))
-        dump_binary(f, FONT2_VWF_TABLE[0], 16, os.path.join(dump_path, 'gfx_exp_vwf2.bin'))
+        extract_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1] - (16 * 8 * 3) - FONT1_BLOCK[0], os.path.join(dump_path, 'gfx_font1.bin'))
+        extract_binary(f, FONT1_VWF_TABLE[0], FONT1_VWF_TABLE[1] - 16 - FONT1_VWF_TABLE[0], os.path.join(dump_path, 'gfx_vwf1.bin'))
+        extract_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[1] - (16 * 8 * 3) - FONT2_BLOCK[0], os.path.join(dump_path, 'gfx_font2.bin'))
+        extract_binary(f, FONT2_VWF_TABLE[0], FONT2_VWF_TABLE[1] - 16 - FONT2_VWF_TABLE[0], os.path.join(dump_path, 'gfx_vwf2.bin'))
+        extract_binary(f, FONT1_BLOCK[0], 16 * 8 * 3, os.path.join(dump_path, 'gfx_exp_font1.bin'))
+        extract_binary(f, FONT1_VWF_TABLE[0], 16, os.path.join(dump_path, 'gfx_exp_vwf1.bin'))
+        extract_binary(f, FONT2_BLOCK[0], 16 * 8 * 3, os.path.join(dump_path, 'gfx_exp_font2.bin'))
+        extract_binary(f, FONT2_VWF_TABLE[0], 16, os.path.join(dump_path, 'gfx_exp_vwf2.bin'))
 
 def soe_gfx_inserter(args):
     dest_file = args.dest_file
