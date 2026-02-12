@@ -15,15 +15,15 @@ def handle_copy_file(args):
 
 def handle_crc_check(args):
     source_file = args.source_file
-    game = args.game_id
-    crc_check(source_file, game)
+    game_id = args.game_id
+    crc_check(source_file, game_id)
 
 def handle_diff_dump(args):
     source1_dump_path = args.source1
     source2_dump_path = args.source2
     destination_dump_path = args.destination
-    game = args.game_id
-    diff_dump(source1_dump_path, source2_dump_path, destination_dump_path, game)
+    game_id = args.game_id
+    diff_dump(source1_dump_path, source2_dump_path, destination_dump_path, game_id)
 
 def handle_expand_file(args):
     dest_file = args.dest_file
