@@ -7,7 +7,6 @@ __email__ = "robertofontanarosa@gmail.com"
 import argparse
 import re
 import sqlite3
-import time
 
 from brainlordtools.utils.parsers import GAME_PARSERS, parse_metadata
 from brainlordtools.rhutils.db import select_most_recent_translation, select_texts, select_translation_by_author, insert_text, insert_translation, TranslationStatus
@@ -30,24 +29,6 @@ def import_dump(args) -> None:
       block = metadata.get('BLOCK', 1)
       text_decoded = text.strip('\r\n')
       insert_text(cur, current_id, b'', text_decoded, text_address, pointer_addresses, block, ref)
-
-def import_translation(args) -> None:
-  db = args.database_file
-  source_dump_path = args.source
-  user_name = args.user_name
-  original_dump_path = args.original_dump
-  game = args.game
-  parse_dump_func = GAME_PARSERS.get(game, GAME_PARSERS['default'])
-  with sqlite3.connect(db) as conn:
-    conn.text_factory = str
-    cur = conn.cursor()
-    translation_dump = parse_dump_func(source_dump_path)
-    original_dump = parse_dump_func(original_dump_path) if original_dump_path else None
-    for current_id, (text, _) in translation_dump.items():
-      if original_dump and original_dump.get(current_id, [None])[0] == text:
-        continue
-      text_decoded = text.rstrip('\r\n')
-      insert_translation(cur, current_id, 'TEST', user_name, text_decoded, TranslationStatus.PARTIALLY, time.time(), '', '')
 
 def export_translation(args) -> None:
   db = args.database_file
@@ -90,13 +71,6 @@ p_import_dump.add_argument('-db', '--database', action='store', dest='database_f
 p_import_dump.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the source .txt dump file')
 p_import_dump.add_argument('-g', '--game', action='store', dest='game', required=False, default='default', help='Optional: Game ID(s) to use for custom parsing logic')
 p_import_dump.set_defaults(func=import_dump)
-p_import_translation = subparsers.add_parser('import_translation', help='Import translations from a dump file')
-p_import_translation.add_argument('-db', '--database', action='store', dest='database_file', required=True, help='Path to the SQLite database')
-p_import_translation.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the source .txt translated dump file')
-p_import_translation.add_argument('-u', '--user', action='store', dest='user_name', required=True, help='The author of the translation')
-p_import_translation.add_argument('-od', '--original_dump', action='store', dest='original_dump', required=False, help='Path to the source .txt original dump file')
-p_import_translation.add_argument('-g', '--game', action='store', dest='game', required=False, default='default',help='Optional: Game ID(s) to use for custom parsing logic')
-p_import_translation.set_defaults(func=import_translation)
 p_export_translation = subparsers.add_parser('export_translation', help='Export translations to a dump file')
 p_export_translation.add_argument('-db', '--database', action='store', dest='database_file', required=True, help='Path to the SQLite database')
 p_export_translation.add_argument('-d', '--destination', action='store', dest='destination', required=True, help='Output path for the generated .txt dump')

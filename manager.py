@@ -6,7 +6,7 @@ __email__ = "robertofontanarosa@gmail.com"
 
 import argparse
 
-from brainlordtools.utils.actions import copy_file, crc_check, diff_dump, expand_file
+from brainlordtools.utils.actions import copy_file, crc_check, diff_dump, expand_file, import_translation
 
 def handle_copy_file(args):
     source_file = args.source_file
@@ -30,6 +30,14 @@ def handle_expand_file(args):
     game_id = args.game_id
     expand_file(dest_file, game_id)
 
+def handle_import_translation(args):
+    db = args.database_file
+    source_dump_path = args.source
+    user_name = args.user_name
+    original_dump_path = args.original_dump
+    game_id = args.game_id
+    import_translation(db, source_dump_path, user_name, original_dump_path, game_id)
+
 parser = argparse.ArgumentParser()
 parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
@@ -51,6 +59,13 @@ p_expand = subparsers.add_parser('expand')
 p_expand.add_argument('-d', '--dest', dest='dest_file', required=True, help="Path to the destination file to be expanded")
 p_expand.add_argument('-g', '--game', dest='game_id', required=True, help="Game ID (e.g., som, ff6)")
 p_expand.set_defaults(func=handle_expand_file)
+p_import_translation = subparsers.add_parser('import_translation', help='Import translations from a dump file')
+p_import_translation.add_argument('-db', '--database', action='store', dest='database_file', required=True, help='Path to the SQLite database')
+p_import_translation.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the source .txt translated dump file')
+p_import_translation.add_argument('-u', '--user', action='store', dest='user_name', required=True, help='The author of the translation')
+p_import_translation.add_argument('-od', '--original_dump', action='store', dest='original_dump', required=False, help='Path to the source .txt original dump file')
+p_import_translation.add_argument('-g', '--game', action='store', dest='game_id', required=False, default='default',help='Optional: Game ID (e.g., som, ff6) to use for custom parsing logic')
+p_import_translation.set_defaults(func=handle_import_translation)
 
 if __name__ == "__main__":
   args = parser.parse_args()
