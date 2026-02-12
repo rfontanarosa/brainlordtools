@@ -12,7 +12,7 @@ import sqlite3
 import struct
 
 from rhutils.db import insert_text, select_most_recent_translation
-from rhutils.dump import dump_binary, insert_binary
+from rhutils.dump import dump_binary, get_csv_translated_texts, insert_binary
 from rhutils.io import read_text, write_text
 from rhutils.table import Table
 
@@ -69,16 +69,6 @@ def get_pointer_value(f, start, step, third_byte_index=2):
     pointer = f.read(step)
     p_value = struct.unpack('i', pointer[:2] + bytes([pointer[third_byte_index]]) + b'\x00')[0] - 0xc00000
     return p_value
-
-def get_translated_texts(filename):
-    translated_texts = {}
-    with open(filename, 'r') as csv_file:
-        csv_reader = csv.DictReader(csv_file)
-        for row in csv_reader:
-            trans = row.get('trans') or row.get('text')
-            text_address = int(row['text_address'], 16)
-            translated_texts[text_address] = trans
-    return translated_texts
 
 def repoint_misc(f, pointers, new_pointers):
     for _, (p_value, p_addresses) in enumerate(pointers.items()):
@@ -212,10 +202,10 @@ def brainlord_misc_inserter(args):
     with open(dest_file, 'r+b') as f1:
         # reading misc1.csv and writing texts
         translation_file = translation_path / 'misc1.csv'
-        translated_texts = get_translated_texts(translation_file)
+        translated_texts = get_csv_translated_texts(translation_file)
         new_pointers = {}
         t_new_address = 0x180000
-        for i, (t_address, t_value) in enumerate(translated_texts.items()):
+        for _, (_, t_address, t_value) in enumerate(translated_texts):
             new_pointers[t_address] = t_new_address
             text = table.encode(t_value)
             t_new_address = write_text(f1, t_new_address, text, end_byte=b'\xf7')
@@ -224,10 +214,10 @@ def brainlord_misc_inserter(args):
             repoint_misc(f1, curr_pointers, new_pointers)
         # reading misc2.csv and writing texts
         translation_file = translation_path / 'misc2.csv'
-        translated_texts = get_translated_texts(translation_file)
+        translated_texts = get_csv_translated_texts(translation_file)
         new_pointers = {}
         t_new_address = 0x182000
-        for i, (t_address, t_value) in enumerate(translated_texts.items()):
+        for _, (_, t_address, t_value) in enumerate(translated_texts):
             new_pointers[t_address] = t_new_address
             text = table.encode(t_value)
             t_new_address = write_text(f1, t_new_address, text, end_byte=b'\xf7')
@@ -238,10 +228,10 @@ def brainlord_misc_inserter(args):
         repoint_misc1(f1, p_b_1, new_pointers)
         # reading misc3.csv and writing texts
         translation_file = translation_path / 'misc3.csv'
-        translated_texts = get_translated_texts(translation_file)
+        translated_texts = get_csv_translated_texts(translation_file)
         new_pointers = {}
         t_new_address = 0x184000
-        for i, (t_address, t_value) in enumerate(translated_texts.items()):
+        for _, (_, t_address, t_value) in enumerate(translated_texts):
             new_pointers[t_address] = t_new_address
             text = table.encode(t_value)
             t_new_address = write_text(f1, t_new_address, text, end_byte=b'\xf7')
