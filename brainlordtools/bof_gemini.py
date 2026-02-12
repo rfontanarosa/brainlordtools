@@ -134,7 +134,8 @@ def bof_mte_optimizer(args):
 	# DICTIONARY OPTIMIZATION
 	text_input_filename = os.path.join(temp_path, 'mteOptBoFText-input.txt')
 	text_output_filename = os.path.join(temp_path, 'mteOptBofText-output.txt')
-	#mte_optimizer_tool_filename = os.path.join(mte_optimizer_path, 'mteOpt.py')
+	# TODO use mte_optimizer.py instead of MTEOpt.exe for better performance and cross-platform compatibility
+	# mte_optimizer_tool_filename = os.path.join(mte_optimizer_path, 'mte_optimizer.py')
 	mte_optimizer_tool_filename = os.path.join(mte_optimizer_path, 'MTEOpt.exe')
 	text_morpher_output_filename = os.path.join(temp_path, 'mteOptBoFText-morpher-output.txt')
 	with open(text_input_filename, 'w') as out:

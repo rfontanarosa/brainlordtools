@@ -364,7 +364,7 @@ def ys4_mte_optimizer(args):
 	# DICTIONARY OPTIMIZATION
 	text_input_filename = os.path.join(temp_path, 'mteOptYs4Text-input.txt')
 	text_output_filename = os.path.join(temp_path, 'mteOptYs4Text-output.txt')
-	mte_optimizer_tool_filename = os.path.join(mte_optimizer_path, 'mteOpt.py')
+	mte_optimizer_tool_filename = os.path.join(mte_optimizer_path, 'mte_optimizer.py')
 	with open(text_input_filename, 'w') as out:
 		conn = sqlite3.connect(db)
 		conn.text_factory = str

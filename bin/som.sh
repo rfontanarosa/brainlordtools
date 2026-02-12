@@ -86,5 +86,4 @@ else
   asar "$RESOURCE_PATH/asm/intro.asm" "$DESTINATION"
 fi
 
-# python ../mteOpt.py table -s "$RESOURCE_PATH/translation_text/dump_ita.txt" -d "dict.txt" -c "clean.txt" -b 1 -m 2 -M 2 -l 59 -o 128 --game som
-
+# python ../mte_optimizer.py table -s "$RESOURCE_PATH/translation_text/dump_events_clomax.txt" -d "dict.txt" -c "clean.txt" -b 1 -m 2 -M 2 -l 59 -o 128 --game som

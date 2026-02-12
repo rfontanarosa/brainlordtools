@@ -41,4 +41,4 @@ else
   bass "$RESOURCE_PATH/asm/various.asm" -m "$DESTINATION"
 fi
 
-# python ../mteOpt.py table -s /Users/robertofontanarosa/git/brainlordresources/gargoyle/translation_text/dump_ita.txt -d dict.txt -c clean.txt -b 1 -M 10 -l 112 -o 128 --game gargoyle
+# python ../mte_optimizer.py table -s /Users/robertofontanarosa/git/brainlordresources/gargoyle/translation_text/dump_ita.txt -d dict.txt -c clean.txt -b 1 -M 10 -l 112 -o 128 --game gargoyle
