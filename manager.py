@@ -5,8 +5,12 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import argparse
+import os
+import sys
 
 from brainlordtools.utils.actions import copy_file, crc_check, diff_dump, expand_file, import_translation
+from brainlordtools.utils.translators import deepl_translate_processor
+from brainlordutils.translators import amazon_translate_processor
 
 def handle_copy_file(args):
     source_file = args.source_file
@@ -38,6 +42,20 @@ def handle_import_translation(args):
     game_id = args.game_id
     import_translation(db, source_dump_path, user_name, original_dump_path, game_id)
 
+def handle_amazon_translate_processor(args) -> None:
+    source_dump_path = args.source
+    destination_dump_path = args.destination
+    game_id = args.game_id
+    amazon_translate_processor(source_dump_path, destination_dump_path, game_id)
+
+def handle_deepl_translate_processor(args) -> None:
+    source_dump_path = args.source
+    destination_dump_path = args.destination
+    auth_key = os.getenv("DEEPL_AUTH_KEY")
+    if not auth_key:
+        sys.exit("Error: DEEPL_AUTH_KEY environment variable not set.")
+    deepl_translate_processor(source_dump_path, destination_dump_path, auth_key)
+
 parser = argparse.ArgumentParser()
 parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
@@ -66,6 +84,15 @@ p_import_translation.add_argument('-u', '--user', action='store', dest='user_nam
 p_import_translation.add_argument('-od', '--original_dump', action='store', dest='original_dump', required=False, help='Path to the source .txt original dump file')
 p_import_translation.add_argument('-g', '--game', action='store', dest='game_id', required=False, default='default',help='Optional: Game ID (e.g., som, ff6) to use for custom parsing logic')
 p_import_translation.set_defaults(func=handle_import_translation)
+p_translate_dump_amazon = subparsers.add_parser('amazon', help='Translate a dump using Amazon service')
+p_translate_dump_amazon.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the source .txt dump file')
+p_translate_dump_amazon.add_argument('-d', '--destination', action='store', dest='destination', required=True, help='Output path for the generated .txt dump')
+p_translate_dump_amazon.add_argument('-g', '--game', action='store', dest='game_id', required=False, help='Optional: Game ID (e.g., som, ff6) to use for custom parsing logic')
+p_translate_dump_amazon.set_defaults(func=handle_amazon_translate_processor)
+p_translate_dump_deepl = subparsers.add_parser('deepl', help='Translate a dump using Deepl service')
+p_translate_dump_deepl.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the source .txt dump file')
+p_translate_dump_deepl.add_argument('-d', '--destination', action='store', dest='destination', required=True, help='Output path for the generated .txt dump')
+p_translate_dump_deepl.set_defaults(func=handle_deepl_translate_processor)
 
 if __name__ == "__main__":
   args = parser.parse_args()
