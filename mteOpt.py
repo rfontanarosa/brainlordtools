@@ -1,8 +1,16 @@
-import io, re
-from collections import Counter
-from io import StringIO
+__author__ = "Roberto Fontanarosa"
+__license__ = "GPLv2"
+__version__ = ""
+__maintainer__ = "Roberto Fontanarosa"
+__email__ = "robertofontanarosa@gmail.com"
 
 import argparse
+import io
+import re
+from collections import Counter
+from io import StringIO
+from operator import itemgetter
+
 parent_parser = argparse.ArgumentParser()
 parser = argparse.ArgumentParser(add_help=False)
 subparsers = parser.add_subparsers(dest='cmd')
@@ -33,17 +41,17 @@ debug = dict_args.get('debug')
 filename2 = dict_args.get('dest_file')
 offset = dict_args.get('offset')
 
-def clean_file(f, f1, regex_list=None, allow_duplicates=True):
+def clean_file(f, f_out, regex_list=None, allow_duplicates=True):
     """Cleans a file using regex and removes duplicates (default)."""
     lines_seen = set()
-    for line in f.readlines():
+    for line in f:
         if regex_list:
-            for regex in regex_list:
-                line = regex[0].sub(regex[1], line)
+            for regex, replacement in regex_list:
+                line = regex.sub(replacement, line)
         if allow_duplicates:
-            f1.write(line)
+            f_out.write(line)
         elif line not in lines_seen:
-            f1.write(line)
+            f_out.write(line)
             lines_seen.add(line)
 
 def clean_string(string, regex_list=None, allow_duplicates=False):
@@ -52,14 +60,7 @@ def clean_string(string, regex_list=None, allow_duplicates=False):
         for regex, replacement in regex_list:
             string = regex.sub(replacement, string)
     if not allow_duplicates:
-        lines = string.splitlines()
-        unique_lines = []
-        seen = set()
-        for line in lines:
-            if line not in seen:
-                unique_lines.append(line)
-                seen.add(line)
-        string = "\n".join(unique_lines)
+        string = "\n".join(dict.fromkeys(string.splitlines()))
     return string
 
 def extract_substrings(text, substring_length, start_index=0):
@@ -67,40 +68,41 @@ def extract_substrings(text, substring_length, start_index=0):
     return [text[i:(i+substring_length)] for i in range(start_index, len(text), substring_length)]
 
 def get_substrings_by_length(text, length):
-    """Extracts all possible substrings of a given length from a string."""
-    substrings = []
-    if length > 0:
-        for i in range (0, length):
-            substrings += extract_substrings(text, length, i)
-    return list(filter(lambda x: len(x) == length, substrings))
+    """Extracts all possible substrings of a given length using a sliding window."""
+    if length <= 0 or length > len(text):
+        return []
+    return [text[i:i+length] for i in range(len(text) - length + 1)]
 
 def get_occurrences_by_length(f, length):
-    """Generates a dictionary of substring occurrences of a specific length from a file."""
+    """Generates a Counter of substring occurrences of a specific length."""
     dictionary = Counter()
-    for line in f.readlines():
-        if line:
-            line = line.replace('\n', '').replace('\r', '')
-            substrings = get_substrings_by_length(line, length)
-            for string in substrings:
-                dictionary[string] += 1
+    for line in f:
+        clean_line = line.strip('\r\n')
+        if clean_line:
+            substrings = get_substrings_by_length(clean_line, length)
+            dictionary.update(substrings)
     return dictionary
 
 def get_occurrences(f, min_length, max_length):
     """Generates a dictionary of string occurrences within a length range."""
     dictionary = Counter()
     for length in range(min_length, max_length + 1):
-        buff = StringIO(f.getvalue())
-        occurrences = Counter(get_occurrences_by_length(buff, length))
+        f.seek(0)
+        occurrences = Counter(get_occurrences_by_length(f, length))
         dictionary.update(occurrences)
     return dictionary
 
 def calculate_weight(dictionary):
-    """Calculates weights based on string length."""
-    return {k: v * (len(k) - BYTES) for k, v in dictionary.items()}
+    """Calculates weights, only keeping strings that provide a positive compression gain."""
+    return {
+        k: v * (len(k) - BYTES)
+        for k, v in dictionary.items()
+        if len(k) > BYTES
+    }
 
 def sort_dict_by_value(dictionary, reverse=True):
     """Sorts a dictionary by value (and then key)."""
-    return sorted(dictionary.items(), key=lambda item: (item[1], item[0]), reverse=reverse)
+    return sorted(dictionary.items(), key=itemgetter(1, 0), reverse=reverse)
 
 def export_table(filename, dictionary, offset):
     """Exports the dictionary to a table with optional offset."""
