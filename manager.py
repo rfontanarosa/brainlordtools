@@ -9,8 +9,7 @@ import os
 import sys
 
 from brainlordtools.utils.actions import copy_file, crc_check, diff_dump, expand_file, import_translation
-from brainlordtools.utils.translators import deepl_translate_processor
-from brainlordutils.translators import amazon_translate_processor
+from brainlordtools.utils.translators import amazon_translate_processor, deepl_translate_processor
 
 def handle_copy_file(args):
     source_file = args.source_file
