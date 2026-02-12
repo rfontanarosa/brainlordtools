@@ -1,0 +1,12 @@
+boto3==1.42.47
+botocore==1.42.47
+certifi==2026.1.4
+charset-normalizer==3.4.4
+deepl==1.28.0
+idna==3.11
+jmespath==1.1.0
+python-dateutil==2.9.0.post0
+requests==2.32.5
+s3transfer==0.16.0
+six==1.17.0
+urllib3==2.6.3
