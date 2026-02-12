@@ -51,7 +51,7 @@ def write_text(
 
 def write_byte(f: BinaryIO, offset: int, byte: Union[int, bytes])-> None:
     """
-    Writes a single byte to the specified offset. 
+    Writes a single byte to the specified offset.
     Converts integer values (0-255) to raw bytes automatically.
     """
     f.seek(offset)

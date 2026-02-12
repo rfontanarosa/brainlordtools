@@ -52,6 +52,7 @@ def insert_binary(f, start_offset, file_path, max_length=None) -> None:
         f.write(block)
 
 def get_csv_translated_texts(filename):
+    """Parses a CSV file into a list of (pointer_address, text_address, translation) tuples with hex-to-int conversion."""
     translated_texts = []
     with open(filename, 'r', encoding='utf-8') as csv_file:
         csv_reader = csv.DictReader(csv_file)

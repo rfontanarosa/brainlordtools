@@ -12,6 +12,7 @@ case $GAME_ID in
     SOURCE_FILE="$DUMP_DIR/dump_eng.txt"
 
     check_file "$SOURCE_FILE"
+
     log_step "Importing $SOURCE_FILE"
     python -m brainlordutils.utils import_dump \
        -db "$DB" -s "$SOURCE_FILE"
@@ -22,6 +23,7 @@ case $GAME_ID in
     SOURCE_FILE="$DUMP_DIR/dump_eng.txt"
 
     check_file "$SOURCE_FILE"
+
     log_step "Importing $SOURCE_FILE"
     python -m brainlordutils.utils import_dump \
        -db "$DB" -s "$SOURCE_FILE" -g "$GAME_ID"
@@ -49,6 +51,7 @@ case $GAME_ID in
     SOURCE_FILE="$DUMP_DIR/dialogues.txt"
 
     check_file "$SOURCE_FILE"
+
     log_step "Importing dump(s) for $GAME_ID"
     python -m brainlordutils.utils import_dump \
        -db "$DB" -s "$SOURCE_FILE" -g "$GAME_ID"
