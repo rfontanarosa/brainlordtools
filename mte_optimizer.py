@@ -5,7 +5,6 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import argparse
-import io
 import re
 from collections import Counter
 from io import StringIO
@@ -79,8 +78,8 @@ def calculate_weighted_sum(dictionary, num_bytes):
     return sum(value * (len(key) - num_bytes) for key, value in dictionary.items())
 
 def string_to_file(filename, s):
-    with io.open(filename, mode='w', encoding="utf-8") as f:
-        f.write(s)
+    with open(filename, mode='w', encoding="utf-8") as f:
+        f.write(str(s))
 
 def get_regex_list(game):
     if game == 'bof':
@@ -117,8 +116,8 @@ def get_regex_list(game):
         return None
 
 def process_dictionary(args):
-    min = args.min
-    max = args.max
+    min_length = args.min
+    max_length = args.max
     limit = args.limit
     num_bytes = args.bytes
     source_path = args.source_file
@@ -127,20 +126,25 @@ def process_dictionary(args):
     debug = args.debug
     #
     regex_list = get_regex_list(game)
-    with io.open(source_path, mode='r', encoding="utf-8") as f, io.open(clean_path, mode='w', encoding="utf-8") as f1:
-        clean_file(f, f1, regex_list=regex_list, allow_duplicates=False)
+    with open(source_path, mode='r', encoding="utf-8") as f_in, open(clean_path, mode='w', encoding="utf-8") as f_out:
+        clean_file(f_in, f_out, regex_list=regex_list, allow_duplicates=False)
     dictionary = {}
-    with io.open(clean_path, mode='r', encoding="utf-8") as f:
+    with open(clean_path, mode='r', encoding="utf-8") as f:
         buff = StringIO(f.read())
         for i in range(0, limit):
-            occurrences = get_occurrences(buff, min, max)
+            occurrences = get_occurrences(buff, min_length, max_length)
             occurrences_with_weight = calculate_weight(occurrences, num_bytes)
             sorted_dictionary = sort_dict_by_value(occurrences_with_weight)
-            k, v = sorted_dictionary[0]
-            dictionary[k] = v
-            buff = StringIO(clean_string(buff.getvalue(), regex_list=[(re.compile(re.escape(k)), '\n')], allow_duplicates=True))
+            best_string, weight = sorted_dictionary[0]
+            dictionary[best_string] = weight
+            new_content = clean_string(
+                buff.getvalue(),
+                regex_list=[(re.compile(re.escape(best_string)), '\n')],
+                allow_duplicates=True
+            )
+            buff = StringIO(new_content)
             if debug:
-                string_to_file(f'{clean_file}.{i}', buff.getvalue())
+                string_to_file(f'{clean_path}.{i}', buff.getvalue())
     return dictionary
 
 def handle_print(args):
@@ -154,7 +158,7 @@ def handle_table(args):
     dest_file = args.dest_file
     offset = args.offset
     dictionary = process_dictionary(args)
-    with io.open(dest_file, mode='w', encoding="utf-8") as out:
+    with open(dest_file, mode='w', encoding="utf-8") as out:
         for i, (key, _) in enumerate(dictionary.items()):
             line = key
             if offset is not None:
