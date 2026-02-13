@@ -11,36 +11,6 @@ from collections import Counter
 from io import StringIO
 from operator import itemgetter
 
-parent_parser = argparse.ArgumentParser()
-parser = argparse.ArgumentParser(add_help=False)
-subparsers = parser.add_subparsers(dest='cmd')
-parent_parser.add_argument('-m', '--min', action='store', dest='min', type=int, default=3, help='Minimum string length')
-parent_parser.add_argument('-M', '--max', action='store', dest='max', type=int, default=8, help='Maximum string length')
-parent_parser.add_argument('-l', '--limit', action='store', dest='limit', type=int, default=5, help='Dictionary number of entries')
-parent_parser.add_argument('-b', '--bytes', action='store', dest='bytes', type=int, default=2, help='Dictionary key lenght')
-parent_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-parent_parser.add_argument('-c', '--clean', action='store', dest='clean_file', required=True, help='Clean filename')
-parent_parser.add_argument('--game', choices=['bof', 'gargoyle', 'smrpg', 'som', 'starocean', 'ys4'], help='Game specific cleaning rules')
-parent_parser.add_argument('--debug', action='store_true', help='Enable debug output')
-parser0 = subparsers.add_parser('print' , parents=[parent_parser], add_help=False)
-parser1 = subparsers.add_parser('table', parents=[parent_parser], add_help=False)
-parser1.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-parser1.add_argument('-o', '--offset', action='store', dest='offset', type=int, help='Starting offset')
-args = parser.parse_args()
-dict_args = vars(args)
-
-cmd = dict_args.get('cmd')
-MIN = dict_args.get('min')
-MAX = dict_args.get('max')
-LIMIT = dict_args.get('limit')
-BYTES = dict_args.get('bytes')
-filename = dict_args.get('source_file')
-filename1 = dict_args.get('clean_file')
-game = dict_args.get('game')
-debug = dict_args.get('debug')
-filename2 = dict_args.get('dest_file')
-offset = dict_args.get('offset')
-
 def clean_file(f, f_out, regex_list=None, allow_duplicates=True):
     """Cleans a file using regex and removes duplicates (default)."""
     lines_seen = set()
@@ -92,33 +62,21 @@ def get_occurrences(f, min_length, max_length):
         dictionary.update(occurrences)
     return dictionary
 
-def calculate_weight(dictionary):
+def calculate_weight(dictionary, num_bytes):
     """Calculates weights, only keeping strings that provide a positive compression gain."""
     return {
-        k: v * (len(k) - BYTES)
+        k: v * (len(k) - num_bytes)
         for k, v in dictionary.items()
-        if len(k) > BYTES
+        if len(k) > num_bytes
     }
 
 def sort_dict_by_value(dictionary, reverse=True):
     """Sorts a dictionary by value (and then key)."""
     return sorted(dictionary.items(), key=itemgetter(1, 0), reverse=reverse)
 
-def export_table(filename, dictionary, offset):
-    """Exports the dictionary to a table with optional offset."""
-    with io.open(filename, mode='w', encoding="utf-8") as out:
-        for i, v in enumerate(dictionary):
-            line = v
-            if offset is not None:
-                n = hex(i + offset).rstrip('L')
-                b = (n + '').replace('0x', '')
-                b = b.zfill(BYTES * 2)
-                line = f'{b}={v}'
-            out.write(f'{line}\n')
-
-def calculate_weighted_sum(dictionary):
+def calculate_weighted_sum(dictionary, num_bytes):
     """Calculates the weighted sum of values in a dictionary based on key length."""
-    return sum(value * (len(key) - BYTES) for key, value in dictionary.items())
+    return sum(value * (len(key) - num_bytes) for key, value in dictionary.items())
 
 def string_to_file(filename, s):
     with io.open(filename, mode='w', encoding="utf-8") as f:
@@ -158,26 +116,73 @@ def get_regex_list(game):
     else:
         return None
 
-regex_list = get_regex_list(game)
+def process_dictionary(args):
+    min = args.min
+    max = args.max
+    limit = args.limit
+    num_bytes = args.bytes
+    source_path = args.source_file
+    clean_path = args.clean_file
+    game = args.game
+    debug = args.debug
+    #
+    regex_list = get_regex_list(game)
+    with io.open(source_path, mode='r', encoding="utf-8") as f, io.open(clean_path, mode='w', encoding="utf-8") as f1:
+        clean_file(f, f1, regex_list=regex_list, allow_duplicates=False)
+    dictionary = {}
+    with io.open(clean_path, mode='r', encoding="utf-8") as f:
+        buff = StringIO(f.read())
+        for i in range(0, limit):
+            occurrences = get_occurrences(buff, min, max)
+            occurrences_with_weight = calculate_weight(occurrences, num_bytes)
+            sorted_dictionary = sort_dict_by_value(occurrences_with_weight)
+            k, v = sorted_dictionary[0]
+            dictionary[k] = v
+            buff = StringIO(clean_string(buff.getvalue(), regex_list=[(re.compile(re.escape(k)), '\n')], allow_duplicates=True))
+            if debug:
+                string_to_file(f'{clean_file}.{i}', buff.getvalue())
+    return dictionary
 
-with io.open(filename, mode='r', encoding="utf-8") as f, io.open(filename1, mode='w', encoding="utf-8") as f1:
-    clean_file(f, f1, regex_list=regex_list, allow_duplicates=False)
-
-dictionary = {}
-with io.open(filename1, mode='r', encoding="utf-8") as f:
-    buff = StringIO(f.read())
-    for i in range(0, LIMIT):
-        occurrences = get_occurrences(buff, MIN, MAX)
-        occurrences_with_weight = calculate_weight(occurrences)
-        sorted_dictionary = sort_dict_by_value(occurrences_with_weight)
-        k, v = sorted_dictionary[0]
-        dictionary[k] = v
-        buff = StringIO(clean_string(buff.getvalue(), regex_list=[(re.compile(re.escape(k)), '\n')], allow_duplicates=True))
-        if debug:
-            string_to_file(f'{filename1}.{i}', buff.getvalue())
-
-if cmd == 'print':
+def handle_print(args):
+    num_bytes = args.bytes
+    dictionary = process_dictionary(args)
     print(dictionary)
-    print(calculate_weighted_sum(dictionary))
-elif cmd == 'table':
-    export_table(filename2, dictionary, offset)
+    print(calculate_weighted_sum(dictionary, num_bytes))
+
+def handle_table(args):
+    num_bytes = args.bytes
+    dest_file = args.dest_file
+    offset = args.offset
+    dictionary = process_dictionary(args)
+    with io.open(dest_file, mode='w', encoding="utf-8") as out:
+        for i, (key, _) in enumerate(dictionary.items()):
+            line = key
+            if offset is not None:
+                prefix = hex(i + offset).replace('0x', '').zfill(num_bytes * 2)
+                line = f'{prefix}={key}'
+            out.write(f'{line}\n')
+
+parent_parser = argparse.ArgumentParser(add_help=False)
+parent_parser.add_argument('-m', '--min', type=int, default=3, help='Minimum string length to consider for the dictionary (default: 3)')
+parent_parser.add_argument('-M', '--max', type=int, default=8, help='Maximum string length to consider for the dictionary (default: 8)')
+parent_parser.add_argument('-l', '--limit', type=int, default=5, help='Maximum number of dictionary entries to extract (default: 5)')
+parent_parser.add_argument('-b', '--bytes', type=int, default=2, help='Size of the dictionary key (pointer) in bytes (default: 2)')
+parent_parser.add_argument('-s', '--source', dest='source_file', required=True, help='Path to the original source text file')
+parent_parser.add_argument('-c', '--clean', dest='clean_file', required=True, help='Path to save the pre-processed "clean" text file')
+parent_parser.add_argument('--game', choices=['bof', 'gargoyle', 'smrpg', 'som', 'starocean', 'ys4'], help='Apply game-specific regex cleaning rules')
+parent_parser.add_argument('--debug', action='store_true', help='Enable debug mode: saves intermediate buffer states to disk')
+parser = argparse.ArgumentParser()
+subparsers = parser.add_subparsers(dest='cmd', required=True, help='Available commands')
+p_print = subparsers.add_parser('print', parents=[parent_parser], help='Extract dictionary and display compression statistics')
+p_print.set_defaults(func=handle_print)
+p_table = subparsers.add_parser('table', parents=[parent_parser], help='Extract dictionary and export to a .tbl mapping file')
+p_table.add_argument('-d', '--dest', dest='dest_file', required=True, help='Path to the destination .tbl file')
+p_table.add_argument('-o', '--offset', type=int, help='Starting hexadecimal or decimal offset for table mapping (e.g., 0x80 or 128)')
+p_table.set_defaults(func=handle_table)
+
+if __name__ == "__main__":
+  args = parser.parse_args()
+  if args.func:
+    args.func(args)
+  else:
+    parser.print_help()
