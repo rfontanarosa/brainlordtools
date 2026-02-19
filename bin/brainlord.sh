@@ -34,9 +34,9 @@ python "$TOOLS_PATH/brainlord.py" dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
 python "$TOOLS_PATH/brainlord.py" dump_misc -s "$SOURCE" -t1 "$TABLE1" -t2 "$TABLE4" -dp "$DUMP_MISC_PATH"
 python "$TOOLS_PATH/brainlord.py" dump_credits -s "$SOURCE" -t3 "$TABLE3" -dp "$DUMP_CREDITS_PATH"
 
-python "$TOOLS_PATH/brainlord.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE2" -tp "$TANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
+python "$TOOLS_PATH/brainlord.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE5" -tp "$TANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
 python "$TOOLS_PATH/brainlord.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
-python "$TOOLS_PATH/brainlord.py" insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE2" -tp "$TRANSLATION_MISC_PATH"
+python "$TOOLS_PATH/brainlord.py" insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE5" -tp "$TRANSLATION_MISC_PATH"
 python "$TOOLS_PATH/brainlord.py" insert_credits -d "$DESTINATION" -t3 "$TABLE3" -tp "$TANSLATION_CREDITS_PATH"
 
 # SOURCE="$RESOURCE_PATH/roms/Brain Lord (I) [!] - 0x74000.sfc"
