@@ -45,7 +45,7 @@ class Table():
     def __init__(self, source, encoding='utf-8'):
         self.end_token, self.end_line = None, None
         self._table, self._reverse_table = {}, {}
-        if isinstance(source, str) and os.path.exists(source):
+        if isinstance(source, (str, os.PathLike)) and os.path.isfile(source):
             with open(source, 'r', encoding=encoding) as f:
                 self._parse(f)
         else:
