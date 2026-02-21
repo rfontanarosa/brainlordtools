@@ -9,7 +9,6 @@ import pathlib
 import re
 import shutil
 import sqlite3
-import struct
 import sys
 
 from rhutils.db import insert_text, select_most_recent_translation, select_translation_by_author
@@ -92,10 +91,10 @@ def som_text_dumper(args):
                 p_address = f.tell()
                 if pointer_bytes == 3:
                     p_value = f.read(3)
-                    text_address = struct.unpack('i', p_value[:3] + b'\x00')[0] - 0xc00000
+                    text_address = int.from_bytes(p_value, byteorder='little') - 0xc00000
                 else:
                     p_value = f.read(2)
-                    text_address = struct.unpack('H', p_value)[0] + bank_offset
+                    text_address = int.from_bytes(p_value, byteorder='little') + bank_offset
                 pointers.setdefault(text_address, []).append(p_address)
             if block == 7:
                 pointers[0x62E2] = [0x58B3]
@@ -209,7 +208,7 @@ def som_text_inserter(args):
                         sys.exit(1)
                     f.write(text_encoded)
                     # REPOINTER
-                    new_pointer_value = struct.pack('<I', current_text_address)[:2]
+                    new_pointer_value = (current_text_address & 0xFFFF).to_bytes(2, byteorder='little')
                     current_text_address = f.tell()
                     for pointer_address in pointer_addresses.split(';'):
                         f.seek(int(pointer_address, 16))
@@ -236,7 +235,7 @@ def som_text_inserter(args):
                         f.write(text_encoded)
                         # REPOINTER
                         snes_offset = pc2snes_hirom(current_text_address)
-                        new_pointer_value = struct.pack('<I', snes_offset)[:3]
+                        new_pointer_value = (snes_offset & 0xFFFFFF).to_bytes(3, byteorder='little')
                         current_text_address = f.tell()
                         for pointer_address in pointer_addresses.split(';'):
                             f.seek(int(pointer_address, 16))
@@ -258,7 +257,7 @@ def som_text_inserter(args):
                             sys.exit(1)
                         f.write(text_encoded)
                         # REPOINTER
-                        new_pointer_value = struct.pack('<I', current_text_address)[:2]
+                        new_pointer_value = (current_text_address & 0xFFFF).to_bytes(2, byteorder='little')
                         current_text_address = f.tell()
                         for pointer_address in pointer_addresses.split(';'):
                             f.seek(int(pointer_address, 16))
@@ -280,7 +279,7 @@ def som_text_inserter(args):
                             sys.exit(1)
                         f.write(text_encoded)
                         # REPOINTER
-                        new_pointer_value = struct.pack('<I', current_text_address)[:2]
+                        new_pointer_value = (current_text_address & 0xFFFF).to_bytes(2, byteorder='little')
                         current_text_address = f.tell()
                         for pointer_address in pointer_addresses.split(';'):
                             f.seek(int(pointer_address, 16))
@@ -309,7 +308,7 @@ def som_text_inserter(args):
                 sys.exit(1)
             f.write(text_encoded)
             # REPOINTER
-            new_pointer_value = struct.pack('<I', current_text_address)[:2]
+            new_pointer_value = (current_text_address & 0xFFFF).to_bytes(2, byteorder='little')
             current_text_address = f.tell()
             for pointer_address in pointer_addresses.split(';'):
                 f.seek(int(pointer_address, 16))
