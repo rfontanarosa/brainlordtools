@@ -22,7 +22,7 @@ case $GAME_ID in
     echo "Done! Translations have been saved in $TRANSLATED_DUMP_DIR"
     ;;
 
-  "gaia" | "ignition" | "spike")
+  "7thsaga" | "gaia" | "ignition" | "spike")
     TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
     DEST_FILE="$TRANSLATED_DUMP_DIR/dump_ita.txt"
     DEST_USER_FILE="$TRANSLATED_DUMP_DIR/dump_ita_$USER.txt"

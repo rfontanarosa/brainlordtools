@@ -50,7 +50,7 @@ case $GAME_ID in
         -db "$DB" -s "$SOURCE_FILE" -u "$USER" -od "$ORIGINAL_DUMP_PATH"
     ;;
 
-  "ignition" | "spike")
+  "7thsaga" | "ignition" | "spike")
     TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
     SOURCE_FILE="$TRANSLATED_DUMP_DIR/dump_ita_$USER.txt"
 
