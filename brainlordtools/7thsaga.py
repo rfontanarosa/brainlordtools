@@ -10,10 +10,10 @@ import shutil
 import sqlite3
 import struct
 
-from rhtools3.Table import Table
 from rhutils.db import insert_text, select_most_recent_translation
 from rhutils.dump import extract_binary, insert_binary
 from rhutils.io import read_text, write_byte, write_text
+from rhutils.table import Table
 
 TEXT_SEGMENT_1 = (0x60000, 0x6fddf)
 TEXT_SEGMENT_X = (0x6fde0, 0x6ffff) # empty
@@ -96,7 +96,7 @@ def repoint_misc(f, pointers, offset_map, table=None):
         else:
             a = f.tell()
             text = read_text(f, p_new_value, end_byte=b'\xf7')
-            t2 = table.decode(text, mte_resolver=True, dict_resolver=False)
+            t2 = table.decode(text)
             f.seek(p_new_value)
             f.seek(a)
             for p_address in p_addresses:
@@ -110,8 +110,8 @@ def seventhsaga_text_segment_dumper(f, dump_path, table, id, block, cur, start=0
     f.seek(start)
     while f.tell() < end:
         text_offset = f.tell()
-        text = read_text(f, text_offset, end_byte=b'\xf7', cmd_list={b'\xfc': 5})
-        text_decoded = table.decode(text, mte_resolver=True, dict_resolver=False, cmd_list={0xf6: 1, 0xfb: 5, 0xfc: 5, 0xfd: 2, 0xfe: 2, 0xff: 3})
+        text = read_text(f, text_offset, end_byte=b'\xf7', cmd_list={b'\xf6': 1, b'\xfb': 5, b'\xfc': 5, b'\xfd': 2, b'\xfe': 2, b'\xff': 3})
+        text_decoded = table.decode(text)
         text_offset_indexes = [i for i, value in enumerate(text_offsets) if value == text_offset]
         pointers_offsets = [sparse_pointers[i] for i in text_offset_indexes]
         pointers_offsets_str = ';'.join(hex(x) for x in pointers_offsets)
@@ -171,7 +171,7 @@ def seventhsaga_text_inserter(args):
             #     print(translation)
             #     print(hex(fw.tell()))
             text = translation if translation else text_decoded
-            encoded_text = table.encode(text, mte_resolver=True, dict_resolver=False)
+            encoded_text = table.encode(text)
             if fw.tell() < 0x310000 and fw.tell() + len(encoded_text) > 0x30ffff:
                 fw.seek(0x310000)
             offset_map[int(address)] = (fw.tell(), False)
@@ -287,7 +287,7 @@ def seventhsaga_misc_dumper(args):
                 while f.tell() <= current_misc_segment[1]:
                     text_address = f.tell()
                     text = read_text(f, text_address, end_byte=b'\xf7')
-                    text_decoded = table.decode(text, mte_resolver=False, dict_resolver=False)
+                    text_decoded = table.decode(text)
                     fields = [hex(text_address), text_decoded]
                     csv_writer.writerow(fields)
 
@@ -326,7 +326,7 @@ def seventhsaga_misc_inserter(args):
         t_new_address = 0x350000
         for _, (t_address, t_value) in enumerate(translated_texts.items()):
             offset_map[t_address] = (t_new_address, False)
-            text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
+            text = table.encode(t_value)
             t_new_address = write_text(f1, t_new_address, text, end_byte=b'\xf7')
         # repointing misc1
         for curr_pointers in pointers:
@@ -346,8 +346,8 @@ def repoint_two_bytes_pointer(fw, pointer_offset, offset_map, third_byte, type=N
     original_text_offset = struct.unpack('i', pointer + third_byte + b'\x00')[0] - 0xc00000
     new_text_offset, _ = offset_map.get(original_text_offset, (None, None))
     if new_text_offset:
-        fw.seek(-2, os.SEEK_CUR)
         new_pointer_value = struct.pack('i', new_text_offset + 0xc00000)
+        fw.seek(-2, os.SEEK_CUR)
         fw.write(new_pointer_value[:-2])
         fw.seek(5, os.SEEK_CUR)
         fw.write(new_pointer_value[2:3])
