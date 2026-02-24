@@ -5,7 +5,7 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 CRC_TABLE = {
-    '7thsaga': '2979C59', # UNPACKED GFX
+    '7thsaga': '02979C59', # UNPACKED GFX
     '7hsaga_original': 'B3ABDDE6',
     'bof': 'C788B696',
     'bof2': '67CDACC5',
