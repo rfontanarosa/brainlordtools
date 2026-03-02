@@ -28,6 +28,7 @@ MISC_SEGMENT_2 = (0x75345, 0x7545f)
 POINTER_BLOCKS = ((0x1a0ad, 0x1a0c1), (0x425db, 0x4269a))
 
 FONT1_BLOCK = (0x13722d, 0x13B22d)
+FONT2_BLOCK = (0x1d0800, 0x1d1800)
 
 sparse_pointers = tuple()
 sparse_pointers += (0x56f0a, 0x56f10, 0x56f16, 0x56f1c, 0x56f22, 0x56f28) # Lemele
@@ -70,6 +71,9 @@ def _get_misc_2byte_pointer_map(f):
     # Two-byte hardcoded pointers with bank byte \xc7 (file base 0x70000)
     two_byte_c7 = [
         0x324c, 0x3351, 0x3456, 0x34cf, 0x3547, 0x35bf, # free
+        0x2fc5,                                         # Okay?
+        0x1e546,                                        # Choose character.
+        0x1ead1,                                        # Name is...
         0x1eaa5,                                        # End
         0x18dad, 0x19b36, 0x1e412,                      # Power
         0x18e03, 0x19b62, 0x1e43e,                      # Guard
