@@ -410,10 +410,8 @@ dump_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', 
 dump_misc_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
 dump_misc_parser.set_defaults(func=seventhsaga_misc_dumper)
 insert_misc_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
-insert_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
 insert_misc_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-insert_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
+insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Modified table filename')
 insert_misc_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
 insert_misc_parser.set_defaults(func=seventhsaga_misc_inserter)
 

@@ -29,7 +29,7 @@ python "$TOOLS_PATH/7thsaga.py" dump_misc -s "$SOURCE" -t1 "$TABLE2" -dp "$DUMP_
 
 python "$TOOLS_PATH/7thsaga.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE2" -tp "$TANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
 python "$TOOLS_PATH/7thsaga.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
-python "$TOOLS_PATH/7thsaga.py" insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE2" -t2 "$TABLE2" -tp "$TRANSLATION_MISC_PATH"
+python "$TOOLS_PATH/7thsaga.py" insert_misc -d "$DESTINATION" -t1 "$TABLE2" -tp "$TRANSLATION_MISC_PATH"
 
 if ! command -v asar &> /dev/null
 then
