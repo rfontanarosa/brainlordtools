@@ -90,6 +90,7 @@ def _get_misc_3byte_pointer_map(f):
     pointer_map = {}
     # Misc pointer tables (step-based, first 3 bytes of each entry are the pointer)
     misc_pointer_tables = [
+        (0x302a,   2,  3), # Yes, No
         (0x262d,   7,  3), # begin...
         (0x63a2,  51, 10), # [SWORD] Tranq...
         (0x65a7,  53, 17), # [ARMOR] Xtri...
@@ -345,9 +346,9 @@ def repoint_2byte_pointer(f, pointer_offset, text_offset_map, bank_byte, type=No
     original_text_offset = decode_snes_addr(f, pointer_offset, base_addr=0xc00000, size=2, bank_byte=bank_byte)
     new_text_offset, _ = text_offset_map.get(original_text_offset, (None, None))
     if new_text_offset:
-        new_pointer_value = encode_snes_addr(new_text_offset, base_addr=0xc00000, size=2)
+        new_pointer_value = encode_snes_addr(new_text_offset, base_addr=0xc00000, size=3)
         f.seek(-2, os.SEEK_CUR)
-        f.write(new_pointer_value[:-2])
+        f.write(new_pointer_value[:-1])
         f.seek(5, os.SEEK_CUR)
         f.write(new_pointer_value[2:3])
     else:
