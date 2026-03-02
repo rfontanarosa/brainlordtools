@@ -6,6 +6,7 @@ __email__ = "robertofontanarosa@gmail.com"
 
 import csv
 import os
+import pathlib
 import shutil
 import sqlite3
 import struct
@@ -135,9 +136,8 @@ def seventhsaga_text_segment_dumper(f, dump_path, table, id, block, cur, start=0
         # dump - db
         insert_text(cur, id, text, text_decoded, text_offset, '', block, ref)
         # dump - txt
-        filename = 'dump_eng.txt'
-        filepath = os.path.join(dump_path, filename)
-        with open(filepath, 'a+', encoding='utf-8') as out:
+        filename = filename = dump_path / 'dump_eng.txt'
+        with open(filename, 'a+', encoding='utf-8') as out:
             out.write(f'{ref}\n{text_decoded}\n\n')
         id += 1
     return id
@@ -145,7 +145,7 @@ def seventhsaga_text_segment_dumper(f, dump_path, table, id, block, cur, start=0
 def seventhsaga_text_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     db = args.database_file
     table = Table(table1_file)
     conn = sqlite3.connect(db)
