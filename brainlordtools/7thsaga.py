@@ -11,8 +11,9 @@ import sqlite3
 import struct
 
 from rhutils.db import insert_text, select_most_recent_translation
-from rhutils.dump import extract_binary, insert_binary
+from rhutils.dump import extract_binary, get_csv_translated_texts, insert_binary
 from rhutils.io import read_text, write_byte, write_text
+from rhutils.snes import decode_snes_addr, encode_snes_addr
 from rhutils.table import Table
 
 TEXT_SEGMENT_1 = (0x60000, 0x6fddf)
@@ -62,48 +63,63 @@ sparse_pointers += (0x159017, 0x159233, 0x159329, 0x15946d, 0x159611, 0x15975b, 
 sparse_pointers += (0x159149, 0x159269, 0x159389, 0x1593b3, 0x1595f3, 0x15973d, 0x15976d, 0x15978b, 0x1597a9, 0x1597bb, 0x1597cd, 0x1597d3, 0x15987b, 0x159a4f, 0x159aa9, 0x159ac7, 0x159adf, 0x159af7, 0x159e21, 0x15a19f) # Hello! I have a large selection of weapons here. (0x6002d)
 sparse_pointers += (0x159167, 0x15926f, 0x15938f, 0x15952d, 0x1595f9, 0x159791, 0x159881, 0x1599f5) # Hello! I sell armor. (0x6005a)
 
-def resolve_pointer(f, offset):
-    f.seek(offset)
-    pointer = f.read(3)
-    return struct.unpack('i', pointer + b'\x00')[0] - 0xc00000
 
-def get_pointers(f, start, count, step):
-    pointers = {}
-    end = start + (count * step)
-    f.seek(start)
-    while f.tell() < end:
-        p_offset = f.tell()
-        pointer = f.read(step)
-        p_value = struct.unpack('i', pointer[:3] + b'\x00')[0] - 0xc00000
-        pointers.setdefault(p_value, []).append(p_offset)
-    return pointers
+def _build_misc_2byte_pointer_map(f):
+    pointer_map = {}
+    # Two-byte hardcoded pointers with bank byte \xc7 (file base 0x70000)
+    two_byte_c7 = [
+        0x324c, 0x3351, 0x3456, 0x34cf, 0x3547, 0x35bf, # free
+        0x1eaa5,                                        # End
+        0x18dad, 0x19b36, 0x1e412,                      # Power
+        0x18e03, 0x19b62, 0x1e43e,                      # Guard
+        0x18e59, 0x19b8e, 0x1e46a,                      # Magic
+        0x18eaf, 0x19bba, 0x1e496,                      # Speed
+        0x19be6, 0x1e4c2,                               # Weapon
+        0x19c12, 0x1e4ee,                               # Defend
+    ]
+    for p_offset in two_byte_c7:
+        f.seek(p_offset)
+        raw = f.read(2)
+        if len(raw) == 2:
+            p_value = struct.unpack('i', raw + b'\xc7' + b'\x00')[0] - 0xc00000
+            pointer_map.setdefault(p_value, []).append(p_offset)
+    return pointer_map
 
-def get_translated_texts(filename):
-    translated_texts = {}
-    with open(filename, 'r', encoding='utf-8') as csv_file:
-        csv_reader = csv.DictReader(csv_file)
-        for row in csv_reader:
-            trans = row.get('trans') or row.get('text')
-            text_address = int(row['text_address'], 16)
-            translated_texts[text_address] = trans
-    return translated_texts
+def _build_misc_3byte_pointer_map(f):
+    pointer_map = {}
+    # Misc pointer tables (step-based, first 3 bytes of each entry are the pointer)
+    misc_pointer_tables = [
+        (0x262d,   7,  3), # begin...
+        (0x63a2,  51, 10), # [SWORD] Tranq...
+        (0x65a7,  53, 17), # [ARMOR] Xtri...
+        (0x6c9a,  99,  9), # Exigate, Watr Rn, Potn [1], MHerb [1]...
+        (0x7015,  61, 12), # FIRE [1]
+        (0x72f1,  99, 42), # Monsters
+        (0x8209,   7, 42), # Guanta...
+        (0x8320,  38, 27), # Lemele...
+        (0x999b,   3,  3), # Cure
+        (0xac6b,   3,  3), # buy...
+        (0x45f1c,  7,  3), # Town menu
+        (0x45f46,  7,  3), # Map menu
+        (0x45f70,  7,  3), # Battle menu
+        (0x48fbb,  2,  3), # Use...
+        (0x4f329,  6,  3), # Use...
+        (0x4fbe0,  5,  3), # Use...
+        (0x4eeb9,  11, 3), # party
+        (0x1e76d,  7,  3), # Human...
+    ]
+    for table_start, count, step in misc_pointer_tables:
+        table_end = table_start + count * step
+        f.seek(table_start)
+        while f.tell() < table_end:
+            p_offset = f.tell()
+            raw = f.read(step)
+            if len(raw) >= 3:
+                p_value = struct.unpack('i', raw[:3] + b'\x00')[0] - 0xc00000
+                pointer_map.setdefault(p_value, []).append(p_offset)
+    return pointer_map
 
-def repoint_misc(f, pointers, offset_map, table=None):
-    for i, (p_value, p_addresses) in enumerate(pointers.items()):
-        p_new_value, _ = offset_map.get(p_value, (None, None))
-        if not p_new_value:
-            print('repoint_misc - Text not found - Text offset: ' + hex(p_value) + ' - Pointer offsets: ' + str(list(map(lambda x: hex(x), p_addresses))))
-        else:
-            a = f.tell()
-            text = read_text(f, p_new_value, end_byte=b'\xf7')
-            t2 = table.decode(text)
-            f.seek(p_new_value)
-            f.seek(a)
-            for p_address in p_addresses:
-                # print(f'repoint_misc - {t2} - Text offset: {hex(p_value)}' + ' - Pointer offset: ' + hex(f.tell()))
-                f.seek(p_address)
-                packed = struct.pack('i', p_new_value + 0xc00000)
-                f.write(packed[:-1])
+
 
 def seventhsaga_text_segment_dumper(f, dump_path, table, id, block, cur, start=0x0, end=0x0):
     text_offsets = [resolve_pointer(f, offset) for offset in sparse_pointers]
@@ -278,96 +294,70 @@ def seventhsaga_misc_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
+        # get pointers
+        misc_2byte_pointer_map = _build_misc_2byte_pointer_map(f)
+        misc_3byte_pointer_map = _build_misc_3byte_pointer_map(f)
+        misc_pointer_map = misc_2byte_pointer_map | misc_3byte_pointer_map
+        # reading texts
         for i, current_misc_segment in enumerate((MISC_SEGMENT_1, MISC_SEGMENT_2)):
             filename = os.path.join(dump_path, f'misc{i + 1}.csv')
             with open(filename, 'w+', encoding='utf-8') as csv_file:
                 csv_writer = csv.writer(csv_file)
-                csv_writer.writerow(['text_address', 'text', 'trans'])
+                csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
                 f.seek(current_misc_segment[0])
                 while f.tell() <= current_misc_segment[1]:
                     text_address = f.tell()
+                    pointer_addresses = misc_pointer_map.get(text_address, [])
                     text = read_text(f, text_address, end_byte=b'\xf7')
                     text_decoded = table.decode(text)
-                    fields = [hex(text_address), text_decoded]
+                    fields = [';'.join(hex(x) for x in pointer_addresses), hex(text_address), text_decoded]
                     csv_writer.writerow(fields)
 
 def seventhsaga_misc_inserter(args):
-    source_file, dest_file = args.source_file, args.dest_file
-    table1_file, table2_file = args.table1, args.table2
+    dest_file = args.dest_file
+    table1_file = args.table1
     translation_path = args.translation_path
-    table, table2 = Table(table1_file), Table(table2_file)
-    # get pointers
-    with open(source_file, 'rb') as f:
-        # get misc1 pointers
-        pointers = (
-            get_pointers(f, 0x262d, 7, 3),   # begin...
-            get_pointers(f, 0x6c9a, 99, 9),  # Exigate, Watr Rn, Potn [1], MHerb [1]...
-            get_pointers(f, 0x7015, 61, 12), # FIRE [1]
-            get_pointers(f, 0x72f1, 99, 42), # Monsters
-            get_pointers(f, 0x8209, 7, 42),  # Guanta...
-            get_pointers(f, 0x8320, 38, 27), # Lemele...
-            get_pointers(f, 0x999b, 3, 3),   # Cure
-            get_pointers(f, 0xac6b, 3, 3),   # buy
-            get_pointers(f, 0x45f1c, 7, 3),  # Town menu
-            get_pointers(f, 0x45f46, 7, 3),  # Map menu
-            get_pointers(f, 0x45f70, 7, 3),  # Battle menu
-            get_pointers(f, 0x48fbb, 2, 3),  # Use...
-            get_pointers(f, 0x4f329, 6, 3),  # Use...
-            get_pointers(f, 0x4fbe0, 5, 3),  # Use...
-            get_pointers(f, 0x4eeb9, 11, 3), # party
-            get_pointers(f, 0x1e76d, 7, 3),  # Human...
-        )
+    table = Table(table1_file)
     # repoint text
-    with open(dest_file, 'r+b') as f1:
-        # reading misc1.csv and writing texts
+    with open(dest_file, 'r+b') as f:
+        # get pointers
+        misc_2byte_pointer_map = _build_misc_2byte_pointer_map(f)
+        misc_3byte_pointer_map = _build_misc_3byte_pointer_map(f)
+        # reading misc1.csv texts
         translation_file = os.path.join(translation_path, 'misc1.csv')
-        translated_texts = get_translated_texts(translation_file)
-        offset_map = {}
+        translated_texts = get_csv_translated_texts(translation_file)
+        # writing misc1.csv texts
+        text_offset_map = {}
         t_new_address = 0x350000
-        for _, (t_address, t_value) in enumerate(translated_texts.items()):
-            offset_map[t_address] = (t_new_address, False)
+        for _, (_, t_address, t_value) in enumerate(translated_texts):
+            text_offset_map[t_address] = (t_new_address, False)
             text = table.encode(t_value)
-            t_new_address = write_text(f1, t_new_address, text, end_byte=b'\xf7')
+            t_new_address = write_text(f, t_new_address, text, end_byte=b'\xf7')
         # repointing misc1
-        for curr_pointers in pointers:
-            repoint_misc(f1, curr_pointers, offset_map, table)
-        #
-        repoint_two_bytes_pointer(f1, 0x1eaa5, offset_map, b'\xc7') # End
-        repoint_two_bytes_pointers(f1, (0x18dad, 0x19b36, 0x1e412), offset_map, b'\xc7') # Power
-        repoint_two_bytes_pointers(f1, (0x18e03, 0x19b62, 0x1e43e), offset_map, b'\xc7') # Guard
-        repoint_two_bytes_pointers(f1, (0x18e59, 0x19b8e, 0x1e46a), offset_map, b'\xc7') # Magic
-        repoint_two_bytes_pointers(f1, (0x18eaf, 0x19bba, 0x1e496), offset_map, b'\xc7') # Speed
-        repoint_two_bytes_pointers(f1, (0x19be6, 0x1e4c2), offset_map, b'\xc7') # Weapon
-        repoint_two_bytes_pointers(f1, (0x19c12, 0x1e4ee), offset_map, b'\xc7') # Defend
+        for _, p_addresses in misc_2byte_pointer_map.items():
+            for p_address in p_addresses:
+                repoint_two_bytes_pointer(f, p_address, text_offset_map, b'\xc7', 'MISC (2 bytes)')
+        for _, p_addresses in misc_3byte_pointer_map.items():
+            for p_address in p_addresses:
+                repoint_three_bytes_pointer(f, p_address, text_offset_map, 'MISC (3 bytes)')
 
-def repoint_two_bytes_pointer(fw, pointer_offset, offset_map, third_byte, type=None):
-    fw.seek(pointer_offset)
-    pointer = fw.read(2)
-    original_text_offset = struct.unpack('i', pointer + third_byte + b'\x00')[0] - 0xc00000
-    new_text_offset, _ = offset_map.get(original_text_offset, (None, None))
+def repoint_two_bytes_pointer(f, pointer_offset, text_offset_map, bank_byte, type=None):
+    original_text_offset = decode_snes_addr(f, pointer_offset, base_addr=0xc00000, size=2, bank_byte=bank_byte)
+    new_text_offset, _ = text_offset_map.get(original_text_offset, (None, None))
     if new_text_offset:
-        new_pointer_value = struct.pack('i', new_text_offset + 0xc00000)
-        fw.seek(-2, os.SEEK_CUR)
-        fw.write(new_pointer_value[:-2])
-        fw.seek(5, os.SEEK_CUR)
-        fw.write(new_pointer_value[2:3])
+        new_pointer_value = encode_snes_addr(new_text_offset, base_addr=0xc00000, size=2)
+        f.seek(-2, os.SEEK_CUR)
+        f.write(new_pointer_value[:-2])
+        f.seek(5, os.SEEK_CUR)
+        f.write(new_pointer_value[2:3])
     else:
-        print(f'NOT FOUND - 2 Bytes - Type: {type} - Pointer offset: {hex(pointer_offset)} - Pointer value: {hex(original_text_offset)}')
+        print(f'Pointer not found - Type: {type} - Text offset: {hex(original_text_offset)} - Pointer offset: {hex(pointer_offset)}')
 
-def repoint_two_bytes_pointers(fw, offsets, offset_map, third_byte):
-    for offset in offsets:
-        repoint_two_bytes_pointer(fw, offset, offset_map, third_byte)
-
-def repoint_three_bytes_pointer(f, pointer_offset, offset_map, type=None):
-    f.seek(pointer_offset)
-    pointer = f.read(3)
-    original_text_offset = struct.unpack('i', pointer + b'\x00')[0] - 0xc00000
-    # if unpacked in (0x60000, 0x60001, 0x60002, 0x60003):
-    #     return
-    new_text_offset, _ = offset_map.get(original_text_offset, (None, None))
+def repoint_three_bytes_pointer(f, pointer_offset, text_offset_map, type=None):
+    original_text_offset = decode_snes_addr(f, pointer_offset, base_addr=0xc00000, size=3)
+    new_text_offset, _ = text_offset_map.get(original_text_offset, (None, None))
     if new_text_offset:
-        offset_map[original_text_offset] = (new_text_offset, True)
-        new_pointer_value = struct.pack('i', new_text_offset + 0xc00000)
+        new_pointer_value = encode_snes_addr(new_text_offset, base_addr=0xc00000, size=3)
         if original_text_offset == 0x65081:
             seek_cur = f.tell()
             f.seek(0x2d8af)
@@ -376,7 +366,7 @@ def repoint_three_bytes_pointer(f, pointer_offset, offset_map, type=None):
         f.seek(-3, os.SEEK_CUR)
         f.write(new_pointer_value[:-1])
     else:
-        print(f'NOT FOUND - 3 Bytes - Type: {type} - Pointer offset: {hex(pointer_offset)} - Pointer value: {hex(original_text_offset)}')
+        print(f'Pointer not found - Type: {type} - Text offset: {hex(original_text_offset)} - Pointer offset: {hex(pointer_offset)}')
 
 import argparse
 parser = argparse.ArgumentParser()
