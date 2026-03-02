@@ -64,7 +64,7 @@ sparse_pointers += (0x159149, 0x159269, 0x159389, 0x1593b3, 0x1595f3, 0x15973d, 
 sparse_pointers += (0x159167, 0x15926f, 0x15938f, 0x15952d, 0x1595f9, 0x159791, 0x159881, 0x1599f5) # Hello! I sell armor. (0x6005a)
 
 
-def _build_misc_2byte_pointer_map(f):
+def _get_misc_2byte_pointer_map(f):
     pointer_map = {}
     # Two-byte hardcoded pointers with bank byte \xc7 (file base 0x70000)
     two_byte_c7 = [
@@ -85,7 +85,7 @@ def _build_misc_2byte_pointer_map(f):
             pointer_map.setdefault(p_value, []).append(p_offset)
     return pointer_map
 
-def _build_misc_3byte_pointer_map(f):
+def _get_misc_3byte_pointer_map(f):
     pointer_map = {}
     # Misc pointer tables (step-based, first 3 bytes of each entry are the pointer)
     misc_pointer_tables = [
@@ -295,8 +295,8 @@ def seventhsaga_misc_dumper(args):
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
         # get pointers
-        misc_2byte_pointer_map = _build_misc_2byte_pointer_map(f)
-        misc_3byte_pointer_map = _build_misc_3byte_pointer_map(f)
+        misc_2byte_pointer_map = _get_misc_2byte_pointer_map(f)
+        misc_3byte_pointer_map = _get_misc_3byte_pointer_map(f)
         misc_pointer_map = misc_2byte_pointer_map | misc_3byte_pointer_map
         # reading texts
         for i, current_misc_segment in enumerate((MISC_SEGMENT_1, MISC_SEGMENT_2)):
@@ -321,8 +321,8 @@ def seventhsaga_misc_inserter(args):
     # repoint text
     with open(dest_file, 'r+b') as f:
         # get pointers
-        misc_2byte_pointer_map = _build_misc_2byte_pointer_map(f)
-        misc_3byte_pointer_map = _build_misc_3byte_pointer_map(f)
+        misc_2byte_pointer_map = _get_misc_2byte_pointer_map(f)
+        misc_3byte_pointer_map = _get_misc_3byte_pointer_map(f)
         # reading misc1.csv texts
         translation_file = os.path.join(translation_path, 'misc1.csv')
         translated_texts = get_csv_translated_texts(translation_file)
@@ -336,12 +336,12 @@ def seventhsaga_misc_inserter(args):
         # repointing misc1
         for _, p_addresses in misc_2byte_pointer_map.items():
             for p_address in p_addresses:
-                repoint_two_bytes_pointer(f, p_address, text_offset_map, b'\xc7', 'MISC (2 bytes)')
+                repoint_2byte_pointer(f, p_address, text_offset_map, b'\xc7', 'MISC (2 bytes)')
         for _, p_addresses in misc_3byte_pointer_map.items():
             for p_address in p_addresses:
-                repoint_three_bytes_pointer(f, p_address, text_offset_map, 'MISC (3 bytes)')
+                repoint_3byte_pointer(f, p_address, text_offset_map, 'MISC (3 bytes)')
 
-def repoint_two_bytes_pointer(f, pointer_offset, text_offset_map, bank_byte, type=None):
+def repoint_2byte_pointer(f, pointer_offset, text_offset_map, bank_byte, type=None):
     original_text_offset = decode_snes_addr(f, pointer_offset, base_addr=0xc00000, size=2, bank_byte=bank_byte)
     new_text_offset, _ = text_offset_map.get(original_text_offset, (None, None))
     if new_text_offset:
@@ -353,7 +353,7 @@ def repoint_two_bytes_pointer(f, pointer_offset, text_offset_map, bank_byte, typ
     else:
         print(f'Pointer not found - Type: {type} - Text offset: {hex(original_text_offset)} - Pointer offset: {hex(pointer_offset)}')
 
-def repoint_three_bytes_pointer(f, pointer_offset, text_offset_map, type=None):
+def repoint_3byte_pointer(f, pointer_offset, text_offset_map, type=None):
     original_text_offset = decode_snes_addr(f, pointer_offset, base_addr=0xc00000, size=3)
     new_text_offset, _ = text_offset_map.get(original_text_offset, (None, None))
     if new_text_offset:
@@ -364,7 +364,7 @@ def repoint_three_bytes_pointer(f, pointer_offset, text_offset_map, type=None):
             f.write(b'\xc9' + new_pointer_value[:-2]) # 0xc9 = CMP
             f.seek(seek_cur)
         f.seek(-3, os.SEEK_CUR)
-        f.write(new_pointer_value[:-1])
+        f.write(new_pointer_value)
     else:
         print(f'Pointer not found - Type: {type} - Text offset: {hex(original_text_offset)} - Pointer offset: {hex(pointer_offset)}')
 
