@@ -125,17 +125,80 @@ def _get_misc_3byte_pointer_map(f):
                 pointer_map.setdefault(p_value, []).append(p_offset)
     return pointer_map
 
+def _get_text_pointer_block_pointer_map(f, pointer_map):
+    # POINTER_BLOCKS (sequential 3-byte pointer tables)
+    for block_start, block_end in POINTER_BLOCKS:
+        f.seek(block_start)
+        while f.tell() < block_end:
+            p_offset = f.tell()
+            raw = f.read(3)
+            if len(raw) == 3:
+                p_value = struct.unpack('i', raw + b'\x00')[0] - 0xc00000
+                pointer_map.setdefault(p_value, []).append(p_offset)
+    return pointer_map
 
+def _get_text_sparse_pointer_map(f, pointer_map):
+    # sparse_pointers (3-byte)
+    for p_offset in sparse_pointers:
+        f.seek(p_offset)
+        raw = f.read(3)
+        if len(raw) == 3:
+            p_value = struct.unpack('i', raw + b'\x00')[0] - 0xc00000
+            pointer_map.setdefault(p_value, []).append(p_offset)
+    return pointer_map
 
-def seventhsaga_text_segment_dumper(f, dump_path, table, id, block, cur, start=0x0, end=0x0):
-    text_offsets = [resolve_pointer(f, offset) for offset in sparse_pointers]
+def _get_text_2byte_pointer_map(f, pointer_map):
+    # Two-byte hardcoded pointers with bank byte \xc6 (file base 0x60000)
+    two_byte_c6 = [
+        0x1d412, 0x2bd2d, 0x2be96, 0x2c1f5, 0x2d6fb, 0x2d7b5, 0x2f3da,  # hardcoded
+        0x8eb2, 0xa0b7, 0xaafb,             # What else would you like?
+        0x8f9b, 0xa1a0, 0xac1c,             # Thank you. Come back again.
+        0x9134, 0xa339, 0xb1d1,             # Which would you like?
+        0x9962,                             # Do you need any other help?
+        0x9a44,                             # Come back anytime
+        0x9b99, 0x9e7d,                     # You don't need the service
+        0xad25,                             # What would you like to sell?
+        0xb097, 0xb42a,                     # I will buy
+        0xb5a5,                             # Welcome to my Inn!
+        0xb604,                             # Your room is ready
+        0x9c45, 0x9f60,                     # It costs
+        0x668, 0x7d8, 0x8d3, 0xa39, 0xb34,  # Intro
+        0x28b78,
+    ]
+    for p_offset in two_byte_c6:
+        f.seek(p_offset)
+        raw = f.read(2)
+        if len(raw) == 2:
+            p_value = struct.unpack('i', raw + b'\xc6' + b'\x00')[0] - 0xc00000
+            pointer_map.setdefault(p_value, []).append(p_offset)
+    return pointer_map
+
+def _get_text_internal_pointer_map(f, pointer_map):
+    #
+    for text_segment_start, text_segment_end in (TEXT_SEGMENT_1, TEXT_SEGMENT_2, TEXT_SEGMENT_3):
+        f.seek(text_segment_start)
+        while f.tell() < text_segment_end:
+            byte = f.read(1)
+            if byte in (b'\xfb', b'\xfc'):
+                f.read(2)
+                p_offset = f.tell()
+                raw = f.read(3)
+                p_value = struct.unpack('i', raw + b'\x00')[0] - 0xc00000
+                pointer_map.setdefault(p_value, []).append(p_offset)
+            elif byte == b'\xff':
+                p_offset = f.tell()
+                raw = f.read(3)
+                p_value = struct.unpack('i', raw + b'\x00')[0] - 0xc00000
+                pointer_map.setdefault(p_value, []).append(p_offset)
+    return pointer_map
+
+def seventhsaga_text_segment_dumper(f, dump_path, table, id, block, cur, text_pointer_map, start=0x0, end=0x0):
     f.seek(start)
     while f.tell() < end:
         text_offset = f.tell()
         text = read_text(f, text_offset, end_byte=b'\xf7', cmd_list={b'\xf6': 1, b'\xfb': 5, b'\xfc': 5, b'\xfd': 2, b'\xfe': 2, b'\xff': 3})
         text_decoded = table.decode(text)
-        text_offset_indexes = [i for i, value in enumerate(text_offsets) if value == text_offset]
-        pointers_offsets = [sparse_pointers[i] for i in text_offset_indexes]
+        pointers_offsets = text_pointer_map.get(text_offset, [])
         pointers_offsets_str = ';'.join(hex(x) for x in pointers_offsets)
         ref = f'[ID={id} START={hex(text_offset)} END={hex(f.tell() - 1)} POINTERS={pointers_offsets_str}]'
         # dump - db
@@ -159,10 +222,15 @@ def seventhsaga_text_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
+        text_pointer_map = {}
+        _get_text_pointer_block_pointer_map(f, text_pointer_map)
+        _get_text_sparse_pointer_map(f, text_pointer_map)
+        _get_text_2byte_pointer_map(f, text_pointer_map)
+        _get_text_internal_pointer_map(f, text_pointer_map)
         id = 1
-        id = seventhsaga_text_segment_dumper(f, dump_path, table, id, 1, cur, TEXT_SEGMENT_1[0], TEXT_SEGMENT_1[1])
-        id = seventhsaga_text_segment_dumper(f, dump_path, table, id, 2, cur, TEXT_SEGMENT_2[0], TEXT_SEGMENT_2[1])
-        id = seventhsaga_text_segment_dumper(f, dump_path, table, id, 3, cur, TEXT_SEGMENT_3[0], TEXT_SEGMENT_3[1])
+        id = seventhsaga_text_segment_dumper(f, dump_path, table, id, 1, cur, text_pointer_map, TEXT_SEGMENT_1[0], TEXT_SEGMENT_1[1])
+        id = seventhsaga_text_segment_dumper(f, dump_path, table, id, 2, cur, text_pointer_map, TEXT_SEGMENT_2[0], TEXT_SEGMENT_2[1])
+        id = seventhsaga_text_segment_dumper(f, dump_path, table, id, 3, cur, text_pointer_map, TEXT_SEGMENT_3[0], TEXT_SEGMENT_3[1])
     cur.close()
     conn.commit()
     conn.close()
@@ -180,99 +248,52 @@ def seventhsaga_text_inserter(args):
     cur = conn.cursor()
     # insert text into the new location and collect old and new text offsets
     NEW_TEXT_SEGMENT_1_START = NEW_TEXT_SEGMENT_1_END = 0x300000
-    offset_map = {}
-    with open(dest_file, 'r+b') as fw:
-        fw.seek(NEW_TEXT_SEGMENT_1_START)
-        # db
+    text_offset_map = {}
+    with open(dest_file, 'r+b') as f:
+        f.seek(NEW_TEXT_SEGMENT_1_START)
         rows = select_most_recent_translation(cur, ['1', '2', '3'])
         for row in rows:
             _, _, text_decoded, address, _, translation, _, _, _ = row
-            # if id in (247, 248):
-            #     print(text_decoded)
-            #     print(translation)
-            #     print(hex(fw.tell()))
             text = translation if translation else text_decoded
             encoded_text = table.encode(text)
-            if fw.tell() < 0x310000 and fw.tell() + len(encoded_text) > 0x30ffff:
-                fw.seek(0x310000)
-            offset_map[int(address)] = (fw.tell(), False)
-            fw.write(encoded_text)
-            fw.write(b'\xf7')
-        NEW_TEXT_SEGMENT_1_END = fw.tell()
-    # repoint pointers in pointer blocks
-    with open(dest_file, 'r+b') as fw:
-        for POINTER_BLOCK in POINTER_BLOCKS:
-            fw.seek(POINTER_BLOCK[0])
-            while fw.tell() < POINTER_BLOCK[1]:
-                repoint_three_bytes_pointer(fw, fw.tell(), offset_map, 'Pointer Block')
-    # repoint pointers in text block
-    with open(dest_file, 'r+b') as fw:
-        fw.seek(NEW_TEXT_SEGMENT_1_START)
-        while fw.tell() < NEW_TEXT_SEGMENT_1_END:
-            byte = fw.read(1)
+            if f.tell() < 0x310000 and f.tell() + len(encoded_text) > 0x30ffff:
+                f.seek(0x310000)
+            text_offset_map[int(address)] = (f.tell(), False)
+            f.write(encoded_text)
+            f.write(b'\xf7')
+        NEW_TEXT_SEGMENT_1_END = f.tell()
+        # repoint pointers in pointer blocks
+        text_pointerblock_pointer_map = _get_text_pointer_block_pointer_map(f, {})
+        for _, p_addresses in text_pointerblock_pointer_map.items():
+            for p_address in p_addresses:
+                repoint_3byte_pointer(f, p_address, text_offset_map, 'TEXT - Pointer Block (3 bytes)')
+        # repoint sparse pointers
+        text_sparse_pointer_map = _get_text_sparse_pointer_map(f, {})
+        for _, p_addresses in text_sparse_pointer_map.items():
+            for p_address in p_addresses:
+                repoint_3byte_pointer(f, p_address, text_offset_map, 'TEXT - Sparse pointer (3 bytes)')
+        # repoint two byte pointers
+        text_2byte_pointer_map = _get_text_2byte_pointer_map(f, {})
+        for _, p_addresses in text_2byte_pointer_map.items():
+            for p_address in p_addresses:
+                repoint_2byte_pointer(f, p_address, text_offset_map, b'\xc6', 'TEXT (2 bytes)')
+        # repoint pointers in text block
+        f.seek(NEW_TEXT_SEGMENT_1_START)
+        while f.tell() < NEW_TEXT_SEGMENT_1_END:
+            byte = f.read(1)
             if byte in (b'\xfb', b'\xfc'):
-                fw.read(2)
-                repoint_three_bytes_pointer(fw, fw.tell(), offset_map, 'Text Block A')
+                f.read(2)
+                repoint_3byte_pointer(f, f.tell(), text_offset_map, 'Text Block A')
             elif byte == b'\xff':
-                repoint_three_bytes_pointer(fw, fw.tell(), offset_map, 'Text Block B')
-    # repoint other pointers
-    with open(dest_file, 'r+b') as fw:
-        #
-        write_byte(fw, 0x1a2dc, b'\xf0')
-        write_byte(fw, 0x1a31b, b'\xf0')
-        write_byte(fw, 0x21898, b'\xf0')
-        write_byte(fw, 0x21723, b'\xf0')
-        # hardcoded pointers
-        repoint_two_bytes_pointer(fw, 0x1d412, offset_map, b'\xc6') # 0x6e18e
-        repoint_two_bytes_pointer(fw, 0x2bd2d, offset_map, b'\xc6') # 0x6d6ca
-        repoint_two_bytes_pointer(fw, 0x2be96, offset_map, b'\xc6') # 0x6dd59
-        repoint_two_bytes_pointer(fw, 0x2c1f5, offset_map, b'\xc6') # 0x6b049
-        repoint_two_bytes_pointer(fw, 0x2d6fb, offset_map, b'\xc6') # 0x65a3f
-        repoint_two_bytes_pointer(fw, 0x2d7b5, offset_map, b'\xc6') # 0x63bfe
-        repoint_two_bytes_pointer(fw, 0x2f3da, offset_map, b'\xc6') # 0x64809
+                repoint_3byte_pointer(f, f.tell(), text_offset_map, 'Text Block B')
+        # repoint other pointers
+        write_byte(f, 0x1a2dc, b'\xf0')
+        write_byte(f, 0x1a31b, b'\xf0')
+        write_byte(f, 0x21898, b'\xf0')
+        write_byte(f, 0x21723, b'\xf0')
         # hardcoded internal pointers (not at the beginning of text)
-        # repoint_two_bytes_pointer(fw, 0x2b9a5, offset_map, b'\xc6') # 0x6e3bf
-        # repoint_two_bytes_pointer(fw, 0x2bb64, offset_map, b'\xc6') # 0x6e447
-    # repoint sparse pointers
-    with open(dest_file, 'r+b') as fw:
-        for sparse_pointer in sparse_pointers:
-            repoint_three_bytes_pointer(fw, sparse_pointer, offset_map, 'Sparse pointer')
-    # two bytes pointers
-    with open(dest_file, 'r+b') as fw:
-        repoint_two_bytes_pointer(fw, 0x8eb2, offset_map, b'\xc6') # 0x604a7 # What else would you like?
-        repoint_two_bytes_pointer(fw, 0xa0b7, offset_map, b'\xc6') # 0x604a7 # What else would you like?
-        repoint_two_bytes_pointer(fw, 0xaafb, offset_map, b'\xc6') # 0x604a7 # What else would you like?
-        repoint_two_bytes_pointer(fw, 0x8f9b, offset_map, b'\xc6') # 0x604bc # Thank you. Come back again.
-        repoint_two_bytes_pointer(fw, 0xa1a0, offset_map, b'\xc6') # 0x604bc # Thank you. Come back again.
-        repoint_two_bytes_pointer(fw, 0xac1c, offset_map, b'\xc6') # 0x604bc # Thank you. Come back again.
-        repoint_two_bytes_pointer(fw, 0x9134, offset_map, b'\xc6') # 0x600e1 # Which would you like?
-        repoint_two_bytes_pointer(fw, 0xa339, offset_map, b'\xc6') # 0x600e1 # Which would you like?
-        repoint_two_bytes_pointer(fw, 0xb1d1, offset_map, b'\xc6') # 0x600e1 # Which would you like?
-        repoint_two_bytes_pointer(fw, 0x9962, offset_map, b'\xc6') # 0x60762 # Do you need any other help?
-        repoint_two_bytes_pointer(fw, 0x9a44, offset_map, b'\xc6') # 0x60776 # Come back anytime you need my help.
-        repoint_two_bytes_pointer(fw, 0x9b99, offset_map, b'\xc6') # 0x6079f # You don't need the service.
-        repoint_two_bytes_pointer(fw, 0x9e7d, offset_map, b'\xc6') # 0x6079f # You don't need the service.
-        repoint_two_bytes_pointer(fw, 0xad25, offset_map, b'\xc6') # 0x60247 # What would you like to sell?
-        repoint_two_bytes_pointer(fw, 0xb097, offset_map, b'\xc6') # 0x60294 # I will buy
-        repoint_two_bytes_pointer(fw, 0xb42a, offset_map, b'\xc6') # 0x60277 # I will buy
-        repoint_two_bytes_pointer(fw, 0xb5a5, offset_map, b'\xc6') # 0x6058b # Welcome to my Inn!
-        repoint_two_bytes_pointer(fw, 0xb604, offset_map, b'\xc6') # 0x60658 # Your room is ready
-        repoint_two_bytes_pointer(fw, 0x9c45, offset_map, b'\xc6') # 0x607b4 # It costs
-        repoint_two_bytes_pointer(fw, 0x9f60, offset_map, b'\xc6') # 0x607b4 # It costs
-        repoint_two_bytes_pointer(fw, 0x668, offset_map, b'\xc6') # 0x6085e # Intro 1
-        repoint_two_bytes_pointer(fw, 0x7d8, offset_map, b'\xc6') # 0x60 # Intro 2
-        repoint_two_bytes_pointer(fw, 0x8d3, offset_map, b'\xc6') # 0x60 # Intro 3
-        repoint_two_bytes_pointer(fw, 0xa39, offset_map, b'\xc6') # 0x60 # Intro 4
-        repoint_two_bytes_pointer(fw, 0xb34, offset_map, b'\xc6') # 0x60 # Intro 5
-        repoint_two_bytes_pointer(fw, 0x28b78, offset_map, b'\xc6')
-        # DEBUG
-        count = 0
-        for original_text_offset, data_tuple in offset_map.items():
-            new_offset, flag = data_tuple
-            if not flag:
-                count += 1
-                print(f"Original: {hex(original_text_offset)}, New: {hex(new_offset)}")
-        print(f'Not found: {count}')
+        # repoint_2byte_pointer(f, 0x2b9a5, text_offset_map, b'\xc6') # 0x6e3bf
+        # repoint_2byte_pointer(f, 0x2bb64, text_offset_map, b'\xc6') # 0x6e447
     cur.close()
     conn.commit()
     conn.close()
