@@ -627,7 +627,7 @@ def repoint_text(fw, offset, new_pointers):
 def item_pointers_finder(fw, start, end):
     pointers = []
     fw.seek(start)
-    while (fw.tell() < end):
+    while (fw.tell() <= end):
         byte = fw.read(1)
         if byte in (b'\xc6', b'\xc8'):
             fw.seek(-3, os.SEEK_CUR)
