@@ -261,8 +261,14 @@ def brainlord_credits_inserter(args):
     with open(file_path, 'r', encoding='utf-8') as f:
         text = f.read()
         text_encoded = table.encode(text)
-        if len(text_encoded) != CREDITS_BLOCK_END - CREDITS_BLOCK_START:
-            raise Exception("Invalid credits file lenght! {} - {}".format(len(text_encoded), CREDITS_BLOCK_END - CREDITS_BLOCK_START))
+        actual_size = len(text_encoded)
+        expected_size = CREDITS_BLOCK_END - CREDITS_BLOCK_START
+        if actual_size != expected_size:
+            diff = expected_size - actual_size
+            raise Exception(
+                f"Credits block size mismatch: expected {expected_size} bytes, but got {actual_size}. "
+                f"Please {'add' if diff > 0 else 'remove'} {abs(diff)} bytes to match the required block size."
+            )
         with open(dest_file, 'r+b') as f1:
             f1.seek(CREDITS_BLOCK_START)
             f1.write(text_encoded)
