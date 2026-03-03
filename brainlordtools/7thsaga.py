@@ -81,6 +81,9 @@ def _get_misc_2byte_pointer_map(f):
         0x18eaf, 0x19bba, 0x1e496,                      # Speed
         0x19be6, 0x1e4c2,                               # Weapon
         0x19c12, 0x1e4ee,                               # Defend
+        0x49025,                                        # Can't get rid of it.
+        0x49392,                                        # Can't use it here.
+        0x493d1,                                        # Nothing happened.
     ]
     for p_offset in two_byte_c7:
         f.seek(p_offset)
@@ -159,6 +162,7 @@ def _get_text_2byte_pointer_map(f, pointer_map):
         0x9b99, 0x9e7d,                     # You don't need the service
         0xad25,                             # What would you like to sell?
         0xb097, 0xb42a,                     # I will buy
+        0xb0c2,                             # Sorry, we don't handle this item.
         0xb5a5,                             # Welcome to my Inn!
         0xb604,                             # Your room is ready
         0x9c45, 0x9f60,                     # It costs
