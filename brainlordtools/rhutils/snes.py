@@ -22,7 +22,11 @@ def snes2pc_hirom(offset):
 
 def has_smc_header(filename):
     rest = os.stat(filename).st_size % 1024
-    return False if rest == 0 else True if rest == 512 else None
+    if rest == 0:
+        return False
+    if rest == 512:
+        return True
+    raise ValueError(f"Unexpected file size remainder: {rest} bytes. File may be corrupt.")
 
 def get_checksum(filename):
     checksum = b''
