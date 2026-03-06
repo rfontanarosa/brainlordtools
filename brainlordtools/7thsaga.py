@@ -30,6 +30,8 @@ POINTER_BLOCKS = ((0x1a0ad, 0x1a0c1), (0x425db, 0x4269a))
 FONT1_BLOCK = (0x13722d, 0x13B22d)
 FONT2_BLOCK = (0x1d0800, 0x1d1800)
 
+special_pointers = (0xc21e, 0xc22f, 0xc14d, 0xc1c1, 0xc26d, 0xc2c4, 0xc295, 0xc2a6, 0xc2fd, 0xc2ec, 0xc31b, 0xc343, 0xc354, 0xc37d, 0xc431, 0xc9a8, 0xca0b, 0xca19, 0xcaa3, 0xcab4, 0xcb54, 0xcb70, 0xcd12)
+
 sparse_pointers = tuple()
 sparse_pointers += (0x56f0a, 0x56f10, 0x56f16, 0x56f1c, 0x56f22, 0x56f28) # Lemele
 sparse_pointers += (0x56f88, 0x56f8e, 0x56f94, 0x56f9a, 0x56fa0, 0x56fa6, 0x56fac, 0x56fb2, 0x56fb8) # Rablesk
@@ -293,6 +295,17 @@ def _get_text_2byte_pointer_map(f, pointer_map):
         raw = f.read(2)
         if len(raw) == 2:
             p_value = struct.unpack('i', raw + b'\xc6' + b'\x00')[0] - 0xc00000
+            if p_offset in special_pointers:
+                p_value += 1
+            pointer_map.setdefault(p_value, []).append(p_offset)
+    two_byte_c7 = [
+        0xd551,
+    ]
+    for p_offset in two_byte_c7:
+        f.seek(p_offset)
+        raw = f.read(2)
+        if len(raw) == 2:
+            p_value = struct.unpack('i', raw + b'\xc7' + b'\x00')[0] - 0xc00000
             pointer_map.setdefault(p_value, []).append(p_offset)
     return pointer_map
 
@@ -492,6 +505,8 @@ def seventhsaga_misc_inserter(args):
 
 def repoint_2byte_pointer(f, pointer_offset, text_offset_map, bank_byte, type=None):
     original_text_offset = decode_snes_addr(f, pointer_offset, base_addr=0xc00000, size=2, bank_byte=bank_byte)
+    if pointer_offset in special_pointers:
+        original_text_offset += 1
     new_text_offset, _ = text_offset_map.get(original_text_offset, (None, None))
     if new_text_offset:
         new_pointer_value = encode_snes_addr(new_text_offset, base_addr=0xc00000, size=3)
