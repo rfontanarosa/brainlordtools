@@ -107,6 +107,8 @@ class Table():
             return self._data_decode(node, data[1:], i+1, original_byte)
         elif isinstance(node, ControlCode):
             bytes_to_read = len(node.params)
+            if len(data) < bytes_to_read + 1:
+                return (1, self.HEX_FORMAT.format(original_byte))
             Bytes = data[1:bytes_to_read + 1]
             return (bytes_to_read + i, node.string_to_format.format(*Bytes))
         else:
