@@ -186,8 +186,7 @@ sparse_pointers += (0x88a8, 0x88ab, 0x88ae, 0x88b1, 0x88b4, 0x88b7) # (0x72569..
 # sparse_pointers += (0x15ab1d, 0x159323, 0x15947f, 0x1596b9, 0x159815, 0x159f6b) # seg3 (0x74d59..0x75031)
 # sparse_pointers += (0x15a7d5, 0x15ac6d, 0x15b033, 0x15b039, 0x15bb49, 0x15d05b) # seg3 (0x75076..0x75302)
 
-def _get_misc_2byte_pointer_map(f):
-    pointer_map = {}
+def _get_misc_2byte_pointer_map(f, pointer_map):
     # Two-byte hardcoded pointers with bank byte \xc7 (file base 0x70000)
     two_byte_c7 = [
         0x324c, 0x3351, 0x3456, 0x34cf, 0x3547, 0x35bf, # free
@@ -213,8 +212,7 @@ def _get_misc_2byte_pointer_map(f):
             pointer_map.setdefault(p_value, []).append(p_offset)
     return pointer_map
 
-def _get_misc_3byte_pointer_map(f):
-    pointer_map = {}
+def _get_misc_3byte_pointer_map(f, pointer_map):
     # Misc pointer tables (step-based, first 3 bytes of each entry are the pointer)
     misc_pointer_tables = [
         (0x302a,   2,  3), # Yes, No
@@ -455,9 +453,9 @@ def seventhsaga_misc_dumper(args):
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
         # get pointers
-        misc_2byte_pointer_map = _get_misc_2byte_pointer_map(f)
-        misc_3byte_pointer_map = _get_misc_3byte_pointer_map(f)
-        misc_pointer_map = misc_2byte_pointer_map | misc_3byte_pointer_map
+        misc_pointer_map = {}
+        _get_misc_2byte_pointer_map(f, misc_pointer_map)
+        _get_misc_3byte_pointer_map(f, misc_pointer_map)
         # reading texts
         for i, current_misc_segment in enumerate((MISC_SEGMENT_1, MISC_SEGMENT_2)):
             filename = os.path.join(dump_path, f'misc{i + 1}.csv')
@@ -480,9 +478,6 @@ def seventhsaga_misc_inserter(args):
     table = Table(table1_file)
     # repoint text
     with open(dest_file, 'r+b') as f:
-        # get pointers
-        misc_2byte_pointer_map = _get_misc_2byte_pointer_map(f)
-        misc_3byte_pointer_map = _get_misc_3byte_pointer_map(f)
         # reading misc1.csv texts
         translation_file = os.path.join(translation_path, 'misc1.csv')
         translated_texts = get_csv_translated_texts(translation_file)
@@ -494,9 +489,11 @@ def seventhsaga_misc_inserter(args):
             text = table.encode(t_value)
             t_new_address = write_text(f, t_new_address, text, end_byte=b'\xf7')
         # repointing misc1
+        misc_2byte_pointer_map = _get_misc_2byte_pointer_map(f, {})
         for _, p_addresses in misc_2byte_pointer_map.items():
             for p_address in p_addresses:
                 repoint_2byte_pointer(f, p_address, text_offset_map, b'\xc7', 'MISC (2 bytes)')
+        misc_3byte_pointer_map = _get_misc_3byte_pointer_map(f, {})
         for _, p_addresses in misc_3byte_pointer_map.items():
             for p_address in p_addresses:
                 repoint_3byte_pointer(f, p_address, text_offset_map, 'MISC (3 bytes)')
