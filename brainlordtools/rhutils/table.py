@@ -96,11 +96,11 @@ class Table():
         if original_byte is None:
             original_byte = data[0]
         node = node.get(data[0])
-        if isinstance(node, dict) and node.get(''):
-            if len(data) > 1 and node.get(data[1]):
+        if isinstance(node, dict) and '' in node:
+            if len(data) > 1 and data[1] in node:
                 return self._data_decode(node, data[1:], i+1, original_byte)
             else:
-                return (i, node.get(''))
+                return (i, node[''])
         elif isinstance(node, dict) and len(data) > 1:
             return self._data_decode(node, data[1:], i+1, original_byte)
         elif isinstance(node, ControlCode):
@@ -113,12 +113,12 @@ class Table():
     def _data_encode(self, node, data, i=1, buffer=()):
         node = node.get(data[0])
         if isinstance(node, dict):
-            if len(data) > 1 and node.get(data[1]):
-                if node.get(''):
-                    buffer = (i, node.get(''))
+            if len(data) > 1 and data[1] in node:
+                if '' in node:
+                    buffer = (i, node[''])
                 return self._data_encode(node, data[1:], i+1, buffer)
-            elif node.get(''):
-                return (i, node.get(''))
+            elif '' in node:
+                return (i, node[''])
             else:
                 return (buffer[0], buffer[1])
         elif isinstance(node, ControlCode):
