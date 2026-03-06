@@ -19,7 +19,8 @@ class ControlCode():
         if part_params != '':
             self.string_to_format = part_label.replace(']', ' {}]'.format(part_params.replace('%X', '{:02X}').replace(',', ' ')))
         #
-        _, _, self.re = part_label.replace(']', ' {}]'.format(part_params.replace('%X', '([a-zA-Z0-9]*)')).replace(',', ' ')).partition(' ')
+        _, _, re_str = part_label.replace(']', ' {}]'.format(part_params.replace('%X', '([a-zA-Z0-9]*)')).replace(',', ' ')).partition(' ')
+        self.re = re.compile(re_str)
 
         self.params = []
         for param in part_params.split(','):
@@ -137,7 +138,7 @@ class Table():
                 return (len(node.string_to_format), node.key)
             else:
                 Bytes = node.key
-                m = re.match(node.re, data[1:])
+                m = node.re.match(data[1:])
                 if m is None:
                     return (1, data[0].encode())
                 for hex_to_decode in m.groups():
