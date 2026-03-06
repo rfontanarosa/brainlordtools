@@ -86,12 +86,19 @@ class Table():
         if len(key) == 1:
             node_key = key if isinstance(key, str) else int.from_bytes(key, byteorder='big')
             if isinstance(value, ControlCode):
+                if isinstance(node.get(node_key), dict):
+                    raise Exception(f"ControlCode key conflicts with existing entry at {node_key!r}")
                 node[node_key] = value
             else:
+                if isinstance(node.get(node_key), ControlCode):
+                    raise Exception(f"Entry key conflicts with existing ControlCode at {node_key!r}")
                 new_value = node.setdefault(node_key, {})
                 new_value[''] = value
                 node[node_key] = new_value
         else:
+            existing = node.get(key[0])
+            if isinstance(existing, ControlCode):
+                raise Exception(f"Entry key prefix conflicts with existing ControlCode at {key[0]!r}")
             self._create_graph(node.setdefault(key[0], {}), key[1:], value)
 
     def _data_decode(self, node, data, i=1, original_byte=None):
