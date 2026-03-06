@@ -12,7 +12,8 @@ class ControlCode():
         self.key = bytes.fromhex(hexadecimal_seq)
         #
         part_label, _, part_params = label_and_params.partition(',')
-        self.value = part_label.strip('\r\n').replace('\\n', '\n') if part_params == '' else part_label[:part_label.find(']')] + ' '
+        part_label = part_label.replace('\\n', '\n')
+        self.value = part_label.strip('\r\n') if part_params == '' else part_label[:part_label.find(']')] + ' '
         if part_params == '':
             pass
         #
@@ -54,7 +55,7 @@ class Table():
 
     def _parse(self, file_object):
         for line in file_object:
-            line = line.strip('\r\n').replace('\\n', '\n')
+            line = line.strip('\r\n')
             if line.startswith(Table.COMMENT_CHAR) or line.startswith('//'):
                 pass
             elif line.startswith(Table.END_TOKEN_CHAR):
@@ -71,6 +72,7 @@ class Table():
                 part_key, _, part_value = line.partition('=')
                 if part_value:
                     if len(part_key) % 2 == 0:
+                        part_value = part_value.replace('\\n', '\n')
                         self._create_graph(self._table, bytes.fromhex(part_key), part_value)
                         self._create_graph(self._reverse_table, part_value, bytes.fromhex(part_key))
                     elif part_key.startswith('$') and len(part_key[1:]) % 2 == 0:
