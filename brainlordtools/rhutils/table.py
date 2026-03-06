@@ -133,6 +133,8 @@ class Table():
             else:
                 Bytes = node.key
                 m = re.match(node.re, data[1:])
+                if m is None:
+                    return (1, data[0].encode())
                 for hex_to_decode in m.groups():
                     Bytes += bytes.fromhex(hex_to_decode)
                 return (len(node.value) + m.end(), Bytes)
