@@ -41,6 +41,7 @@ class Table():
     END_LINE_CHAR = '*'
 
     HEX_FORMAT = '{{{:02x}}}'
+    HEX_CHARS = frozenset('0123456789abcdef')
 
     def __init__(self, source, encoding='utf-8'):
         self.end_token, self.end_line, self.line_token = None, None, None
@@ -146,8 +147,7 @@ class Table():
                 return (len(node.value) + m.end(), Bytes)
         else:
             char = data[0]
-            hex_chars = '0123456789abcdef'
-            if char == '{' and len(data) >= 4 and data[3] == '}' and data[1] in hex_chars and data[2] in hex_chars:
+            if char == '{' and len(data) >= 4 and data[3] == '}' and data[1] in self.HEX_CHARS and data[2] in self.HEX_CHARS:
                 Byte = bytes.fromhex(data[1:3])
                 return (4, Byte)
             else:
