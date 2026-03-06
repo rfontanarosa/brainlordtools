@@ -140,26 +140,30 @@ class Table():
                 return (1, char.encode())
 
     def decode(self, data):
-        """ decode bytes into string """
-        decoded = ''
-        if data:
-            i = 0
-            while i < len(data):
-                count, value = self._data_decode(self._table, data[i:])
-                decoded += value
-                i += count
-        return decoded
+        """Transform bytes into a string by traversing the table graph and joining results."""
+        if not data:
+            return ''
+        decoded_parts = []
+        i = 0
+        data_length = len(data)
+        while i < data_length:
+            count, value = self._data_decode(self._table, data[i:])
+            decoded_parts.append(value)
+            i += count
+        return "".join(decoded_parts)
 
     def encode(self, data):
-        """ encode string into bytes """
-        encoded = b''
-        if data:
-            i = 0
-            while i < len(data):
-                count, value = self._data_encode(self._reverse_table, data[i:])
-                encoded += value
-                i += count
-        return encoded
+        """Transform a string into bytes by searching the reverse table graph and joining results."""
+        if not data:
+            return b''
+        encoded_parts = []
+        i = 0
+        data_length = len(data)
+        while i < data_length:
+            count, value = self._data_encode(self._reverse_table, data[i:])
+            encoded_parts.append(value)
+            i += count
+        return b''.join(encoded_parts)
 
     def __str__(self):
         pp = pprint.PrettyPrinter(indent=2)
