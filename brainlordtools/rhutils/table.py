@@ -43,7 +43,7 @@ class Table():
     DOUBLE_HEX_FORMAT =  HEX_FORMAT + HEX_FORMAT
 
     def __init__(self, source, encoding='utf-8'):
-        self.end_token, self.end_line = None, None
+        self.end_token, self.end_line, self.line_token = None, None, None
         self._table, self._reverse_table = {}, {}
         if isinstance(source, (str, os.PathLike)) and os.path.isfile(source):
             with open(source, 'r', encoding=encoding) as f:
