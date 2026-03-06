@@ -92,21 +92,23 @@ class Table():
         else:
             self._create_graph(node.setdefault(key[0], {}), key[1:], value)
 
-    def _data_decode(self, node, data, i=1):
+    def _data_decode(self, node, data, i=1, original_byte=None):
+        if original_byte is None:
+            original_byte = data[0]
         node = node.get(data[0])
         if isinstance(node, dict) and node.get(''):
             if len(data) > 1 and node.get(data[1]):
-                return self._data_decode(node, data[1:], i+1)
+                return self._data_decode(node, data[1:], i+1, original_byte)
             else:
                 return (i, node.get(''))
         elif isinstance(node, dict) and len(data) > 1:
-            return self._data_decode(node, data[1:], i+1)
+            return self._data_decode(node, data[1:], i+1, original_byte)
         elif isinstance(node, ControlCode):
             bytes_to_read = len(node.params)
             Bytes = data[1:bytes_to_read + 1]
             return (bytes_to_read + i, node.string_to_format.format(*Bytes))
         else:
-            return (1, self.HEX_FORMAT.format(data[0]))
+            return (1, self.HEX_FORMAT.format(original_byte))
 
     def _data_encode(self, node, data, i=1, buffer=()):
         node = node.get(data[0])
@@ -177,6 +179,8 @@ if __name__ == "__main__":
 060001=ddd\\n
 $07=[07],%X
 $08=[08]\\n,%X,%X
+05=[COLOR]
+0b00=SWORD
 '''
     table = Table(test_table_data)
     test_cases = [
@@ -190,6 +194,7 @@ $08=[08]\\n,%X,%X
         (b'\x06\x00\x01', "ddd\n"),
         (b'\x07\x00', "[07 00]"),
         (b'\x08\x00\x01', "[08 00 01]\n"),
+        (b'\x0b\x05', "{0b}[COLOR]"),
     ]
     for source_bytes, expected_str in test_cases:
         decoded = table.decode(source_bytes)
