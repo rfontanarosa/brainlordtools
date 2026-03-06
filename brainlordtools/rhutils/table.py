@@ -41,7 +41,6 @@ class Table():
     END_LINE_CHAR = '*'
 
     HEX_FORMAT = '{{{:02x}}}'
-    DOUBLE_HEX_FORMAT =  HEX_FORMAT + HEX_FORMAT
 
     def __init__(self, source, encoding='utf-8'):
         self.end_token, self.end_line, self.line_token = None, None, None
