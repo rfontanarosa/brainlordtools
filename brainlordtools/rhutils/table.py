@@ -120,7 +120,9 @@ class Table():
             elif '' in node:
                 return (i, node[''])
             else:
-                return (buffer[0], buffer[1])
+                if buffer:
+                    return (buffer[0], buffer[1])
+                return (1, data[0].encode())
         elif isinstance(node, ControlCode):
             if data[0] == ']':
                 return (len(node.string_to_format), node.key)
