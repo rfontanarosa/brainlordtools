@@ -525,7 +525,7 @@ def repoint_3byte_pointer(f, pointer_offset, text_offset_map, type=None):
         if original_text_offset == 0x65081:
             seek_cur = f.tell()
             f.seek(0x2d8af)
-            f.write(b'\xc9' + new_pointer_value[:-2]) # 0xc9 = CMP
+            f.write(b'\xc9' + new_pointer_value[:-1]) # 0xc9 = CMP
             f.seek(seek_cur)
         f.seek(-3, os.SEEK_CUR)
         f.write(new_pointer_value)
