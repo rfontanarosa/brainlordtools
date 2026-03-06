@@ -14,8 +14,6 @@ class ControlCode():
         part_label, _, part_params = label_and_params.partition(',')
         part_label = part_label.replace('\\n', '\n')
         self.value = part_label.strip('\r\n') if part_params == '' else part_label[:part_label.find(']')] + ' '
-        if part_params == '':
-            pass
         #
         self.string_to_format = part_label
         if part_params != '':
