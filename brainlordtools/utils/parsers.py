@@ -14,14 +14,20 @@ def _parse_dump(file_path: str) -> dict:
   buffer = {}
   with open(file_path, 'r', encoding='utf-8') as f:
     current_id = None
+    temp_text = []
     for line in f:
       if line.startswith('[ID='):
+        if current_id is not None:
+          buffer[current_id][0] = "".join(temp_text)[:-2]
         metadata = parse_metadata(line)
         current_id = metadata.get('ID')
         if current_id is not None:
           buffer[current_id] = ['', line.strip()]
+          temp_text = []
       elif current_id is not None:
-        buffer[current_id][0] += line
+        temp_text.append(line)
+    if current_id is not None:
+      buffer[current_id][0] = "".join(temp_text)[:-2]
   return buffer
 
 def _parse_soe_dump(file_path: str) -> dict:
