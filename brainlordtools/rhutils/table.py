@@ -194,18 +194,44 @@ $08=[08]\\n,%X,%X
 '''
     table = Table(test_table_data)
     test_cases = [
+        # end-line token (*fd)
         (b'\xfd', "\n"),
+        # end token (/ff)
         (b'\xff', "[END]"),
+        # unknown byte fallback to hex format
         (b'\xfe', "{fe}"),
+        # 1-byte plain char
         (b'\x01', "A"),
+        # 1-byte multi-byte unicode
         (b'\x02', "😆"),
+        # 1-byte mapping to 2-char string
         (b'\x03', "aa"),
+        # 2-byte entry
         (b'\x04\x00', "bb"),
+        # 3-byte entry: longest prefix wins over shorter alternatives (05=[COLOR])
         (b'\x05\x00\x01', "ccc"),
+        # 3-byte entry with embedded newline in value
         (b'\x06\x00\x01', "ddd\n"),
+        # ControlCode with 1 param byte
         (b'\x07\x00', "[07 00]"),
+        # ControlCode with 2 param bytes and trailing newline
         (b'\x08\x00\x01', "[08 00 01]\n"),
+        # partial match fallback: \x0b starts 0b00=SWORD but \x05 doesn't complete it
         (b'\x0b\x05', "{0b}[COLOR]"),
+        # empty input
+        (b'', ""),
+        # 1-byte match when longer alternatives exist (05=[COLOR] vs 050001=ccc)
+        (b'\x05', "[COLOR]"),
+        # 2-byte exact match
+        (b'\x0b\x00', "SWORD"),
+        # truncated ControlCode: \x07 needs 1 param byte but data ends — fallback to hex (tests bug #4 fix)
+        (b'\x07', "{07}"),
+        # 2-byte prefix with no match: 0400=bb exists but 0401 does not
+        (b'\x04\x01', "{04}A"),
+        # multi-entry sequence
+        (b'\x01\x02', "A😆"),
+        # sequence mixing special tokens
+        (b'\xfd\x01\xff', "\nA[END]"),
     ]
     for source_bytes, expected_str in test_cases:
         decoded = table.decode(source_bytes)
