@@ -49,8 +49,8 @@ class Table():
             with open(source, 'r', encoding=encoding) as f:
                 self._parse(f)
         else:
-            buffer = io.StringIO(source)
-            self._parse(buffer)
+            with io.StringIO(source) as buffer:
+                self._parse(buffer)
 
     def _parse(self, file_object):
         for line in file_object:
