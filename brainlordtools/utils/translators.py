@@ -7,7 +7,7 @@ __email__ = "robertofontanarosa@gmail.com"
 import boto3
 import deepl
 
-from brainlordutils.utils import GAME_PARSERS
+from brainlordtools.utils.parsers import GAME_PARSERS
 
 def amazon_translate_processor(source_dump_path, destination_dump_path, game) -> None:
     client = boto3.client('translate')
