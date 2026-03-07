@@ -11,7 +11,7 @@ import sqlite3
 import sys
 import time
 
-from brainlordtools.rhutils.db import TranslationStatus, insert_text, insert_translation
+from brainlordtools.rhutils.db import TranslationStatus, insert_text, insert_translation, select_most_recent_translation, select_translation_by_author
 from brainlordtools.utils.games import CRC_TABLE, EXPAND_TABLE
 from brainlordtools.utils.parsers import GAME_PARSERS, parse_metadata
 
@@ -91,3 +91,17 @@ def import_translation(db, source_dump_path, user_name, original_dump_path, game
             if original_dump and original_dump.get(current_id, [None])[0] == text:
                 continue
             insert_translation(cur, current_id, 'TEST', user_name, text, TranslationStatus.DONE, time.time(), '', '')
+
+def export_translation(db, destination_dump_path, user_name, blocks) -> None:
+  with sqlite3.connect(db) as conn:
+    conn.text_factory = str
+    cur = conn.cursor()
+    with open(destination_dump_path, 'w') as f:
+      if user_name:
+        rows = select_translation_by_author(cur, user_name, blocks)
+      else:
+        rows = select_most_recent_translation(cur, blocks)
+      for row in rows:
+        _, _, text_decoded, _, _, translation, _, ref, _ = row
+        text = translation if translation else text_decoded
+        f.write(f"{ref}\r\n{text}\r\n\r\n")

@@ -8,7 +8,7 @@ import argparse
 import os
 import sys
 
-from brainlordtools.utils.actions import copy_file, crc_check, diff_dump, expand_file, import_translation
+from brainlordtools.utils.actions import copy_file, crc_check, diff_dump, expand_file, export_translation, import_translation
 from brainlordtools.utils.translators import amazon_translate_processor, deepl_translate_processor
 
 def handle_copy_file(args):
@@ -46,6 +46,13 @@ def handle_import_translation(args):
     original_dump_path = args.original_dump
     game_id = args.game_id
     import_translation(db, source_dump_path, user_name, original_dump_path, game_id)
+
+def handle_export_translation(args):
+    db = args.database_file
+    destination_dump_path = args.destination
+    user_name = args.user_name
+    blocks = args.blocks
+    export_translation(db, destination_dump_path, user_name, blocks)
 
 def handle_amazon_translate_processor(args) -> None:
     source_dump_path = args.source
@@ -94,6 +101,12 @@ p_import_translation.add_argument('-u', '--user', action='store', dest='user_nam
 p_import_translation.add_argument('-od', '--original_dump', action='store', dest='original_dump', required=False, help='Path to the source .txt original dump file')
 p_import_translation.add_argument('-g', '--game', action='store', dest='game_id', required=False, default='default',help='Optional: Game ID (e.g., som, ff6) to use for custom parsing logic')
 p_import_translation.set_defaults(func=handle_import_translation)
+p_export_translation = subparsers.add_parser('export_translation', help='Export translations to a dump file')
+p_export_translation.add_argument('-db', '--database', action='store', dest='database_file', required=True, help='Path to the SQLite database')
+p_export_translation.add_argument('-d', '--destination', action='store', dest='destination', required=True, help='Output path for the generated .txt dump')
+p_export_translation.add_argument('-u', '--user', action='store', dest='user_name', required=False, help='The author whose translations you want to export')
+p_export_translation.add_argument('-b', '--blocks', action='store', dest='blocks', required=False, nargs='+', help='Optional: Filter by specific block IDs')
+p_export_translation.set_defaults(func=handle_export_translation)
 p_translate_dump_amazon = subparsers.add_parser('amazon', help='Translate a dump using Amazon service')
 p_translate_dump_amazon.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the source .txt dump file')
 p_translate_dump_amazon.add_argument('-d', '--destination', action='store', dest='destination', required=True, help='Output path for the generated .txt dump')
