@@ -11,9 +11,9 @@ import sqlite3
 import sys
 import time
 
-from brainlordtools.rhutils.db import TranslationStatus, insert_translation
+from brainlordtools.rhutils.db import TranslationStatus, insert_text, insert_translation
 from brainlordtools.utils.games import CRC_TABLE, EXPAND_TABLE
-from brainlordtools.utils.parsers import GAME_PARSERS
+from brainlordtools.utils.parsers import GAME_PARSERS, parse_metadata
 
 def copy_file(source_file, dest_file):
     try:
@@ -64,15 +64,30 @@ def expand_file(dest_file, game_id):
     print(f"[{game_id.upper()}] Expanded to {target_size // 1024} KB [OK]")
     return True
 
-def import_translation(db, source_dump_path, user_name, original_dump_path, game_id) -> None:
+def import_dump(db, source_dump_path, game_id) -> None:
   parse_dump_func = GAME_PARSERS.get(game_id, GAME_PARSERS['default'])
   with sqlite3.connect(db) as conn:
     conn.text_factory = str
     cur = conn.cursor()
-    translation_dump = parse_dump_func(source_dump_path)
-    original_dump = parse_dump_func(original_dump_path) if original_dump_path else None
-    for current_id, (text, _) in translation_dump.items():
-      if original_dump and original_dump.get(current_id, [None])[0] == text:
-        continue
-      text_decoded = text.rstrip('\r\n')
-      insert_translation(cur, current_id, 'TEST', user_name, text_decoded, TranslationStatus.DONE, time.time(), '', '')
+    entries = parse_dump_func(source_dump_path)
+    for incremental_id, (text, ref) in entries.items():
+      should_parse = game_id not in {'evermore', 'starocean'} and ref != ''
+      metadata = parse_metadata(ref) if should_parse else {}
+      current_id = metadata.get('ID', incremental_id)
+      text_address = metadata.get('START', '')
+      pointer_addresses = metadata.get('POINTERS', '')
+      block = metadata.get('BLOCK', 1)
+      text_decoded = text.strip('\r\n')
+      insert_text(cur, current_id, b'', text_decoded, text_address, pointer_addresses, block, ref)
+
+def import_translation(db, source_dump_path, user_name, original_dump_path, game_id) -> None:
+    parse_dump_func = GAME_PARSERS.get(game_id, GAME_PARSERS['default'])
+    with sqlite3.connect(db) as conn:
+        conn.text_factory = str
+        cur = conn.cursor()
+        translation_dump = parse_dump_func(source_dump_path)
+        original_dump = parse_dump_func(original_dump_path) if original_dump_path else None
+        for current_id, (text, _) in translation_dump.items():
+            if original_dump and original_dump.get(current_id, [None])[0] == text:
+                continue
+            insert_translation(cur, current_id, 'TEST', user_name, text, TranslationStatus.DONE, time.time(), '', '')

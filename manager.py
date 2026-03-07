@@ -33,6 +33,12 @@ def handle_expand_file(args):
     game_id = args.game_id
     expand_file(dest_file, game_id)
 
+def handle_import_dump(args):
+    db = args.database_file
+    source_dump_path = args.source
+    game_id = args.game
+    import_translation(db, source_dump_path, game_id)
+
 def handle_import_translation(args):
     db = args.database_file
     source_dump_path = args.source
@@ -76,9 +82,14 @@ p_expand = subparsers.add_parser('expand')
 p_expand.add_argument('-d', '--dest', dest='dest_file', required=True, help="Path to the destination file to be expanded")
 p_expand.add_argument('-g', '--game', dest='game_id', required=True, help="Game ID (e.g., som, ff6)")
 p_expand.set_defaults(func=handle_expand_file)
+p_import_dump = subparsers.add_parser('import_dump', help='Import source from a dump file')
+p_import_dump.add_argument('-db', '--database', action='store', dest='database_file', required=True, help='Path to the SQLite database')
+p_import_dump.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the source .txt dump file')
+p_import_dump.add_argument('-g', '--game', action='store', dest='game_id', required=False, default='default', help='Optional: Game ID (e.g., som, ff6) to use for custom parsing logic')
+p_import_dump.set_defaults(func=handle_import_dump)
 p_import_translation = subparsers.add_parser('import_translation', help='Import translations from a dump file')
 p_import_translation.add_argument('-db', '--database', action='store', dest='database_file', required=True, help='Path to the SQLite database')
-p_import_translation.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the source .txt translated dump file')
+p_import_translation.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the translated .txt dump file')
 p_import_translation.add_argument('-u', '--user', action='store', dest='user_name', required=True, help='The author of the translation')
 p_import_translation.add_argument('-od', '--original_dump', action='store', dest='original_dump', required=False, help='Path to the source .txt original dump file')
 p_import_translation.add_argument('-g', '--game', action='store', dest='game_id', required=False, default='default',help='Optional: Game ID (e.g., som, ff6) to use for custom parsing logic')

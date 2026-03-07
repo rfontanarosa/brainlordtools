@@ -11,25 +11,6 @@ import sqlite3
 from brainlordtools.utils.parsers import GAME_PARSERS, parse_metadata
 from brainlordtools.rhutils.db import select_most_recent_translation, select_texts, select_translation_by_author, insert_text, insert_translation, TranslationStatus
 
-def import_dump(args) -> None:
-  db = args.database_file
-  source_dump_path = args.source
-  game = args.game
-  parse_dump_func = GAME_PARSERS.get(game, GAME_PARSERS['default'])
-  with sqlite3.connect(db) as conn:
-    conn.text_factory = str
-    cur = conn.cursor()
-    entries = parse_dump_func(source_dump_path)
-    for incremental_id, (text, ref) in entries.items():
-      should_parse = game not in {'evermore', 'starocean'} and ref != ''
-      metadata = parse_metadata(ref) if should_parse else {}
-      current_id = metadata.get('ID', incremental_id)
-      text_address = metadata.get('START', '')
-      pointer_addresses = metadata.get('POINTERS', '')
-      block = metadata.get('BLOCK', 1)
-      text_decoded = text.strip('\r\n')
-      insert_text(cur, current_id, b'', text_decoded, text_address, pointer_addresses, block, ref)
-
 def export_translation(args) -> None:
   db = args.database_file
   destination_dump_path = args.destination
@@ -66,11 +47,6 @@ def mark_empty_texts_as_translated(args) -> None:
 parser = argparse.ArgumentParser()
 parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
-p_import_dump = subparsers.add_parser('import_dump', help='Import dump from a dump file')
-p_import_dump.add_argument('-db', '--database', action='store', dest='database_file', required=True, help='Path to the SQLite database')
-p_import_dump.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the source .txt dump file')
-p_import_dump.add_argument('-g', '--game', action='store', dest='game', required=False, default='default', help='Optional: Game ID(s) to use for custom parsing logic')
-p_import_dump.set_defaults(func=import_dump)
 p_export_translation = subparsers.add_parser('export_translation', help='Export translations to a dump file')
 p_export_translation.add_argument('-db', '--database', action='store', dest='database_file', required=True, help='Path to the SQLite database')
 p_export_translation.add_argument('-d', '--destination', action='store', dest='destination', required=True, help='Output path for the generated .txt dump')

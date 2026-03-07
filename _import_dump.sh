@@ -13,8 +13,8 @@ case $GAME_ID in
 
     check_file "$SOURCE_FILE"
 
-    log_step "Importing $SOURCE_FILE"
-    python -m brainlordutils.utils import_dump \
+    log_step "Importing $SOURCE_FILE for $GAME_ID"
+    python "$SCRIPT_DIR/manager.py" import_dump \
        -db "$DB" -s "$SOURCE_FILE"
     ;;
 
@@ -24,8 +24,8 @@ case $GAME_ID in
 
     check_file "$SOURCE_FILE"
 
-    log_step "Importing $SOURCE_FILE"
-    python -m brainlordutils.utils import_dump \
+    log_step "Importing $SOURCE_FILE for $GAME_ID"
+    python "$SCRIPT_DIR/manager.py" import_dump \
        -db "$DB" -s "$SOURCE_FILE" -g "$GAME_ID"
     ;;
 
@@ -37,12 +37,12 @@ case $GAME_ID in
     check_file "$SOURCE_EVENTS_FILE"
     check_file "$SOURCE_TEXT_FILE"
 
-    log_step "Importing $SOURCE_EVENTS_FILE"
-    python -m brainlordutils.utils import_dump \
+    log_step "Importing $SOURCE_EVENTS_FILE for $GAME_ID"
+    python "$SCRIPT_DIR/manager.py" import_dump \
         -db "$DB" -s "$SOURCE_EVENTS_FILE"
 
-    log_step "Importing $SOURCE_TEXT_FILE"
-    python -m brainlordutils.utils import_dump \
+    log_step "Importing $SOURCE_TEXT_FILE for $GAME_ID"
+    python "$SCRIPT_DIR/manager.py" import_dump \
         -db "$DB" -s "$SOURCE_TEXT_FILE"
     ;;
 
@@ -52,8 +52,8 @@ case $GAME_ID in
 
     check_file "$SOURCE_FILE"
 
-    log_step "Importing dump(s) for $GAME_ID"
-    python -m brainlordutils.utils import_dump \
+    log_step "Importing $SOURCE_FILE for $GAME_ID"
+    python "$SCRIPT_DIR/manager.py" import_dump \
        -db "$DB" -s "$SOURCE_FILE" -g "$GAME_ID"
     ;;
 
