@@ -70,7 +70,7 @@ def ruinarm_text_dumper(args):
                 # dump - txt
                 filename = os.path.join(dump_path, 'dump_jap.txt')
                 with open(filename, 'a+') as out:
-                    out.write(ref + '\n' + text_decoded + "\n\n")
+                    out.write(f'{ref}\n{text_decoded}\n\n')
                 id += 1
         cur.close()
         conn.commit()

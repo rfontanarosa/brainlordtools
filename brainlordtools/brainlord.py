@@ -301,7 +301,7 @@ def _brainlord_text_block_dumper(f, dump_path, table, id, block, cur, start=0x0,
         # dump - txt
         filename = dump_path / 'dump_eng.txt'
         with open(filename, 'a+', encoding='utf-8') as out:
-            out.write(ref + '\n' + text_decoded + "\n\n")
+            out.write(f'{ref}\n{text_decoded}\n\n')
         id += 1
     return id
 
