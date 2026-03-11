@@ -31,22 +31,22 @@ python "$MANAGER_PATH/manager.py" copy_file -s "$SOURCE" -d "$DESTINATION" || ex
 python "$TOOLS_PATH/som.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -t2 "$TABLE6" -dp "$DUMP_TEXT_PATH" -db "$DB"
 python "$TOOLS_PATH/som.py" dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_MISC_PATH"
 
-python "$TOOLS_PATH/somtools/decomp.py" "$SOURCE" "$DUMP_MISC_PATH/intro-code.bin" --base-offset="77C00"
-python "$TOOLS_PATH/somtools/decomp.py" "$SOURCE" "$DUMP_MISC_PATH/intro-data.bin" --base-offset="7B480"
-python "$TOOLS_PATH/somtools/decomp.py" "$SOURCE" "$DUMP_MISC_PATH/title.bin" --base-offset="1CE800"
+python "$TOOLS_PATH/_som/decomp.py" "$SOURCE" "$DUMP_MISC_PATH/intro-code.bin" --base-offset="77C00"
+python "$TOOLS_PATH/_som/decomp.py" "$SOURCE" "$DUMP_MISC_PATH/intro-data.bin" --base-offset="7B480"
+python "$TOOLS_PATH/_som/decomp.py" "$SOURCE" "$DUMP_MISC_PATH/title.bin" --base-offset="1CE800"
 
 python "$TOOLS_PATH/som.py" dump_tilemap -s "$DUMP_MISC_PATH/intro-data.bin" -dp "$DUMP_MISC_PATH"
 
-python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_equip.bin" --sprite 9
-python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_hp_down.bin" --sprite 16
-python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_hp_up.bin" --sprite 17
-python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_mp_down.bin" --sprite 62
-python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_mp_up.bin" --sprite 63
-python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_stat.bin" --sprite 170
-python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_level.bin" --sprite 171
-python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_act.bin" --sprite 172
-python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_controller_edit.bin" --sprite 173
-python "$TOOLS_PATH/somtools/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_win_edit.bin" --sprite 174
+python "$TOOLS_PATH/_som/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_equip.bin" --sprite 9
+python "$TOOLS_PATH/_som/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_hp_down.bin" --sprite 16
+python "$TOOLS_PATH/_som/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_hp_up.bin" --sprite 17
+python "$TOOLS_PATH/_som/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_mp_down.bin" --sprite 62
+python "$TOOLS_PATH/_som/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_mp_up.bin" --sprite 63
+python "$TOOLS_PATH/_som/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_stat.bin" --sprite 170
+python "$TOOLS_PATH/_som/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_level.bin" --sprite 171
+python "$TOOLS_PATH/_som/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_act.bin" --sprite 172
+python "$TOOLS_PATH/_som/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_controller_edit.bin" --sprite 173
+python "$TOOLS_PATH/_som/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_win_edit.bin" --sprite 174
 
 if ! command -v asar &> /dev/null
 then
@@ -58,23 +58,23 @@ fi
 
 python "$TOOLS_PATH/som.py" insert_tilemap -d "$TRANSLATION_MISC_PATH/intro-data.bin" -tp "$TRANSLATION_MISC_PATH"
 
-python "$TOOLS_PATH/somtools/decomp.py" "$TRANSLATION_MISC_PATH/intro-code.bin" "$TRANSLATION_MISC_PATH/intro-code-compressed.bin" --compress --compression-key="1"
-python "$TOOLS_PATH/somtools/decomp.py" "$TRANSLATION_MISC_PATH/intro-data.bin" "$TRANSLATION_MISC_PATH/intro-data-compressed.bin" --compress --compression-key="4"
-python "$TOOLS_PATH/somtools/decomp.py" "$TRANSLATION_MISC_PATH/title.bin" "$TRANSLATION_MISC_PATH/title-compressed.bin" --compress --compression-key="3"
+python "$TOOLS_PATH/_som/decomp.py" "$TRANSLATION_MISC_PATH/intro-code.bin" "$TRANSLATION_MISC_PATH/intro-code-compressed.bin" --compress --compression-key="1"
+python "$TOOLS_PATH/_som/decomp.py" "$TRANSLATION_MISC_PATH/intro-data.bin" "$TRANSLATION_MISC_PATH/intro-data-compressed.bin" --compress --compression-key="4"
+python "$TOOLS_PATH/_som/decomp.py" "$TRANSLATION_MISC_PATH/title.bin" "$TRANSLATION_MISC_PATH/title-compressed.bin" --compress --compression-key="3"
 
 python "$TOOLS_PATH/som.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE4" -t2 "$TABLE6" -tp "$TRANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
 python "$TOOLS_PATH/som.py" insert_misc -d "$DESTINATION" -t1 "$TABLE5" -tp "$TRANSLATION_MISC_PATH"
 
-python "$TOOLS_PATH/somtools/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_equip.bin" "$DESTINATION" --sprite 9
-python "$TOOLS_PATH/somtools/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_hp_down.bin" "$DESTINATION" --sprite 16
-python "$TOOLS_PATH/somtools/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_hp_up.bin" "$DESTINATION" --sprite 17
-python "$TOOLS_PATH/somtools/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_mp_down.bin" "$DESTINATION" --sprite 62
-python "$TOOLS_PATH/somtools/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_mp_up.bin" "$DESTINATION" --sprite 63
-python "$TOOLS_PATH/somtools/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_stat.bin" "$DESTINATION" --sprite 170
-python "$TOOLS_PATH/somtools/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_level.bin" "$DESTINATION" --sprite 171
-python "$TOOLS_PATH/somtools/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_act.bin" "$DESTINATION" --sprite 172
-python "$TOOLS_PATH/somtools/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_controller_edit.bin" "$DESTINATION" --sprite 173
-python "$TOOLS_PATH/somtools/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_win_edit.bin" "$DESTINATION" --sprite 174
+python "$TOOLS_PATH/_som/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_equip.bin" "$DESTINATION" --sprite 9
+python "$TOOLS_PATH/_som/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_hp_down.bin" "$DESTINATION" --sprite 16
+python "$TOOLS_PATH/_som/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_hp_up.bin" "$DESTINATION" --sprite 17
+python "$TOOLS_PATH/_som/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_mp_down.bin" "$DESTINATION" --sprite 62
+python "$TOOLS_PATH/_som/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_mp_up.bin" "$DESTINATION" --sprite 63
+python "$TOOLS_PATH/_som/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_stat.bin" "$DESTINATION" --sprite 170
+python "$TOOLS_PATH/_som/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_level.bin" "$DESTINATION" --sprite 171
+python "$TOOLS_PATH/_som/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_act.bin" "$DESTINATION" --sprite 172
+python "$TOOLS_PATH/_som/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_controller_edit.bin" "$DESTINATION" --sprite 173
+python "$TOOLS_PATH/_som/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_win_edit.bin" "$DESTINATION" --sprite 174
 
 if ! command -v asar &> /dev/null
 then
