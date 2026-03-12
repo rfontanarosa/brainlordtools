@@ -10,7 +10,7 @@ from collections import Counter
 from io import StringIO
 from operator import itemgetter
 
-def clean_file(f, f_out, regex_list=None, allow_duplicates=True):
+def clean_file(f, f_out, regex_list=None, allow_duplicates=False):
     """Cleans a file using regex and removes duplicates (default)."""
     lines_seen = set()
     for line in f:
@@ -81,39 +81,33 @@ def string_to_file(filename, s):
     with open(filename, mode='w', encoding="utf-8") as f:
         f.write(s)
 
+GAME_REGEX = {
+    'gargoyle': [
+        (re.compile(r'<WAIT>\n'), '\n'),
+        (re.compile(r'{..}'), ''),
+        (re.compile(r'\[.+?\]'), '\n')
+    ],
+    'smrpg': [
+        (re.compile(r'^.{7}'), ''),
+        (re.compile(r' {5,}'), ''),
+        (re.compile(r'[.]{3,}'), '\n'),
+        (re.compile(r'\[.+?\]'), '\n')
+    ],
+    'som': [
+        (re.compile(r'\[BOY\]'), 'BOY456'),
+        (re.compile(r'\[GIRL\]'), 'GIRL56'),
+        (re.compile(r'\[SPRITE\]'), 'SPRITE'),
+        (re.compile(r'\[.*?\]'), '')
+    ],
+    'starocean': [
+        (re.compile(r'^<TEXT .*?>\n'), ''),
+        (re.compile(r'^</TEXT>\n'), ''),
+        (re.compile(r'<\$..>'), '')
+    ],
+}
+
 def get_regex_list(game):
-    if game == 'bof':
-        return None
-    elif game == 'gargoyle':
-        return [
-            (re.compile(r'<WAIT>\n'), '\n'),
-            (re.compile(r'{..}'), ''),
-            (re.compile(r'\[.+?\]'), '\n')
-        ]
-    elif game == 'smrpg':
-        return [
-            (re.compile(r'^.{7}'), ''),
-            (re.compile(r' {5,}'), ''),
-            (re.compile(r'[.]{3,}'), '\n'),
-            (re.compile(r'\[.+?\]'), '\n')
-        ]
-    elif game == 'som':
-        return [
-            (re.compile(r'\[BOY\]'), 'BOY456'),
-            (re.compile(r'\[GIRL\]'), 'GIRL56'),
-            (re.compile(r'\[SPRITE\]'), 'SPRITE'),
-            (re.compile(r'\[.*?\]'), '')
-        ]
-    elif game == 'starocean':
-        return [
-            (re.compile(r'^<TEXT .*?>\n'), ''),
-            (re.compile(r'^</TEXT>\n'), ''),
-            (re.compile(r'<\$..>'), '')
-        ]
-    elif game == 'ys4':
-        return None
-    else:
-        return None
+    return GAME_REGEX.get(game)
 
 def process_dictionary(args):
     min_length = args.min
