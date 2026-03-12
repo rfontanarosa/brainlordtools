@@ -42,23 +42,13 @@ def get_substrings_by_length(text, length):
         return []
     return [text[i:i+length] for i in range(len(text) - length + 1)]
 
-def get_occurrences_by_length(f, length):
-    """Generates a Counter of substring occurrences of a specific length."""
-    dictionary = Counter()
-    for line in f:
-        clean_line = line.strip('\r\n')
-        if clean_line:
-            substrings = get_substrings_by_length(clean_line, length)
-            dictionary.update(substrings)
-    return dictionary
-
 def get_occurrences(f, min_length, max_length):
-    """Generates a dictionary of string occurrences within a length range."""
+    """Generates a Counter of substring occurrences within a length range."""
     dictionary = Counter()
+    lines = [line.strip('\r\n') for line in f if line.strip('\r\n')]
     for length in range(min_length, max_length + 1):
-        f.seek(0)
-        occurrences = get_occurrences_by_length(f, length)
-        dictionary.update(occurrences)
+        for line in lines:
+            dictionary.update(get_substrings_by_length(line, length))
     return dictionary
 
 def calculate_weight(dictionary, num_bytes):
