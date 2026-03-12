@@ -119,6 +119,8 @@ def process_dictionary(args):
             occurrences = get_occurrences(buff, min_length, max_length)
             occurrences_with_weight = calculate_weight(occurrences, num_bytes)
             sorted_dictionary = sort_dict_by_value(occurrences_with_weight)
+            if not sorted_dictionary:
+                break
             best_string, weight = sorted_dictionary[0]
             dictionary[best_string] = weight
             new_content = clean_string(
