@@ -57,7 +57,7 @@ def get_occurrences(f, min_length, max_length):
     dictionary = Counter()
     for length in range(min_length, max_length + 1):
         f.seek(0)
-        occurrences = Counter(get_occurrences_by_length(f, length))
+        occurrences = get_occurrences_by_length(f, length)
         dictionary.update(occurrences)
     return dictionary
 
@@ -79,7 +79,7 @@ def calculate_weighted_sum(dictionary, num_bytes):
 
 def string_to_file(filename, s):
     with open(filename, mode='w', encoding="utf-8") as f:
-        f.write(str(s))
+        f.write(s)
 
 def get_regex_list(game):
     if game == 'bof':
