@@ -32,10 +32,5 @@ python "$TOOLS_PATH/bof2.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TA
 python "$TOOLS_PATH/bof2.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
 # python "$TOOLS_PATH/bof2.py" insert_misc -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE3" -tp "$TRANSLATION_MISC_PATH"
 
-if ! command -v asar &> /dev/null
-then
-  echo "Command 'asar' not found."
-  exit
-else
-  asar "$RESOURCE_PATH/asm/hack.asm" "$DESTINATION"
-fi
+require_asar
+asar "$RESOURCE_PATH/asm/hack.asm" "$DESTINATION"

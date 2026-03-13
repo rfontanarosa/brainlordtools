@@ -46,10 +46,5 @@ python "$TOOLS_PATH/brainlord.py" insert_credits -d "$DESTINATION" -t3 "$TABLE3"
 # python "$TOOLS_PATH/brainlord.py" dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
 # python "$TOOLS_PATH/brainlord.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
 
-if ! command -v asar &> /dev/null
-then
-  echo "Command 'asar' not found."
-  exit
-else
-  asar "$RESOURCE_PATH/asm/main.asm" "$DESTINATION"
-fi
+require_asar
+asar "$RESOURCE_PATH/asm/main.asm" "$DESTINATION"

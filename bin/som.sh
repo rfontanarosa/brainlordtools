@@ -48,13 +48,8 @@ python "$TOOLS_PATH/_som/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_ic
 python "$TOOLS_PATH/_som/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_controller_edit.bin" --sprite 173
 python "$TOOLS_PATH/_som/som_icons.py" extract "$SOURCE" "$DUMP_GFX_PATH/menu_icon_win_edit.bin" --sprite 174
 
-if ! command -v asar &> /dev/null
-then
-  echo "Command 'asar' not found."
-  exit
-else
-  asar "$RESOURCE_PATH/asm/intro_ram.asm" "$TRANSLATION_MISC_PATH/intro-code.bin"
-fi
+require_asar
+asar "$RESOURCE_PATH/asm/intro_ram.asm" "$TRANSLATION_MISC_PATH/intro-code.bin"
 
 python "$TOOLS_PATH/som.py" insert_tilemap -d "$TRANSLATION_MISC_PATH/intro-data.bin" -tp "$TRANSLATION_MISC_PATH"
 
@@ -76,14 +71,9 @@ python "$TOOLS_PATH/_som/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_ac
 python "$TOOLS_PATH/_som/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_controller_edit.bin" "$DESTINATION" --sprite 173
 python "$TOOLS_PATH/_som/som_icons.py" insert "$TANSLATION_GFX_PATH/menu_icon_win_edit.bin" "$DESTINATION" --sprite 174
 
-if ! command -v asar &> /dev/null
-then
-  echo "Command 'asar' not found."
-  exit
-else
-  asar "$RESOURCE_PATH/asm/font.asm" "$DESTINATION"
-  asar "$RESOURCE_PATH/asm/menus.asm" "$DESTINATION"
-  asar "$RESOURCE_PATH/asm/intro.asm" "$DESTINATION"
-fi
+require_asar
+asar "$RESOURCE_PATH/asm/font.asm" "$DESTINATION"
+asar "$RESOURCE_PATH/asm/menus.asm" "$DESTINATION"
+asar "$RESOURCE_PATH/asm/intro.asm" "$DESTINATION"
 
 # python ../mte_optimizer.py table -s "$RESOURCE_PATH/translation_text/dump_events_clomax.txt" -d "dict.txt" -c "clean.txt" -b 1 -m 2 -M 2 -l 59 -o 128 --game som

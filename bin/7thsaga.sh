@@ -31,13 +31,8 @@ python "$TOOLS_PATH/7thsaga.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "
 python "$TOOLS_PATH/7thsaga.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
 python "$TOOLS_PATH/7thsaga.py" insert_misc -d "$DESTINATION" -t1 "$TABLE2" -tp "$TRANSLATION_MISC_PATH"
 
-if ! command -v asar &> /dev/null
-then
-  echo "Command 'asar' not found."
-  exit
-else
-  asar "$RESOURCE_PATH/asm/intro_credits.asm" "$DESTINATION"
-  asar "$RESOURCE_PATH/asm/title.asm" "$DESTINATION"
-  asar "$RESOURCE_PATH/asm/various.asm" "$DESTINATION"
-  asar "$RESOURCE_PATH/asm/ui.asm" "$DESTINATION"
-fi
+require_asar
+asar "$RESOURCE_PATH/asm/intro_credits.asm" "$DESTINATION"
+asar "$RESOURCE_PATH/asm/title.asm" "$DESTINATION"
+asar "$RESOURCE_PATH/asm/various.asm" "$DESTINATION"
+# asar "$RESOURCE_PATH/asm/ui.asm" "$DESTINATION"

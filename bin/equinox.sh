@@ -28,12 +28,7 @@ python "$TOOLS_PATH/equinox.py" dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_
 
 python "$TOOLS_PATH/equinox.py" insert_misc -d "$DESTINATION" -t1 "$TABLE1" -tp "$TRANSLATION_MISC_PATH"
 
-if ! command -v asar &> /dev/null
-then
-  echo "Command 'asar' not found."
-  exit
-else
-  asar "$RESOURCE_PATH/asm/gfx.asm" "$DESTINATION"
-  asar "$RESOURCE_PATH/asm/intro.asm" "$DESTINATION"
-  asar "$RESOURCE_PATH/asm/attract_mode.asm" "$DESTINATION"
-fi
+require_asar
+asar "$RESOURCE_PATH/asm/gfx.asm" "$DESTINATION"
+asar "$RESOURCE_PATH/asm/intro.asm" "$DESTINATION"
+asar "$RESOURCE_PATH/asm/attract_mode.asm" "$DESTINATION"

@@ -35,20 +35,10 @@ python "$TOOLS_PATH/gaia.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TA
 python "$TOOLS_PATH/gaia.py" insert_misc -d "$DESTINATION" -t1 "$TABLE2" -t2 "$TABLE3" -t3 "$TABLE5" -tp "$TRANSLATION_MISC_PATH"
 python "$TOOLS_PATH/gaia.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
 
-if ! command -v asar &> /dev/null
-then
-  echo "Command 'asar' not found."
-  exit
-else
-  asar "$RESOURCE_PATH/asm/intro_it.asm" "$TANSLATION_GFX_PATH/1d7773_intro_data_ita.bin"
-  cp "$DUMP_GFX_PATH/173f7c_end_data.bin" "$TANSLATION_GFX_PATH/173f7c_end_data_ita.bin"
-  asar "$RESOURCE_PATH/asm/end_it.asm" "$TANSLATION_GFX_PATH/173f7c_end_data_ita.bin"
-fi
+require_asar
+asar "$RESOURCE_PATH/asm/intro_it.asm" "$TANSLATION_GFX_PATH/1d7773_intro_data_ita.bin"
+cp "$DUMP_GFX_PATH/173f7c_end_data.bin" "$TANSLATION_GFX_PATH/173f7c_end_data_ita.bin"
+asar "$RESOURCE_PATH/asm/end_it.asm" "$TANSLATION_GFX_PATH/173f7c_end_data_ita.bin"
 
-if ! command -v asar &> /dev/null
-then
-  echo "Command 'asar' not found."
-  exit
-else
-  asar "$RESOURCE_PATH/asm/main.asm" "$DESTINATION"
-fi
+require_asar
+asar "$RESOURCE_PATH/asm/main.asm" "$DESTINATION"
