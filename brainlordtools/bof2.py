@@ -6,6 +6,7 @@ __email__ = "robertofontanarosa@gmail.com"
 
 import csv
 import os
+import pathlib
 import shutil
 import sqlite3
 import struct
@@ -25,16 +26,14 @@ POINTERS_BLOCKS = (
 def bof2_text_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     db = args.database_file
     table = Table(table1_file)
     conn = sqlite3.connect(db)
     conn.text_factory = str
     cur = conn.cursor()
     shutil.rmtree(dump_path, ignore_errors=False)
-    os.mkdir(dump_path)
-    if os.path.isfile(os.path.join(dump_path, 'dump_eng.txt')):
-        os.remove(os.path.join(dump_path, 'dump_eng.txt'))
+    pathlib.Path.mkdir(dump_path)
     with open(source_file, 'rb') as f:
         id, id2 = 1, 0
         for i, block_pointer in enumerate(POINTERS_BLOCKS):
@@ -57,7 +56,7 @@ def bof2_text_dumper(args):
                 # dump - db
                 insert_text(cur, id, text, text_decoded, text_address, pointer_addresses, i, ref)
                 # dump - txt
-                filename = os.path.join(dump_path, 'dump_eng.txt')
+                filename = dump_path / 'dump_eng.txt'
                 with open(filename, 'a+', encoding='utf-8') as out:
                     out.write(f'{ref}\n{text_decoded}\n\n')
                 id += 1
@@ -125,10 +124,10 @@ def bof2_text_inserter(args):
 def bof2_misc_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
-    os.mkdir(dump_path)
+    pathlib.Path.mkdir(dump_path)
     with open(source_file, 'rb') as f:
         # ITEMS
         filename = os.path.join(dump_path, 'items.csv')
@@ -156,16 +155,15 @@ def bof2_misc_dumper(args):
 def bof2_gfx_dumper(args):
     source_file = args.source_file
     dump_path = args.dump_path
-    shutil.rmtree(dump_path, ignore_errors=True)
-    os.mkdir(dump_path)
+    dump_path = pathlib.Path(args.dump_path)
     with open(source_file, 'rb') as f:
-        extract_binary(f, 0x176000, 0x179000 - 0x176000, os.path.join(dump_path, 'gfx_font.bin'))
+        extract_binary(f, 0x176000, 0x179000 - 0x176000, dump_path / 'gfx_font.bin')
 
 def bof2_gfx_inserter(args):
     dest_file = args.dest_file
-    translation_path = args.translation_path
+    translation_path = pathlib.Path(args.translation_path)
     with open(dest_file, 'r+b') as f:
-        insert_binary(f, 0x176000, os.path.join(translation_path, 'gfx_font.bin'), max_length=0x179000 - 0x176000)
+        insert_binary(f, 0x176000, translation_path / 'gfx_font.bin', max_length=0x179000 - 0x176000)
 
 import argparse
 parser = argparse.ArgumentParser()
