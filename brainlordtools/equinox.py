@@ -64,14 +64,15 @@ def equinox_misc_dumper(args):
     with open(source_file, 'rb') as f:
         # get pointers 1
         pointers = {}
-        for p_offset in [*range(0x4f4c, 0x4f6e + 1, 2), 0xc040]:
+        # for p_offset in [*range(0x4f4c, 0x4f6e + 1, 2), 0xc040]:
+        for p_offset in range(0x4f4c, 0x4f6e + 1, 2):
             f.seek(p_offset)
             raw = bytearray(f.read(2))
             raw = int.from_bytes(raw, byteorder='little')
             p_value = snes2pc_lorom(raw)
             pointers.setdefault(p_value, []).append(p_offset)
         # reading texts
-        filename = os.path.join(dump_path, f'intro.csv')
+        filename = os.path.join(dump_path, f'attract_mode.csv')
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
@@ -107,13 +108,10 @@ def equinox_misc_inserter(args):
     translation_path = pathlib.Path(args.translation_path)
     table = Table(table1_file)
     with open(dest_file, 'r+b') as f1, open(dest_file, 'r+b') as f2:
-        # intro
-        filepath = translation_path / 'intro.csv'
-        translated_texts = get_csv_translated_texts(filepath)
-        # misc
-        filepath = translation_path / 'misc.csv'
-        translated_texts = get_csv_translated_texts(filepath)
         f1.seek(0x108_000)
+        # attract_mode
+        filepath = translation_path / 'attract_mode.csv'
+        translated_texts = get_csv_translated_texts(filepath)
         for _, (pointer_addresses, _, _, translated_text) in enumerate(translated_texts):
             # pointer
             snes_offset = pc2snes_lorom(f1.tell())
@@ -126,6 +124,9 @@ def equinox_misc_inserter(args):
             f1.write(encoded_text + b'\xff')
             if f1.tell() > 0x108_000 + 0x8000:
                 sys.exit('Text size exceeds!')
+        # misc
+        filepath = translation_path / 'misc.csv'
+        translated_texts = get_csv_translated_texts(filepath)
 
 import argparse
 parser = argparse.ArgumentParser()
