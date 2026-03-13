@@ -35,4 +35,5 @@ then
 else
   asar "$RESOURCE_PATH/asm/gfx.asm" "$DESTINATION"
   asar "$RESOURCE_PATH/asm/intro.asm" "$DESTINATION"
+  asar "$RESOURCE_PATH/asm/attract_mode.asm" "$DESTINATION"
 fi
