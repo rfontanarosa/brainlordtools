@@ -9,9 +9,9 @@ import os
 import shutil
 import struct
 
+from _falcom.falcom_compress_v2 import compress_FALCOM3
+from _falcom.falcom_decompress_v2 import decompress_FALCOM3
 from rhtools.utils import byte2int
-from falcomtools.falcom_decompress_v2 import decompress_FALCOM3
-from falcomtools.falcom_compress_v2 import compress_FALCOM3
 
 resources_path = '../resources/brandishdr/'
 data_path = os.path.join(resources_path, 'source/PSP_GAME/USERDIR/data/')
