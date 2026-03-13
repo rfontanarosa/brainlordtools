@@ -10,11 +10,13 @@ def read_text(f, offset=None, length=None, end_byte=None, cmd_list=None, append_
     text = b''
     if offset is not None:
         f.seek(offset)
-    if length:
+    if length is not None:
         text = f.read(length)
     elif end_byte:
         while True:
             byte = f.read(1)
+            if not byte:
+                break
             if cmd_list and byte in cmd_list.keys():
                 bytes_to_read = cmd_list.get(byte)
                 text += byte + f.read(bytes_to_read)
