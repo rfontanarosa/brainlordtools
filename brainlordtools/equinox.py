@@ -101,6 +101,27 @@ def equinox_misc_dumper(args):
                 text_decoded = table.decode(text)
                 fields = [';'.join(hex(x) for x in pointer_addresses), hex(text_address), text_decoded]
                 csv_writer.writerow(fields)
+        # reading tables
+        filename = os.path.join(dump_path, f'tables.csv')
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
+            for (text_address, size) in (
+                (0x5008d, 0x500e0 - 0x5008d),
+                (0x500e1, 0x500ff - 0x500e1),
+                (0x50101, 0x501c6 - 0x50101),
+                (0x5066e, 0x506f2 - 0x5066e),
+                (0x5042e, 0x50457 - 0x5042e),
+                (0x50525, 0x50595 - 0x50525),
+                (0x513cf, 0x51430 - 0x513cf),
+                (0x50489, 0x5051b - 0x50489),
+                (0x50b0a, 0x50b73 - 0x50b0a),
+                (0x50459, 0x50488 - 0x50459)
+            ):
+                text = equinox_read_text(f, text_address, length=size)
+                text_decoded = table.decode(text)
+                fields = ['', hex(text_address), text_decoded]
+                csv_writer.writerow(fields)
 
 def equinox_misc_inserter(args):
     dest_file = args.dest_file
@@ -108,7 +129,19 @@ def equinox_misc_inserter(args):
     translation_path = pathlib.Path(args.translation_path)
     table = Table(table1_file)
     with open(dest_file, 'r+b') as f1, open(dest_file, 'r+b') as f2:
-        f1.seek(0x108_000)
+        tables_new_pointers = []
+        f1.seek(0x10_8000)
+        # tables
+        filepath = translation_path / 'tables.csv'
+        translated_texts = get_csv_translated_texts(filepath)
+        for _, (_, _, _, translated_text) in enumerate(translated_texts):
+            snes_offset = pc2snes_lorom(f1.tell())
+            new_pointer_value = struct.pack('<I', snes_offset)[:2]
+            tables_new_pointers.append(new_pointer_value)
+            encoded_text = table.encode(translated_text)
+            f1.write(encoded_text + b'\xff')
+            if f1.tell() > 0x10_8000 + 0x8000:
+                sys.exit('Text size exceeds!')
         # attract_mode
         filepath = translation_path / 'attract_mode.csv'
         translated_texts = get_csv_translated_texts(filepath)
@@ -122,11 +155,36 @@ def equinox_misc_inserter(args):
             # text
             encoded_text = table.encode(translated_text)
             f1.write(encoded_text + b'\xff')
-            if f1.tell() > 0x108_000 + 0x8000:
+            if f1.tell() > 0x10_8000 + 0x8000:
                 sys.exit('Text size exceeds!')
         # misc
         filepath = translation_path / 'misc.csv'
         translated_texts = get_csv_translated_texts(filepath)
+        for _, (pointer_addresses, text_address, _, translated_text) in enumerate(translated_texts):
+            # pointer
+            snes_offset = pc2snes_lorom(f1.tell())
+            new_pointer_value = struct.pack('<I', snes_offset)[:2]
+            if text_address == 0x51288:
+                tables_new_pointers.append(new_pointer_value)
+            for pointer_address in pointer_addresses:
+                f2.seek(pointer_address)
+                f2.write(new_pointer_value)
+            # text
+            encoded_text = table.encode(translated_text)
+            encoded_text = encoded_text.replace(b'\xf3\x8d\x80', b'\xf3' + tables_new_pointers[0])
+            encoded_text = encoded_text.replace(b'\xf3\xe1\x80', b'\xf3' + tables_new_pointers[1])
+            encoded_text = encoded_text.replace(b'\xf3\x01\x81', b'\xf3' + tables_new_pointers[2])
+            encoded_text = encoded_text.replace(b'\xf3\x6e\x86', b'\xf3' + tables_new_pointers[3])
+            encoded_text = encoded_text.replace(b'\xf3\x2e\x84', b'\xf3' + tables_new_pointers[4])
+            encoded_text = encoded_text.replace(b'\xf3\x25\x85', b'\xf3' + tables_new_pointers[5])
+            encoded_text = encoded_text.replace(b'\xf3\xcf\x93', b'\xf3' + tables_new_pointers[6])
+            encoded_text = encoded_text.replace(b'\xf3\x89\x84', b'\xf3' + tables_new_pointers[7])
+            encoded_text = encoded_text.replace(b'\xf3\x0a\x8b', b'\xf3' + tables_new_pointers[8])
+            encoded_text = encoded_text.replace(b'\xf3\x58\x84', b'\xf3' + tables_new_pointers[9])
+            encoded_text = encoded_text.replace(b'\xed\x88\x92', b'\xed' + tables_new_pointers[-1])
+            f1.write(encoded_text + b'\xff')
+            if f1.tell() > 0x10_8000 + 0x8000:
+                sys.exit('Text size exceeds!')
 
 import argparse
 parser = argparse.ArgumentParser()
