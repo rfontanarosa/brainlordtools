@@ -17,15 +17,15 @@ from rhutils.snes import pc2snes_lorom, snes2pc_lorom
 from rhutils.table import Table
 
 EQUINOX_DICTIONARIES = (
-    (0x5001a, 0x5008d, 'area_names'),
-    (0x5008d, 0x50101, 'score_display'),
-    (0x500e1, 0x500ff, 'score_display'),
-    (0x50101, 0x501c6, 'area_names'),
-    (0x5042e, 0x50458, 'key_colors'),
-    (0x50458, 0x50488, 'token_ordinals'),
+    (0x5001a, 0x5008c, 'area_names_menu'),
+    (0x5008d, 0x500e0, '?'),
+    (0x500e1, 0x500ff, 'bullet_points_save'),
+    (0x50101, 0x501c6, 'area_names_save'),
+    (0x5042e, 0x50457, 'key_colors'),
+    (0x50458, 0x50488, 'harp_strings_counts'),
     (0x50489, 0x5051b, 'skill_levels'),
-    (0x50525, 0x50596, 'character_names'),
-    (0x50597, 0x50619, 'character_names'),
+    (0x50525, 0x50596, 'character_names_defeated'),
+    (0x50597, 0x50619, 'character_names_i_am_the_guardian'),
     # (0x50619, 0x5066e, 'names'),
     (0x5066e, 0x50703, 'token_counts'),
     (0x50b0a, 0x50b83, 'weapons'),
