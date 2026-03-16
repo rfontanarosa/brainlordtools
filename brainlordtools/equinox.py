@@ -80,8 +80,7 @@ def equinox_misc_dumper(args):
     with open(source_file, 'rb') as f:
         # get pointers 1
         pointers = {}
-        # for p_offset in [*range(0x4f4c, 0x4f6e + 1, 2), 0xc040]:
-        for p_offset in range(0x4f4c, 0x4f6e + 1, 2):
+        for p_offset in [*range(0x4f4c, 0x4f6e + 1, 2), 0xc040]:
             f.seek(p_offset)
             raw = bytearray(f.read(2))
             raw = int.from_bytes(raw, byteorder='little')
@@ -161,7 +160,7 @@ def equinox_misc_inserter(args):
             if len(encoded_translated_text) > len(encoded_original_text):
                 f1.seek(new_text_address)
                 if new_text_address + len(encoded_translated_text) > 0x545e1:
-                    sys.exit(f'Text size exceeds! - {translated_text}')
+                    sys.exit(f'Text size exceeds! - {encoded_translated_text}')
                 snes_offset = pc2snes_lorom(f1.tell())
                 new_pointer_value = struct.pack('<I', snes_offset)[:2]
                 for pointer_address in pointer_addresses:
@@ -171,6 +170,8 @@ def equinox_misc_inserter(args):
                 new_text_address = f1.tell()
             else:
                 f1.seek(text_address)
+                if text_address + len(encoded_translated_text) > 0x514f5:
+                    sys.exit(f'Text size exceeds! - {encoded_translated_text}')
                 f1.write(encoded_translated_text + b'\xff')
         # ATTRACT_MODE
         f1.seek(0x10_8000)
@@ -188,7 +189,6 @@ def equinox_misc_inserter(args):
             f1.write(encoded_text + b'\xff')
             if f1.tell() > 0x10_8000 + 0x8000:
                 sys.exit('Text size exceeds!')
-        pass
 
 import argparse
 parser = argparse.ArgumentParser()
