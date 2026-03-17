@@ -78,7 +78,7 @@ def equinox_misc_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        # get pointers 1
+        # ATTRACT MODE - get pointers
         pointers = {}
         for p_offset in [*range(0x4f4c, 0x4f6e + 1, 2), 0xc040]:
             f.seek(p_offset)
@@ -86,7 +86,7 @@ def equinox_misc_dumper(args):
             raw = int.from_bytes(raw, byteorder='little')
             p_value = snes2pc_lorom(raw)
             pointers.setdefault(p_value, []).append(p_offset)
-        # reading texts
+        # ATTRACT MODE - text reading
         filename = os.path.join(dump_path, f'attract_mode.csv')
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
@@ -96,7 +96,7 @@ def equinox_misc_dumper(args):
                 text_decoded = table.decode(text)
                 fields = [';'.join(hex(x) for x in pointer_addresses), hex(text_address), text_decoded]
                 csv_writer.writerow(fields)
-        # get pointers 2
+        # MISC - get pointers
         pointers = {}
         for p_offset in [
             0x501d1, 0x501e2, 0x501f1, 0x50202, 0x5020e, 0x5022b, 0x50237, 0x50245, 0x50251, 0x5025f,
@@ -111,7 +111,7 @@ def equinox_misc_dumper(args):
             raw = int.from_bytes(raw, byteorder='little')
             p_value = snes2pc_lorom(raw) + 0x50000
             pointers.setdefault(p_value, []).append(p_offset)
-        # reading texts
+        # MISC - text reading
         filename = os.path.join(dump_path, f'misc.csv')
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
@@ -121,18 +121,27 @@ def equinox_misc_dumper(args):
                 text_decoded = table.decode(text)
                 fields = [';'.join(hex(x) for x in pointer_addresses), hex(text_address), text_decoded]
                 csv_writer.writerow(fields)
-        # reading tables
+        # TABLES
         filename = os.path.join(dump_path, f'tables.csv')
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
-            for (text_address_start, text_address_end, dictionary_name) in EQUINOX_DICTIONARIES:
-                print(f'Dumping {dictionary_name}...')
+            for (text_address_start, text_address_end, _) in EQUINOX_DICTIONARIES:
                 size = text_address_end - text_address_start
                 text = equinox_read_text(f, text_address_start, length=size)
                 text_decoded = table.decode(text)
                 fields = ['', hex(text_address_start), text_decoded]
                 csv_writer.writerow(fields)
+        # CREDITS
+        filename = os.path.join(dump_path, f'credits.csv')
+        with open(filename, 'w+', encoding='utf-8') as csv_file:
+            text_address_start = 0x115f
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
+            text = equinox_read_text(f, text_address_start, end_byte=b'\xff')
+            text_decoded = table.decode(text)
+            fields = ['0x41cdd', hex(text_address_start), text_decoded]
+            csv_writer.writerow(fields)
 
 def equinox_misc_inserter(args):
     dest_file = args.dest_file
@@ -151,8 +160,11 @@ def equinox_misc_inserter(args):
                 sys.exit(f'Text size exceeds! - {translated_text}')
             f1.write(encoded_translated_text + b'\xff')
             print(f'Saved {EQUINOX_DICTIONARIES[i][1] - f1.tell() + 1}')
+        # ADDITIONAL TABLES
+        f1.seek(0x514f5)
+        f1.write(table.encode('[END]VERDI[END][END]BLU[END][END]ROSSE[END][END]BIANCHE'))
         # MISC
-        new_text_address = 0x514f5
+        new_text_address = 0x515f5
         filepath = translation_path / 'misc.csv'
         translated_texts = get_csv_translated_texts(filepath)
         for _, (pointer_addresses, text_address, original_text, translated_text) in enumerate(translated_texts):
@@ -189,6 +201,22 @@ def equinox_misc_inserter(args):
             encoded_text = table.encode(translated_text)
             f1.write(encoded_text + b'\xff')
             if f1.tell() > 0x10_8000 + 0x8000:
+                sys.exit('Text size exceeds!')
+        # CREDITS
+        f1.seek(0x5000)
+        filepath = translation_path / 'credits.csv'
+        translated_texts = get_csv_translated_texts(filepath)
+        for _, (pointer_addresses, _, _, translated_text) in enumerate(translated_texts):
+            # pointer
+            snes_offset = pc2snes_lorom(f1.tell())
+            new_pointer_value = struct.pack('<I', snes_offset)[:2]
+            for pointer_address in pointer_addresses:
+                f2.seek(pointer_address)
+                f2.write(new_pointer_value)
+            # text
+            encoded_text = table.encode(translated_text)
+            f1.write(encoded_text + b'\xff')
+            if f1.tell() > 0x595c:
                 sys.exit('Text size exceeds!')
 
 import argparse
