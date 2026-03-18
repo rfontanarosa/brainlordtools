@@ -165,41 +165,49 @@ def bof2_gfx_inserter(args):
     with open(dest_file, 'r+b') as f:
         insert_binary(f, 0x176000, translation_path / 'gfx_font.bin', max_length=0x179000 - 0x176000)
 
-import argparse
-parser = argparse.ArgumentParser()
-parser.set_defaults(func=None)
-subparsers = parser.add_subparsers()
-dump_text_parser = subparsers.add_parser('dump_text', help='Execute TEXT DUMP')
-dump_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-dump_text_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-dump_text_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-dump_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
-dump_text_parser.set_defaults(func=bof2_text_dumper)
-insert_text_parser = subparsers.add_parser('insert_text', help='Execute TEXT INSERTER')
-insert_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-insert_text_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-insert_text_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
-insert_text_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-insert_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
-insert_text_parser.add_argument('-u', '--user', action='store', dest='user', help='')
-insert_text_parser.set_defaults(func=bof2_text_inserter)
-dump_gfx_parser = subparsers.add_parser('dump_gfx', help='Execute GFX DUMP')
-dump_gfx_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-dump_gfx_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-dump_gfx_parser.set_defaults(func=bof2_gfx_dumper)
-insert_gfx_parser = subparsers.add_parser('insert_gfx', help='Execute GFX INSERTER')
-insert_gfx_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-insert_gfx_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-insert_gfx_parser.set_defaults(func=bof2_gfx_inserter)
-dump_misc_parser = subparsers.add_parser('dump_misc', help='Execute MISC DUMP')
-dump_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-dump_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-dump_misc_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-dump_misc_parser.set_defaults(func=bof2_misc_dumper)
+def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.set_defaults(func=None)
+    subparsers = parser.add_subparsers()
 
-if __name__ == "__main__":
+    sub = subparsers.add_parser('dump_text', help='Dump dialogue strings to .txt and SQLite DB')
+    sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
+    sub.add_argument('-t1', '--table1', action='store', dest='table1', help='Primary TBL file')
+    sub.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Output directory for dump files')
+    sub.add_argument('-db', '--database', action='store', dest='database_file', help='Path to the SQLite database')
+    sub.set_defaults(func=bof2_text_dumper)
+
+    sub = subparsers.add_parser('insert_text', help='Insert translated text into the destination ROM')
+    sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
+    sub.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination ROM file')
+    sub.add_argument('-t2', '--table2', action='store', dest='table2', help='Secondary TBL file')
+    sub.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Directory containing translation files')
+    sub.add_argument('-db', '--database', action='store', dest='database_file', help='Path to the SQLite database')
+    sub.add_argument('-u', '--user', action='store', dest='user', help='')
+    sub.set_defaults(func=bof2_text_inserter)
+
+    sub = subparsers.add_parser('dump_gfx', help='Extract graphics to a binary file')
+    sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
+    sub.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Output directory for dump files')
+    sub.set_defaults(func=bof2_gfx_dumper)
+
+    sub = subparsers.add_parser('insert_gfx', help='Insert graphics into the destination ROM')
+    sub.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination ROM file')
+    sub.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Directory containing translation files')
+    sub.set_defaults(func=bof2_gfx_inserter)
+
+    sub = subparsers.add_parser('dump_misc', help='Dump miscelaneous texts to CSV files')
+    sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
+    sub.add_argument('-t1', '--table1', action='store', dest='table1', help='Primary TBL file')
+    sub.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Output directory for dump files')
+    sub.set_defaults(func=bof2_misc_dumper)
+
     args = parser.parse_args()
     if args.func:
         args.func(args)
     else:
         parser.print_help()
+
+if __name__ == "__main__":
+    main()
