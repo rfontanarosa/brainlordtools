@@ -5,6 +5,7 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import csv
+import enum
 import pathlib
 import re
 import shutil
@@ -16,8 +17,6 @@ from rhutils.dump import extract_binary, get_csv_translated_texts, insert_binary
 from rhutils.io import read_text
 from rhutils.snes import pc2snes_hirom
 from rhutils.table import Table
-
-import enum
 
 class DumpType(enum.Enum):
     EVENTS = 1
@@ -79,7 +78,7 @@ def som_text_dumper(args):
     conn.text_factory = str
     cur = conn.cursor()
     shutil.rmtree(dump_path, ignore_errors=True)
-    pathlib.Path.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f:
         # TEXT POINTERS
         id = 1
@@ -323,7 +322,7 @@ def som_misc_dumper(args):
     dump_path = pathlib.Path(args.dump_path)
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
-    pathlib.Path.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f:
         # DTE
         filepath = dump_path / 'dte.csv'
