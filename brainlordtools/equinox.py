@@ -224,30 +224,36 @@ def equinox_misc_inserter(args):
             if f1.tell() > 0x595c:
                 sys.exit('Text size exceeds!')
 
-import argparse
-parser = argparse.ArgumentParser()
-parser.set_defaults(func=None)
-subparsers = parser.add_subparsers()
-dump_gfx_parser = subparsers.add_parser('dump_gfx', help='Execute GFX DUMP')
-dump_gfx_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-dump_gfx_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-dump_gfx_parser.set_defaults(func=equinox_gfx_dumper)
-dump_misc_parser = subparsers.add_parser('dump_misc', help='Execute MISC DUMP')
-dump_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-dump_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-dump_misc_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-dump_misc_parser.set_defaults(func=equinox_misc_dumper)
-insert_misc_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
-insert_misc_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-insert_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Menu table filename')
-insert_misc_parser.add_argument('-t3', '--table3', action='store', dest='table3', help='Intro table filename')
-insert_misc_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-insert_misc_parser.set_defaults(func=equinox_misc_inserter)
+def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.set_defaults(func=None)
+    subparsers = parser.add_subparsers()
 
-if __name__ == "__main__":
+    sub = subparsers.add_parser('dump_gfx', help='Extract graphics to a binary file')
+    sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
+    sub.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Output directory for dump files')
+    sub.set_defaults(func=equinox_gfx_dumper)
+
+    sub = subparsers.add_parser('dump_misc', help='Execute MISC DUMP')
+    sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
+    sub.add_argument('-t1', '--table1', action='store', dest='table1', help='Primary TBL file')
+    sub.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Output directory for dump files')
+    sub.set_defaults(func=equinox_misc_dumper)
+
+    sub = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
+    sub.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination ROM file')
+    sub.add_argument('-t1', '--table1', action='store', dest='table1', help='Primary TBL file')
+    sub.add_argument('-t2', '--table2', action='store', dest='table2', help='Secondary TBL file')
+    sub.add_argument('-t3', '--table3', action='store', dest='table3', help='Tertiary TBL file')
+    sub.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Directory containing translation files')
+    sub.set_defaults(func=equinox_misc_inserter)
+
     args = parser.parse_args()
     if args.func:
         args.func(args)
     else:
         parser.print_help()
+
+if __name__ == "__main__":
+    main()
