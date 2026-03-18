@@ -162,7 +162,12 @@ def equinox_misc_inserter(args):
             print(f'Saved {EQUINOX_DICTIONARIES[i][1] - f1.tell() + 1}')
         # ADDITIONAL TABLES
         f1.seek(0x514f5)
+        print(hex(f1.tell()))
         f1.write(table.encode('[END]VERDI[END][END]BLU[END][END]ROSSE[END][END]BIANCHE'))
+        print(hex(f1.tell()))
+        f1.write(table.encode('[END]IL PUGNALE[END][END]LO SHURIKEN[END][END]L\'ASCIA[END][END]IL PUGNALE X2[END][END]LA SPADA[END][END]LA SCIMITARRA[END][END]LA MAZZA[END][END]LA SPADA X2[END][END] [END][END]NESSUNA'))
+        if f1.tell() > 0x515f5:
+            sys.exit(f'Text size exceeds!')
         # MISC
         new_text_address = 0x515f5
         filepath = translation_path / 'misc.csv'
