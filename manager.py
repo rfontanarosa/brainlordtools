@@ -4,7 +4,6 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import argparse
 import os
 import sys
 
@@ -68,58 +67,72 @@ def handle_deepl_translate_processor(args) -> None:
         sys.exit("Error: DEEPL_AUTH_KEY environment variable not set.")
     deepl_translate_processor(source_dump_path, destination_dump_path, auth_key)
 
-parser = argparse.ArgumentParser()
-parser.set_defaults(func=None)
-subparsers = parser.add_subparsers()
-p_copy_file = subparsers.add_parser('copy_file', help='File COPY')
-p_copy_file.add_argument('-s', '--source', dest='source_file', required=True, help='Path to the original file to be copied')
-p_copy_file.add_argument('-d', '--dest', dest='dest_file', required=True, help='Path to the destination file where the copy will be saved')
-p_copy_file.set_defaults(func=handle_copy_file)
-p_crc_check = subparsers.add_parser('crc_check', help='Check file CRC')
-p_crc_check.add_argument('-s', '--source', dest='source_file', required=True, help='Path to the file to be checked')
-p_crc_check.add_argument('-g', '--game', dest='game_id', required=True, help='Game ID (e.g., som, ff6)')
-p_crc_check.set_defaults(func=handle_crc_check)
-p_diff_dump = subparsers.add_parser('diff_dump', help='Generate a diff between two dump files')
-p_diff_dump.add_argument('-s1', '--source1', action='store', dest='source1', required=True, help='Path to the 1st source .txt dump file')
-p_diff_dump.add_argument('-s2', '--source2', action='store', dest='source2', required=True, help='Path to the 2nd source .txt dump file')
-p_diff_dump.add_argument('-d', '--destination', action='store', dest='destination', required=True, help='Path to the generated .txt dump')
-p_diff_dump.add_argument('-g', '--game', action='store', dest='game_id', required=False, default='default', help='Optional: Game ID (e.g., som, ff6) to use for custom parsing logic')
-p_diff_dump.set_defaults(func=handle_diff_dump)
-p_expand = subparsers.add_parser('expand')
-p_expand.add_argument('-d', '--dest', dest='dest_file', required=True, help="Path to the destination file to be expanded")
-p_expand.add_argument('-g', '--game', dest='game_id', required=True, help="Game ID (e.g., som, ff6)")
-p_expand.set_defaults(func=handle_expand_file)
-p_import_dump = subparsers.add_parser('import_dump', help='Import source from a dump file')
-p_import_dump.add_argument('-db', '--database', action='store', dest='database_file', required=True, help='Path to the SQLite database')
-p_import_dump.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the source .txt dump file')
-p_import_dump.add_argument('-g', '--game', action='store', dest='game_id', required=False, default='default', help='Optional: Game ID (e.g., som, ff6) to use for custom parsing logic')
-p_import_dump.set_defaults(func=handle_import_dump)
-p_import_translation = subparsers.add_parser('import_translation', help='Import translations from a dump file')
-p_import_translation.add_argument('-db', '--database', action='store', dest='database_file', required=True, help='Path to the SQLite database')
-p_import_translation.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the translated .txt dump file')
-p_import_translation.add_argument('-u', '--user', action='store', dest='user_name', required=True, help='The author of the translation')
-p_import_translation.add_argument('-od', '--original_dump', action='store', dest='original_dump', required=False, help='Path to the source .txt original dump file')
-p_import_translation.add_argument('-g', '--game', action='store', dest='game_id', required=False, default='default',help='Optional: Game ID (e.g., som, ff6) to use for custom parsing logic')
-p_import_translation.set_defaults(func=handle_import_translation)
-p_export_translation = subparsers.add_parser('export_translation', help='Export translations to a dump file')
-p_export_translation.add_argument('-db', '--database', action='store', dest='database_file', required=True, help='Path to the SQLite database')
-p_export_translation.add_argument('-d', '--destination', action='store', dest='destination', required=True, help='Output path for the generated .txt dump')
-p_export_translation.add_argument('-u', '--user', action='store', dest='user_name', required=False, help='The author whose translations you want to export')
-p_export_translation.add_argument('-b', '--blocks', action='store', dest='blocks', required=False, nargs='+', help='Optional: Filter by specific block IDs')
-p_export_translation.set_defaults(func=handle_export_translation)
-p_translate_dump_amazon = subparsers.add_parser('amazon', help='Translate a dump using Amazon service')
-p_translate_dump_amazon.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the source .txt dump file')
-p_translate_dump_amazon.add_argument('-d', '--destination', action='store', dest='destination', required=True, help='Output path for the generated .txt dump')
-p_translate_dump_amazon.add_argument('-g', '--game', action='store', dest='game_id', required=False, help='Optional: Game ID (e.g., som, ff6) to use for custom parsing logic')
-p_translate_dump_amazon.set_defaults(func=handle_amazon_translate_processor)
-p_translate_dump_deepl = subparsers.add_parser('deepl', help='Translate a dump using Deepl service')
-p_translate_dump_deepl.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the source .txt dump file')
-p_translate_dump_deepl.add_argument('-d', '--destination', action='store', dest='destination', required=True, help='Output path for the generated .txt dump')
-p_translate_dump_deepl.set_defaults(func=handle_deepl_translate_processor)
+def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.set_defaults(func=None)
+    subparsers = parser.add_subparsers()
+
+    sub = subparsers.add_parser('copy_file', help='File COPY')
+    sub.add_argument('-s', '--source', dest='source_file', required=True, help='Path to the original file to be copied')
+    sub.add_argument('-d', '--dest', dest='dest_file', required=True, help='Path to the destination file where the copy will be saved')
+    sub.set_defaults(func=handle_copy_file)
+
+    sub = subparsers.add_parser('crc_check', help='Check file CRC')
+    sub.add_argument('-s', '--source', dest='source_file', required=True, help='Path to the file to be checked')
+    sub.add_argument('-g', '--game', dest='game_id', required=True, help='Game ID (e.g., som, ff6)')
+    sub.set_defaults(func=handle_crc_check)
+
+    sub = subparsers.add_parser('diff_dump', help='Generate a diff between two dump files')
+    sub.add_argument('-s1', '--source1', action='store', dest='source1', required=True, help='Path to the 1st source .txt dump file')
+    sub.add_argument('-s2', '--source2', action='store', dest='source2', required=True, help='Path to the 2nd source .txt dump file')
+    sub.add_argument('-d', '--destination', action='store', dest='destination', required=True, help='Path to the generated .txt dump')
+    sub.add_argument('-g', '--game', action='store', dest='game_id', required=False, default='default', help='Optional: Game ID (e.g., som, ff6) to use for custom parsing logic')
+    sub.set_defaults(func=handle_diff_dump)
+
+    sub = subparsers.add_parser('expand')
+    sub.add_argument('-d', '--dest', dest='dest_file', required=True, help="Path to the destination file to be expanded")
+    sub.add_argument('-g', '--game', dest='game_id', required=True, help="Game ID (e.g., som, ff6)")
+    sub.set_defaults(func=handle_expand_file)
+
+    sub = subparsers.add_parser('import_dump', help='Import source from a dump file')
+    sub.add_argument('-db', '--database', action='store', dest='database_file', required=True, help='Path to the SQLite database')
+    sub.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the source .txt dump file')
+    sub.add_argument('-g', '--game', action='store', dest='game_id', required=False, default='default', help='Optional: Game ID (e.g., som, ff6) to use for custom parsing logic')
+    sub.set_defaults(func=handle_import_dump)
+
+    sub = subparsers.add_parser('import_translation', help='Import translations from a dump file')
+    sub.add_argument('-db', '--database', action='store', dest='database_file', required=True, help='Path to the SQLite database')
+    sub.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the translated .txt dump file')
+    sub.add_argument('-u', '--user', action='store', dest='user_name', required=True, help='The author of the translation')
+    sub.add_argument('-od', '--original_dump', action='store', dest='original_dump', required=False, help='Path to the source .txt original dump file')
+    sub.add_argument('-g', '--game', action='store', dest='game_id', required=False, default='default',help='Optional: Game ID (e.g., som, ff6) to use for custom parsing logic')
+    sub.set_defaults(func=handle_import_translation)
+
+    sub = subparsers.add_parser('export_translation', help='Export translations to a dump file')
+    sub.add_argument('-db', '--database', action='store', dest='database_file', required=True, help='Path to the SQLite database')
+    sub.add_argument('-d', '--destination', action='store', dest='destination', required=True, help='Output path for the generated .txt dump')
+    sub.add_argument('-u', '--user', action='store', dest='user_name', required=False, help='The author whose translations you want to export')
+    sub.add_argument('-b', '--blocks', action='store', dest='blocks', required=False, nargs='+', help='Optional: Filter by specific block IDs')
+    sub.set_defaults(func=handle_export_translation)
+
+    sub = subparsers.add_parser('amazon', help='Translate a dump using Amazon service')
+    sub.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the source .txt dump file')
+    sub.add_argument('-d', '--destination', action='store', dest='destination', required=True, help='Output path for the generated .txt dump')
+    sub.add_argument('-g', '--game', action='store', dest='game_id', required=False, help='Optional: Game ID (e.g., som, ff6) to use for custom parsing logic')
+    sub.set_defaults(func=handle_amazon_translate_processor)
+
+    sub = subparsers.add_parser('deepl', help='Translate a dump using Deepl service')
+    sub.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the source .txt dump file')
+    sub.add_argument('-d', '--destination', action='store', dest='destination', required=True, help='Output path for the generated .txt dump')
+    sub.set_defaults(func=handle_deepl_translate_processor)
+
+    args = parser.parse_args()
+    if args.func:
+        args.func(args)
+    else:
+        parser.print_help()
 
 if __name__ == "__main__":
-  args = parser.parse_args()
-  if args.func:
-    args.func(args)
-  else:
-    parser.print_help()
+    main()
+
