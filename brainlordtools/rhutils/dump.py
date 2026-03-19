@@ -57,8 +57,13 @@ def get_csv_translated_texts(filename):
     with open(filename, 'r', encoding='utf-8') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         for row in csv_reader:
-            trans = row.get('trans') or row.get('text')
-            pointer_address = int(row.get('pointer_address', '0'), 16)
             text_address = int(row.get('text_address', '0'), 16)
-            translated_texts.append((pointer_address, text_address, trans))
+            text = row.get('text')
+            trans = row.get('trans') or row.get('text')
+            if 'pointer_address' in row:
+                raw_pointer_address = row.get('pointer_address', '').strip()
+                pointer_addresses = [int(x.strip(), 16) for x in raw_pointer_address.split(';') if x.strip()] if raw_pointer_address else []
+                translated_texts.append((pointer_addresses, text_address, text, trans))
+            else:
+                translated_texts.append((text_address, text, trans))
     return translated_texts
