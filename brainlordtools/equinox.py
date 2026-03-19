@@ -235,13 +235,13 @@ def main():
     sub.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Output directory for dump files')
     sub.set_defaults(func=equinox_gfx_dumper)
 
-    sub = subparsers.add_parser('dump_misc', help='Execute MISC DUMP')
+    sub = subparsers.add_parser('dump_misc', help='Dump miscellaneous texts to CSV files')
     sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
     sub.add_argument('-t1', '--table1', action='store', dest='table1', help='Primary TBL file')
     sub.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Output directory for dump files')
     sub.set_defaults(func=equinox_misc_dumper)
 
-    sub = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
+    sub = subparsers.add_parser('insert_misc', help='Insert miscellaneous texts into the destination ROM')
     sub.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination ROM file')
     sub.add_argument('-t1', '--table1', action='store', dest='table1', help='Primary TBL file')
     sub.add_argument('-t2', '--table2', action='store', dest='table2', help='Secondary TBL file')

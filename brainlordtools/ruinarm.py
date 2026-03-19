@@ -118,28 +118,33 @@ def ruinarm_text_inserter(args):
             #     print(table.decode(swapped_text, tbl_resolver=False, dict_resolver=False, mte_resolver=False, ctrl_resolver=False))
             #     print(hex(f.tell()))
 
-import argparse
-parser = argparse.ArgumentParser()
-parser.set_defaults(func=None)
-subparsers = parser.add_subparsers()
-dump_text_parser = subparsers.add_parser('dump_text', help='Execute DUMP')
-dump_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-dump_text_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-dump_text_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-dump_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
-dump_text_parser.set_defaults(func=ruinarm_text_dumper)
-insert_text_parser = subparsers.add_parser('insert_text', help='Execute TEXT INSERTER')
-insert_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-insert_text_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-insert_text_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
-insert_text_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-insert_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
-insert_text_parser.add_argument('-u', '--user', action='store', dest='user', help='')
-insert_text_parser.set_defaults(func=ruinarm_text_inserter)
+def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.set_defaults(func=None)
+    subparsers = parser.add_subparsers()
 
-if __name__ == "__main__":
+    sub = subparsers.add_parser('dump_text', help='Dump dialogue strings to .txt and SQLite DB')
+    sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
+    sub.add_argument('-t1', '--table1', action='store', dest='table1', help='Primary TBL file')
+    sub.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Output directory for dump files')
+    sub.add_argument('-db', '--database', action='store', dest='database_file', help='Path to the SQLite database')
+    sub.set_defaults(func=ruinarm_text_dumper)
+
+    sub = subparsers.add_parser('insert_text', help='Insert translated text into the destination ROM')
+    sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
+    sub.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination ROM file')
+    sub.add_argument('-t2', '--table2', action='store', dest='table2', help='Secondary TBL file')
+    sub.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Directory containing translation files')
+    sub.add_argument('-db', '--database', action='store', dest='database_file', help='Path to the SQLite database')
+    sub.add_argument('-u', '--user', action='store', dest='user', help='Username to filter translations')
+    sub.set_defaults(func=ruinarm_text_inserter)
+
     args = parser.parse_args()
     if args.func:
         args.func(args)
     else:
         parser.print_help()
+
+if __name__ == "__main__":
+    main()

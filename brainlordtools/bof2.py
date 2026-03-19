@@ -184,7 +184,7 @@ def main():
     sub.add_argument('-t2', '--table2', action='store', dest='table2', help='Secondary TBL file')
     sub.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Directory containing translation files')
     sub.add_argument('-db', '--database', action='store', dest='database_file', help='Path to the SQLite database')
-    sub.add_argument('-u', '--user', action='store', dest='user', help='')
+    sub.add_argument('-u', '--user', action='store', dest='user', help='Username to filter translations')
     sub.set_defaults(func=bof2_text_inserter)
 
     sub = subparsers.add_parser('dump_gfx', help='Extract graphics to a binary file')
@@ -197,7 +197,7 @@ def main():
     sub.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Directory containing translation files')
     sub.set_defaults(func=bof2_gfx_inserter)
 
-    sub = subparsers.add_parser('dump_misc', help='Dump miscelaneous texts to CSV files')
+    sub = subparsers.add_parser('dump_misc', help='Dump miscellaneous texts to CSV files')
     sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
     sub.add_argument('-t1', '--table1', action='store', dest='table1', help='Primary TBL file')
     sub.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Output directory for dump files')
