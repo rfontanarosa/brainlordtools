@@ -4,36 +4,38 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import csv, pathlib, re, shutil, sqlite3, struct, sys
+import csv
+import enum
+import pathlib
+import re
+import shutil
+import sqlite3
+import sys
 
 from rhutils.db import insert_text, select_most_recent_translation, select_translation_by_author
-from rhutils.dump import dump_binary, read_text, get_csv_translated_texts, insert_binary, write_byte
-from rhutils.rom import crc32
+from rhutils.dump import extract_binary, get_csv_translated_texts, insert_binary
+from rhutils.io import read_text
 from rhutils.snes import pc2snes_hirom
 from rhutils.table import Table
-
-CRC32 = 'C5CB2F26'
-
-import enum
 
 class DumpType(enum.Enum):
     EVENTS = 1
     TEXTS = 2
 
-# pointer_block_start, pointer_block_end, text_block_start, text_block_end, bank_offset, pointer_bytes, filename
+# pointer_block_start, pointer_block_end, text_block_start, text_block_end, bank_offset, pointer_size, dump_type
 POINTERS_OFFSETS = (
     (0x90000, 0x90800, 0x90800, 0x9f2d6, 0x90000, 2, DumpType.EVENTS),
     (0xa0000, 0xa0c02, 0xa0c02, 0xab573, 0xa0000, 2, DumpType.EVENTS),
-    (0x33d0, 0x33f0, 0X77a8e, 0x77b23, 0x70000, 2, DumpType.TEXTS),
-    (0x7780a, 0x7784c, 0x77313, 0x77693, 0x70000, 2, DumpType.TEXTS),
-    (0x33b5, 0x33d0, 0x33f0, 0x0, 0x0, 3, DumpType.TEXTS),
-    (0x77bb7, 0x77bc7, 0x77b6d, 0x77ba5, 0x70000, 2, DumpType.TEXTS),
-    (0x5dbb, 0x5e6b, 0x5e6b, 0x637d, 0x0, 2, DumpType.TEXTS),
-    (0x0, 0x0, 0x19fe20, 0x19fef4, 0x0, 2, DumpType.TEXTS)
+    (0x33e0, 0x3400, 0x77aa6, 0x77b3b, 0x70000, 2, DumpType.TEXTS),
+    (0x77822, 0x77864, 0x7732b, 0x773d4, 0x70000, 2, DumpType.TEXTS),
+    (0x33c5, 0x33e0, 0x3400, 0x0, 0x0, 3, DumpType.TEXTS),
+    (0x77bcf, 0x77bdf, 0x77b85, 0x77bbd, 0x70000, 2, DumpType.TEXTS),
+    (0x5dd2, 0x5e82, 0x5e82, 0x6394, 0x0, 2, DumpType.TEXTS),
+    (0x0, 0x0, 0x19fe39, 0x19fef4, 0x0, 2, DumpType.TEXTS)
 )
 
 # start, end, where_to_move
-DTE_OFFSETS = (0x77299, 0x77312, 0x74350)
+DTE_OFFSETS = (0x772b1, 0x7732a, 0x74350)
 
 cmd_list = {b'\x20': 1, b'\x21': 1, b'\x22': 1, b'\x23': 1, b'\x24': 1, b'\x25': 1, b'\x26': 1, b'\x27': 1, b'\x28': 1, b'\x29': 1, b'\x2a': 1, b'\x2b': 1, b'\x2c': 1, b'\x2e': 1, b'\x2f': 1, b'\x30': 2, b'\x31': 2, b'\x32': 2, b'\x33': 2, b'\x34': 2, b'\x36': 3, b'\x37': 3, b'\x38': 1, b'\x39': 3, b'\x40': 4, b'\x42': 2, b'\x49': 3, b'\x4a': 3, b'\x4b': 3, b'\x4c': 3, b'\x4d': 3, b'\x4e': 3, b'\x57': 1, b'\x59': 1, b'\x5a': 1, b'\x5b': 2}
 
@@ -70,15 +72,13 @@ def som_text_dumper(args):
     table2_file = args.table2
     dump_path = pathlib.Path(args.dump_path)
     db = args.database_file
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table_file)
     table2 = Table(table2_file)
     conn = sqlite3.connect(db)
     conn.text_factory = str
     cur = conn.cursor()
     shutil.rmtree(dump_path, ignore_errors=True)
-    pathlib.Path.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f:
         # TEXT POINTERS
         id = 1
@@ -90,40 +90,40 @@ def som_text_dumper(args):
                 p_address = f.tell()
                 if pointer_bytes == 3:
                     p_value = f.read(3)
-                    text_address = struct.unpack('i', p_value[:3] + b'\x00')[0] - 0xc00000
+                    text_address = int.from_bytes(p_value, byteorder='little') - 0xc00000
                 else:
                     p_value = f.read(2)
-                    text_address = struct.unpack('H', p_value)[0] + bank_offset
+                    text_address = int.from_bytes(p_value, byteorder='little') + bank_offset
                 pointers.setdefault(text_address, []).append(p_address)
             if block == 7:
-                pointers[0x62E2] = [0x58B3]
-                pointers[0x62F3] = [0x58C1]
-                pointers[0x6294] = [0x58D5]
-                pointers[0x62A0] = [0x58EB]
-                pointers[0x62C6] = [0x5901]
-                pointers[0x62A3] = [0x598A]
-                pointers[0x62B7] = [0x5997]
-                pointers[0x628C] = [0X59AE]
-                pointers[0x6290] = [0x59DC]
-                pointers[0x62D2] = [0x5A09]
-                pointers[0x62D7] = [0x5A31]
-                pointers[0x6251] = [0x5B10]
-                pointers[0x6256] = [0x5B29, 0x5B6C, 0x5B99]
-                pointers[0x6263] = [0x5B38]
-                pointers[0x6265] = [0x5B49]
-                pointers[0x6279] = [0x5B7E]
-                pointers[0x6310] = [0x5BBA]
-                pointers[0x6303] = [0x5BC4]
+                pointers[0x62f9] = [0x58CA]
+                pointers[0x630a] = [0x58D8]
+                pointers[0x62ab] = [0x58EC]
+                pointers[0x62b7] = [0x5902]
+                pointers[0x62dd] = [0x5918]
+                pointers[0x62ba] = [0x59A1]
+                pointers[0x62ce] = [0x59AE]
+                pointers[0x62a3] = [0X59C5]
+                pointers[0x62a7] = [0x59F3]
+                pointers[0x62e9] = [0x5A20]
+                pointers[0x62ee] = [0x5A48]
+                pointers[0x6268] = [0x5B27]
+                pointers[0x626d] = [0x5B40, 0x5B83, 0x5BB0]
+                pointers[0x627a] = [0x5B4F]
+                pointers[0x627c] = [0x5B60]
+                pointers[0x6290] = [0x5B95]
+                pointers[0x6327] = [0x5BD1]
+                pointers[0x631a] = [0x5BDB]
             if block == 8:
-                pointers[0x19FEEC] = [0x7E44]
-                pointers[0x19FE65] = [0x7B7B]
-                pointers[0x19FE20] = [0x7AFB]
-                pointers[0x19FE49] = [0x7B13]
-                pointers[0x19FE2D] = [0x7B0E]
-                pointers[0x19FEB5] = [0x7B8C]
-                pointers[0x19FE96] = [0x7B85]
-                pointers[0x19FE7E] = [0x7C38]
-                pointers[0x19FED1] = [0x7B91]
+                pointers[0x19ff05] = [0x7E4e]
+                pointers[0x19fe7e] = [0x7B85]
+                pointers[0x19fe39] = [0x7AFB]
+                pointers[0x19fe62] = [0x7B13]
+                pointers[0x19fe46] = [0x7B0E]
+                pointers[0x19fece] = [0x7B96]
+                pointers[0x19feaf] = [0x7B8f]
+                pointers[0x19fe97] = [0x7C42]
+                pointers[0x19feea] = [0x7B9B]
             # TEXT
             for _, (text_address, p_addresses) in enumerate(pointers.items()):
                 pointer_addresses = ';'.join(str(hex(x)) for x in p_addresses)
@@ -156,7 +156,7 @@ def som_text_dumper(args):
                 else:
                     filename = dump_path / 'dump_texts_eng.txt'
                 with open(filename, 'a+', encoding='utf-8') as out:
-                    out.write(ref + '\n' + text_decoded + "\n\n")
+                    out.write(f'{ref}\n{text_decoded}\n\n')
                 id += 1
     cur.close()
     conn.commit()
@@ -207,7 +207,7 @@ def som_text_inserter(args):
                         sys.exit(1)
                     f.write(text_encoded)
                     # REPOINTER
-                    new_pointer_value = struct.pack('<I', current_text_address)[:2]
+                    new_pointer_value = (current_text_address & 0xFFFF).to_bytes(2, byteorder='little')
                     current_text_address = f.tell()
                     for pointer_address in pointer_addresses.split(';'):
                         f.seek(int(pointer_address, 16))
@@ -234,7 +234,7 @@ def som_text_inserter(args):
                         f.write(text_encoded)
                         # REPOINTER
                         snes_offset = pc2snes_hirom(current_text_address)
-                        new_pointer_value = struct.pack('<I', snes_offset)[:3]
+                        new_pointer_value = (snes_offset & 0xFFFFFF).to_bytes(3, byteorder='little')
                         current_text_address = f.tell()
                         for pointer_address in pointer_addresses.split(';'):
                             f.seek(int(pointer_address, 16))
@@ -249,13 +249,14 @@ def som_text_inserter(args):
                         text = translation if translation else text_decoded
                         text_encoded = table.encode(text)
                         if f.tell() + len(text_encoded) > text_block_end:
+                            overflow_amount = (f.tell() + len(text_encoded)) - text_block_end
                             print(f"ERROR: BLOCK OVERFLOW at ID {id}!")
                             print(f"Attempted to write {len(text_encoded)} bytes, but only {text_block_end - f.tell()} remaining.")
                             print(f"Exceeded by: {overflow_amount} bytes.")
                             sys.exit(1)
                         f.write(text_encoded)
                         # REPOINTER
-                        new_pointer_value = struct.pack('<I', current_text_address)[:2]
+                        new_pointer_value = (current_text_address & 0xFFFF).to_bytes(2, byteorder='little')
                         current_text_address = f.tell()
                         for pointer_address in pointer_addresses.split(';'):
                             f.seek(int(pointer_address, 16))
@@ -270,13 +271,14 @@ def som_text_inserter(args):
                         text = translation if translation else text_decoded
                         text_encoded = table.encode(text)
                         if f.tell() + len(text_encoded) > text_block_end:
+                            overflow_amount = (f.tell() + len(text_encoded)) - text_block_end
                             print(f"ERROR: BLOCK OVERFLOW at ID {id}!")
                             print(f"Attempted to write {len(text_encoded)} bytes, but only {text_block_end - f.tell()} remaining.")
                             print(f"Exceeded by: {overflow_amount} bytes.")
                             sys.exit(1)
                         f.write(text_encoded)
                         # REPOINTER
-                        new_pointer_value = struct.pack('<I', current_text_address)[:2]
+                        new_pointer_value = (current_text_address & 0xFFFF).to_bytes(2, byteorder='little')
                         current_text_address = f.tell()
                         for pointer_address in pointer_addresses.split(';'):
                             f.seek(int(pointer_address, 16))
@@ -305,7 +307,7 @@ def som_text_inserter(args):
                 sys.exit(1)
             f.write(text_encoded)
             # REPOINTER
-            new_pointer_value = struct.pack('<I', current_text_address)[:2]
+            new_pointer_value = (current_text_address & 0xFFFF).to_bytes(2, byteorder='little')
             current_text_address = f.tell()
             for pointer_address in pointer_addresses.split(';'):
                 f.seek(int(pointer_address, 16))
@@ -318,11 +320,9 @@ def som_misc_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
     dump_path = pathlib.Path(args.dump_path)
-    if not args.no_crc32_check and crc32(source_file) != CRC32:
-        sys.exit('SOURCE ROM CHECKSUM FAILED!')
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
-    pathlib.Path.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f:
         # DTE
         filepath = dump_path / 'dte.csv'
@@ -342,17 +342,17 @@ def som_tilemap_dumper(args):
     dump_path = pathlib.Path(args.dump_path)
     with open(source_file, 'rb') as f:
         # INTRO TILEMAP
-        dump_binary(f, 0x14a6, 928, dump_path / 'intro-tilemap.bin')
+        extract_binary(f, 0x14a8, 928, dump_path / 'intro-tilemap.bin')
         # THE END
-        dump_binary(f, 0x07c0, 544, dump_path / 'the-end-gfx.bin')
-        dump_binary(f, 0x10c8, 928, dump_path / 'the-end-tilemap.bin')
+        extract_binary(f, 0x07c0, 544, dump_path / 'the-end-gfx.bin')
+        extract_binary(f, 0x10c8, 928, dump_path / 'the-end-tilemap.bin')
 
 def som_tilemap_inserter(args):
     dest_file = args.dest_file
     translation_path = pathlib.Path(args.translation_path)
     with open(dest_file, 'r+b') as f:
         # INTRO TILEMAP
-        insert_binary(f, 0x14a6, translation_path / 'intro-tilemap.bin', max_length=928)
+        insert_binary(f, 0x14a8, translation_path / 'intro-tilemap.bin', max_length=928)
         # THE END
         insert_binary(f, 0x07c0, translation_path / 'the-end-gfx.bin', max_length=544)
         insert_binary(f, 0x10c8, translation_path / 'the-end-tilemap.bin', max_length=928)
@@ -376,13 +376,12 @@ def som_misc_inserter(args):
         insert_binary(f, 0x7FB00, translation_path / '7FB00_cardinals.bin', max_length=160)
         # INTRO
         with open(dest_file, 'r+b') as f:
-            insert_binary(f, 0x77C00, translation_path / 'intro-code-compressed.bin', max_length=14437)
-            insert_binary(f, 0x7B480, translation_path / 'intro-data-compressed.bin', max_length=3390)
-            insert_binary(f, 0x1CE800, translation_path / 'title-compressed.bin', max_length=2096)
+            insert_binary(f, 0x77C00, translation_path / 'intro-code-compressed.bin', max_length=14449)
+            insert_binary(f, 0x7B478, translation_path / 'intro-data-compressed.bin', max_length=3400)
+            # insert_binary(f, 0x1CE800, translation_path / 'title-compressed.bin', max_length=2235)
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--no_crc32_check', action='store_true', dest='no_crc32_check', required=False, default=False, help='CRC32 Check')
 parser.set_defaults(func=None)
 subparsers = parser.add_subparsers()
 dump_text_parser = subparsers.add_parser('dump_text', help='Execute TEXT DUMP')
