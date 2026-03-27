@@ -69,10 +69,11 @@ case $GAME_ID in
     check_file "$SOURCE_EVENTS_FILE"
     check_file "$SOURCE_TEXT_FILE"
 
-    log_step "Importing $SOURCE_FILE for user $USER"
+    log_step "Importing $SOURCE_EVENTS_FILE for user $USER"
     python "$SCRIPT_DIR/manager.py" import_translation \
         -db "$DB" -s "$SOURCE_EVENTS_FILE" -u "$USER"
-    log_step "Importing $SOURCE_FILE for user $USER"
+
+    log_step "Importing $SOURCE_TEXT_FILE for user $USER"
     python "$SCRIPT_DIR/manager.py" import_translation \
         -db "$DB" -s "$SOURCE_TEXT_FILE" -u "$USER"
     ;;

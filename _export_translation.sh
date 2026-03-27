@@ -13,10 +13,13 @@ case $GAME_ID in
     DEST_FILE="$TRANSLATED_DUMP_DIR/dump_ita.txt"
     DEST_USER_FILE="$TRANSLATED_DUMP_DIR/dump_ita_$USER.txt"
 
-    log_step "Exporting $GAME_ID translation to $DEST_FILE"
     mkdir -p "$TRANSLATED_DUMP_DIR"
+
+    log_step "Exporting $GAME_ID translation to $DEST_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
        -db "$DB" -d "$DEST_FILE" -b 1 2 3 4 5 6 7
+
+    log_step "Exporting $GAME_ID translation to $DEST_USER_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
        -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -b 1 2 3 4 5 6 7
     ;;
@@ -26,10 +29,13 @@ case $GAME_ID in
     DEST_FILE="$TRANSLATED_DUMP_DIR/dump_ita.txt"
     DEST_USER_FILE="$TRANSLATED_DUMP_DIR/dump_ita_$USER.txt"
 
-    log_step "Exporting $GAME_ID translation to $DEST_FILE"
     mkdir -p "$TRANSLATED_DUMP_DIR"
+
+    log_step "Exporting $GAME_ID translation to $DEST_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
         -db "$DB" -d "$DEST_FILE"
+
+    log_step "Exporting $GAME_ID translation to $DEST_USER_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
         -db "$DB" -d "$DEST_USER_FILE" -u "$USER"
     ;;
@@ -39,10 +45,13 @@ case $GAME_ID in
     DEST_FILE="$TRANSLATED_DUMP_DIR/dump_ita.txt"
     DEST_USER_FILE="$TRANSLATED_DUMP_DIR/dump_ita_$USER.txt"
 
-    log_step "Exporting $GAME_ID translation to $DEST_FILE"
     mkdir -p "$TRANSLATED_DUMP_DIR"
+
+    log_step "Exporting $GAME_ID translation to $DEST_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
        -db "$DB" -d "$DEST_FILE" -b 1
+
+    log_step "Exporting $GAME_ID translation to $DEST_USER_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
        -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -b 1
     ;;
@@ -52,10 +61,13 @@ case $GAME_ID in
     DEST_USER_EVENTS_FILE="$TRANSLATED_DUMP_DIR/dump_events_$USER.txt"
     DEST_USER_TEXT_FILE="$TRANSLATED_DUMP_DIR/dump_texts_$USER.txt"
 
-    log_step "Exporting $GAME_ID translation to $DEST_FILE"
     mkdir -p "$TRANSLATED_DUMP_DIR"
+
+    log_step "Exporting $GAME_ID translation to $DEST_USER_EVENTS_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
         -db "$DB" -d "$DEST_USER_EVENTS_FILE" -u "$USER" -b 1 2
+
+    log_step "Exporting $GAME_ID translation to $DEST_USER_TEXT_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
         -db "$DB" -d "$DEST_USER_TEXT_FILE" -u "$USER" -b 3 4 5 6 7 8
     ;;
