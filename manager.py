@@ -7,7 +7,7 @@ __email__ = "robertofontanarosa@gmail.com"
 import os
 import sys
 
-from brainlordtools.utils.actions import copy_file, crc_check, diff_dump, expand_file, export_translation, import_translation
+from brainlordtools.utils.actions import copy_file, crc_check, diff_dump, expand_file, export_translation, import_dump, import_translation
 from brainlordtools.utils.translators import amazon_translate_processor, deepl_translate_processor
 
 def handle_copy_file(args):
@@ -35,8 +35,8 @@ def handle_expand_file(args):
 def handle_import_dump(args):
     db = args.database_file
     source_dump_path = args.source
-    game_id = args.game
-    import_translation(db, source_dump_path, game_id)
+    game_id = args.game_id
+    import_dump(db, source_dump_path, game_id)
 
 def handle_import_translation(args):
     db = args.database_file
