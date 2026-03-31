@@ -22,6 +22,8 @@ CRC_TABLE = {
     'lufia': '5E1AA1A6',
     'neugier': '5497DF2A',
     'neugier_original': '7F0DDCCF',
+    'rsaga_original': '9684526D',
+    'rsaga': '3B04E472',
     'ruinarm': 'C2ACD40D',
     'soe': 'A5C0045E',
     'som': 'D0176B24',
