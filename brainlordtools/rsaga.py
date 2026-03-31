@@ -9,19 +9,11 @@ import sys
 
 from rhutils.table import Table
 
-
 # ============================================================
 # ROM REGION CONSTANTS (all file offsets, headerless ROM)
 # ============================================================
 
 REGIONS = {
-    'english_menu': {
-        'bank_start':       0x140000,
-        'ptr_table_start':  0x140000,
-        'ptr_table_end':    0x1400D7,  # inclusive
-        'bank_read_size':   0x008000,
-        'section':          'menu',
-    },
     'english_dialogue': {
         'bank_start':       0x110000,
         'ptr_table_start':  0x110000,
@@ -30,8 +22,14 @@ REGIONS = {
         'ptr_size':         3,          # 24-bit SNES addresses
         'section':          'dialogue',
     },
+    'english_menu': {
+        'bank_start':       0x140000,
+        'ptr_table_start':  0x140000,
+        'ptr_table_end':    0x1400D7,  # inclusive
+        'bank_read_size':   0x008000,
+        'section':          'menu',
+    },
 }
-
 
 # ============================================================
 # CUSTOM CONTROL CODE HANDLERS
@@ -101,7 +99,6 @@ CUSTOM_HANDLERS = {
     0x40: _decode_40,
     0x4A: _decode_4A,
 }
-
 
 def decode_block(table, data):
     """
@@ -188,8 +185,9 @@ def rsaga_text_dumper(args):
     table = Table(table_file)
     dump_path.mkdir(parents=True, exist_ok=True)
 
+    global_id = 1
     with open(source_file, 'rb') as f:
-        for mode, region in REGIONS.items():
+        for _, (name, region) in enumerate(REGIONS.items(), start=1):
             bank_start = region['bank_start']
             bank_read_size = region['bank_read_size']
             section = region['section']
@@ -220,7 +218,7 @@ def rsaga_text_dumper(args):
                             stop = len(bank) - 1
                     blocks.append((idx, start, stop))
 
-            filename = dump_path / f'dump_{mode}.txt'
+            filename = dump_path / f'dump_{name}.txt'
             with open(filename, 'w', encoding='utf-8') as out:
                 for block_id, start, stop in blocks:
                     if start < 0 or start >= len(bank):
@@ -228,12 +226,22 @@ def rsaga_text_dumper(args):
                         continue
                     block_bytes = bytes(bank[start:stop + 1])
                     text = decode_block(table, block_bytes)
-                    out.write(f'>>>>>>>>>>\n')
-                    out.write(f'Block {block_id}:\n')
-                    out.write(f'{text}\n')
+                    file_start = bank_start + start
+                    ptr_addr, _ = pointers[block_id]
+                    file_ptr = bank_start + ptr_addr
+                    ref = (
+                        f'[ID={global_id}'
+                        f' ID2={block_id + 1}'
+                        f' START={hex(file_start)}'
+                        f' POINTERS={hex(file_ptr)}]'
+                    )
+                    out.write(f'{ref}\n{text}\n\n')
+                    global_id += 1
 
-            print(f'{mode}: {len(blocks)} blocks written to {filename}')
+            print(f'{name}: {len(blocks)} blocks written to {filename}')
 
+def rsaga_text_inserter(args):
+    pass
 
 # ============================================================
 # CLI
@@ -251,6 +259,15 @@ def main():
     sub.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Output directory for dump files')
     sub.add_argument('-db', '--database', action='store', dest='database_file', help='Path to the SQLite database')
     sub.set_defaults(func=rsaga_text_dumper)
+
+    sub = subparsers.add_parser('insert_text', help='Insert translated text into the destination ROM')
+    sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
+    sub.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination ROM file')
+    sub.add_argument('-t1', '--table1', action='store', dest='table1', help='Primary TBL file')
+    sub.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Directory containing translation files')
+    sub.add_argument('-db', '--database', action='store', dest='database_file', help='Path to the SQLite database')
+    sub.add_argument('-u', '--user', action='store', dest='user', help='Username to filter translations')
+    sub.set_defaults(func=rsaga_text_inserter)
 
     args = parser.parse_args()
     if args.func:
