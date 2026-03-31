@@ -4,16 +4,27 @@ GAME_ID=${1:-"som"}
 
 source ./_common.sh
 
-log_info "Starting process for Game ID: ${YELLOW}$GAME_ID${NC}"
+log_info "Starting import dump process"
 
 case $GAME_ID in
+  "alcahest")
+    DUMP_DIR="$RESOURCE_PATH/dump_all"
+    SOURCE_FILE_1="$DUMP_DIR/dialogue.txt"
+
+    check_file "$SOURCE_FILE_1"
+
+    log_step "Importing $SOURCE_FILE_1 [game=${YELLOW}$GAME_ID${NC}"
+    python "$SCRIPT_DIR/manager.py" import_dump \
+       -db "$DB" -s "$SOURCE_FILE_1"
+    ;;
+
   "ffmq" | "gaia")
     DUMP_DIR="$RESOURCE_PATH/dump_text"
     SOURCE_FILE="$DUMP_DIR/dump_eng.txt"
 
     check_file "$SOURCE_FILE"
 
-    log_step "Importing $SOURCE_FILE for $GAME_ID"
+    log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}"
     python "$SCRIPT_DIR/manager.py" import_dump \
        -db "$DB" -s "$SOURCE_FILE"
     ;;
@@ -24,7 +35,7 @@ case $GAME_ID in
 
     check_file "$SOURCE_FILE"
 
-    log_step "Importing $SOURCE_FILE for $GAME_ID"
+    log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}"
     python "$SCRIPT_DIR/manager.py" import_dump \
        -db "$DB" -s "$SOURCE_FILE" -g "$GAME_ID"
     ;;
@@ -37,11 +48,11 @@ case $GAME_ID in
     check_file "$SOURCE_EVENTS_FILE"
     check_file "$SOURCE_TEXT_FILE"
 
-    log_step "Importing $SOURCE_EVENTS_FILE for $GAME_ID"
+    log_step "Importing $SOURCE_EVENTS_FILE [game=${YELLOW}$GAME_ID${NC}"
     python "$SCRIPT_DIR/manager.py" import_dump \
         -db "$DB" -s "$SOURCE_EVENTS_FILE"
 
-    log_step "Importing $SOURCE_TEXT_FILE for $GAME_ID"
+    log_step "Importing $SOURCE_TEXT_FILE [game=${YELLOW}$GAME_ID${NC}"
     python "$SCRIPT_DIR/manager.py" import_dump \
         -db "$DB" -s "$SOURCE_TEXT_FILE"
     ;;
@@ -52,7 +63,7 @@ case $GAME_ID in
 
     check_file "$SOURCE_FILE"
 
-    log_step "Importing $SOURCE_FILE for $GAME_ID"
+    log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}"
     python "$SCRIPT_DIR/manager.py" import_dump \
        -db "$DB" -s "$SOURCE_FILE" -g "$GAME_ID"
     ;;

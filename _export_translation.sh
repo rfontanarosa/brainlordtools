@@ -56,12 +56,22 @@ case $GAME_ID in
        -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -b 1
     ;;
 
-  "som")
+  "som" | "som_pal")
     TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
+    DEST_EVENTS_FILE="$TRANSLATED_DUMP_DIR/dump_events_ita.txt"
+    DEST_TEXT_FILE="$TRANSLATED_DUMP_DIR/dump_texts_ita.txt"
     DEST_USER_EVENTS_FILE="$TRANSLATED_DUMP_DIR/dump_events_$USER.txt"
     DEST_USER_TEXT_FILE="$TRANSLATED_DUMP_DIR/dump_texts_$USER.txt"
 
     mkdir -p "$TRANSLATED_DUMP_DIR"
+
+    log_step "Exporting $GAME_ID translation to $DEST_EVENTS_FILE"
+    python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_EVENTS_FILE" -b 1 2
+
+    log_step "Exporting $GAME_ID translation to $DEST_TEXT_FILE"
+    python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_TEXT_FILE" -b 3 4 5 6 7 8
 
     log_step "Exporting $GAME_ID translation to $DEST_USER_EVENTS_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \

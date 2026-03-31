@@ -5,7 +5,7 @@ USER=${2:-"clomax"}
 
 source ./_common.sh
 
-log_info "Starting process for Game ID: ${YELLOW}$GAME_ID${NC}"
+log_info "Starting import trandslation process"
 
 case $GAME_ID in
   "brainlord")
@@ -17,7 +17,7 @@ case $GAME_ID in
     check_file "$SOURCE_FILE"
     check_file "$ORIGINAL_DUMP_PATH"
 
-    log_step "Importing $SOURCE_FILE for user $USER"
+    log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
     python "$SCRIPT_DIR/manager.py" import_translation \
         -db "$DB" -s "$SOURCE_FILE" -u "$USER" -od "$ORIGINAL_DUMP_PATH"
     ;;
@@ -31,7 +31,7 @@ case $GAME_ID in
     check_file "$SOURCE_FILE"
     check_file "$ORIGINAL_DUMP_PATH"
 
-    log_step "Importing $SOURCE_FILE for user $USER"
+    log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
     python "$SCRIPT_DIR/manager.py" import_translation \
         -db "$DB" -s "$SOURCE_FILE" -u "$USER" -od "$ORIGINAL_DUMP_PATH"
     ;;
@@ -45,7 +45,7 @@ case $GAME_ID in
     check_file "$SOURCE_FILE"
     check_file "$ORIGINAL_DUMP_PATH"
 
-    log_step "Importing $SOURCE_FILE for user $USER"
+    log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
     python "$SCRIPT_DIR/manager.py" import_translation \
         -db "$DB" -s "$SOURCE_FILE" -u "$USER" -od "$ORIGINAL_DUMP_PATH"
     ;;
@@ -56,12 +56,12 @@ case $GAME_ID in
 
     check_file "$SOURCE_FILE"
 
-    log_step "Importing $SOURCE_FILE for user $USER"
+    log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
     python "$SCRIPT_DIR/manager.py" import_translation \
         -db "$DB" -s "$SOURCE_FILE" -u "$USER"
     ;;
 
-  "som")
+  "som" | "som_pal")
     TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
     SOURCE_EVENTS_FILE="$TRANSLATED_DUMP_DIR/dump_events_$USER.txt"
     SOURCE_TEXT_FILE="$TRANSLATED_DUMP_DIR/dump_texts_$USER.txt"
@@ -69,11 +69,11 @@ case $GAME_ID in
     check_file "$SOURCE_EVENTS_FILE"
     check_file "$SOURCE_TEXT_FILE"
 
-    log_step "Importing $SOURCE_EVENTS_FILE for user $USER"
+    log_step "Importing $SOURCE_EVENTS_FILE [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
     python "$SCRIPT_DIR/manager.py" import_translation \
         -db "$DB" -s "$SOURCE_EVENTS_FILE" -u "$USER"
 
-    log_step "Importing $SOURCE_TEXT_FILE for user $USER"
+    log_step "Importing $SOURCE_TEXT_FILE [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
     python "$SCRIPT_DIR/manager.py" import_translation \
         -db "$DB" -s "$SOURCE_TEXT_FILE" -u "$USER"
     ;;
@@ -87,7 +87,7 @@ case $GAME_ID in
     check_file "$SOURCE_FILE"
     check_file "$ORIGINAL_DUMP_PATH"
 
-    log_step "Importing $SOURCE_FILE for user $USER"
+    log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
     python "$SCRIPT_DIR/manager.py" import_translation \
         -db "$DB" -s "$SOURCE_FILE" -u "$USER" -od "$ORIGINAL_DUMP_PATH" -g $GAME_ID
     ;;
