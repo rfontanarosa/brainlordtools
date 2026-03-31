@@ -7,6 +7,9 @@ __email__ = "robertofontanarosa@gmail.com"
 CRC_TABLE = {
     '7thsaga': '02979C59', # UNPACKED GFX
     '7hsaga_original': 'B3ABDDE6',
+    'actraiser': 'EAC3358D',
+    'alcahest': '5CAED89C',
+    'alcahest_original': '870427D0',
     'bof': 'C788B696',
     'bof2': '67CDACC5',
     'brainlord': 'AC443D87',
