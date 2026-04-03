@@ -30,6 +30,8 @@ POINTER_BLOCKS = ((0x1a0ad, 0x1a0c1), (0x425db, 0x4269a))
 
 FONT1_BLOCK = (0x13722d, 0x13B22d)
 FONT2_BLOCK = (0x1d0800, 0x1d1800)
+FONT2B_BLOCK = (0x1d2800, 0x1d3800)
+INTRO_FONT_BLOCK = (0x1dd000, 0x1dd800)
 
 special_pointers = (0xc21e, 0xc22f, 0xc14d, 0xc1c1, 0xc26d, 0xc2c4, 0xc295, 0xc2a6, 0xc2fd, 0xc2ec, 0xc31b, 0xc343, 0xc354, 0xc37d, 0xc431, 0xc9a8, 0xca0b, 0xca19, 0xcaa3, 0xcab4, 0xcb54, 0xcb70, 0xcd12)
 
@@ -314,7 +316,7 @@ def seventhsaga_text_dumper(args):
     conn.text_factory = str
     cur = conn.cursor()
     shutil.rmtree(dump_path, ignore_errors=True)
-    pathlib.Path.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f:
         # item_pointers_finder(f)
         text_pointer_map = {}
@@ -353,6 +355,8 @@ def seventhsaga_text_inserter(args):
             encoded_text = table.encode(text)
             if f.tell() < 0x310000 and f.tell() + len(encoded_text) > 0x30ffff:
                 f.seek(0x310000)
+            if f.tell() < 0x320000 and f.tell() + len(encoded_text) > 0x31ffff:
+                f.seek(0x320000)
             text_offset_map[int(address)] = (f.tell(), False)
             f.write(encoded_text)
             f.write(b'\xf7')
@@ -399,6 +403,8 @@ def seventhsaga_gfx_dumper(args):
     with open(source_file, 'rb') as f:
         extract_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1] - FONT1_BLOCK[0], dump_path / 'gfx_font1.bin')
         extract_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[1] - FONT2_BLOCK[0], dump_path / 'gfx_font2.bin')
+        extract_binary(f, FONT2B_BLOCK[0], FONT2B_BLOCK[1] - FONT2B_BLOCK[0], dump_path / 'gfx_font2b.bin')
+        extract_binary(f, INTRO_FONT_BLOCK[0], INTRO_FONT_BLOCK[1] - INTRO_FONT_BLOCK[0], dump_path / 'gfx_font_intro.bin')
 
 def seventhsaga_gfx_inserter(args):
     dest_file = args.dest_file
@@ -406,6 +412,8 @@ def seventhsaga_gfx_inserter(args):
     with open(dest_file, 'r+b') as f:
         insert_binary(f, FONT1_BLOCK[0], translation_path / 'gfx_font1.bin', max_length=FONT1_BLOCK[1] - FONT1_BLOCK[0])
         insert_binary(f, FONT2_BLOCK[0], translation_path / 'gfx_font2.bin', max_length=FONT2_BLOCK[1] - FONT2_BLOCK[0])
+        insert_binary(f, FONT2B_BLOCK[0], translation_path / 'gfx_font2b.bin', max_length=FONT2B_BLOCK[1] - FONT2B_BLOCK[0])
+        insert_binary(f, INTRO_FONT_BLOCK[0], translation_path / 'gfx_font_intro.bin', max_length=INTRO_FONT_BLOCK[1] - INTRO_FONT_BLOCK[0])
 
 def seventhsaga_misc_dumper(args):
     source_file = args.source_file
@@ -447,9 +455,9 @@ def seventhsaga_misc_inserter(args):
         # writing misc1.csv texts
         text_offset_map = {}
         t_new_address = 0x350000
-        for _, (_, t_address, t_value) in enumerate(translated_texts):
-            text_offset_map[t_address] = (t_new_address, False)
-            text = table.encode(t_value)
+        for _, (_, text_address, original_text, translated_text) in enumerate(translated_texts):
+            text_offset_map[text_address] = (t_new_address, False)
+            text = table.encode(translated_text)
             t_new_address = write_text(f, t_new_address, text, end_byte=b'\xf7')
         # repointing misc1
         misc_2byte_pointer_map = _get_misc_2byte_pointer_map(f, {})

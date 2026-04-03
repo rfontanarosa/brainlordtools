@@ -35,4 +35,3 @@ require_asar
 asar "$RESOURCE_PATH/asm/intro_credits.asm" "$DESTINATION"
 asar "$RESOURCE_PATH/asm/title.asm" "$DESTINATION"
 asar "$RESOURCE_PATH/asm/various.asm" "$DESTINATION"
-# asar "$RESOURCE_PATH/asm/ui.asm" "$DESTINATION"
