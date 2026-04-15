@@ -40,8 +40,8 @@ def crc_check(source_file, game_id):
     print(f"[{game_id.upper()}] Checksum Verified: {calc_crc} [OK]")
     return True
 
-def diff_dump(source1_dump_path, source2_dump_path, destination_dump_path, game) -> None:
-    parse_dump_func = GAME_PARSERS.get(game, GAME_PARSERS['default'])
+def diff_dump(source1_dump_path, source2_dump_path, destination_dump_path, game_id) -> None:
+    parse_dump_func = GAME_PARSERS.get(game_id, GAME_PARSERS['default'])
     entries1 = parse_dump_func(source1_dump_path)
     entries2 = parse_dump_func(source2_dump_path)
     with open(destination_dump_path, 'w', encoding='utf-8') as f:
@@ -92,7 +92,7 @@ def import_translation(db, source_dump_path, user_name, original_dump_path, game
                 continue
             insert_translation(cur, current_id, 'TEST', user_name, text, TranslationStatus.DONE, time.time(), '', '')
 
-def export_translation(db, destination_dump_path, user_name, blocks) -> None:
+def export_translation(db, destination_dump_path, user_name, blocks, game_id=None) -> None:
   with sqlite3.connect(db) as conn:
     conn.text_factory = str
     cur = conn.cursor()
@@ -104,4 +104,7 @@ def export_translation(db, destination_dump_path, user_name, blocks) -> None:
       for row in rows:
         _, _, text_decoded, _, _, translation, _, ref, _ = row
         text = translation if translation else text_decoded
-        f.write(f"{ref}\r\n{text}\r\n\r\n")
+        if game_id == 'starocean':
+            f.write(f"{ref}\r\n{text}\r\n\r\n\r\n")
+        else:
+            f.write(f"{ref}\r\n{text}\r\n\r\n")

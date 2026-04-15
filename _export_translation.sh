@@ -82,6 +82,22 @@ case $GAME_ID in
         -db "$DB" -d "$DEST_USER_TEXT_FILE" -u "$USER" -b 3 4 5 6 7 8
     ;;
 
+  "starocean")
+    TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
+    DEST_FILE="$TRANSLATED_DUMP_DIR/dialogues.txt"
+    DEST_USER_FILE="$TRANSLATED_DUMP_DIR/dialogues_$USER.txt"
+
+    mkdir -p "$TRANSLATED_DUMP_DIR"
+
+    log_step "Exporting $GAME_ID translation to $DEST_FILE"
+    python "$SCRIPT_DIR/manager.py" export_translation \
+       -db "$DB" -d "$DEST_FILE" -b 1 -g "$GAME_ID"
+
+    log_step "Exporting $GAME_ID translation to $DEST_USER_FILE"
+    python "$SCRIPT_DIR/manager.py" export_translation \
+       -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -b 1 -g "$GAME_ID"
+    ;;
+
   *)
     echo "Unknown GAME_ID: $GAME_ID"
     exit 1

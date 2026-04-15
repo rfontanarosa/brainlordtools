@@ -51,7 +51,8 @@ def handle_export_translation(args):
     destination_dump_path = args.destination
     user_name = args.user_name
     blocks = args.blocks
-    export_translation(db, destination_dump_path, user_name, blocks)
+    game_id = args.game_id
+    export_translation(db, destination_dump_path, user_name, blocks, game_id)
 
 def handle_amazon_translate_processor(args) -> None:
     source_dump_path = args.source
@@ -114,6 +115,7 @@ def main():
     sub.add_argument('-d', '--destination', action='store', dest='destination', required=True, help='Output path for the generated .txt dump')
     sub.add_argument('-u', '--user', action='store', dest='user_name', required=False, help='The author whose translations you want to export')
     sub.add_argument('-b', '--blocks', action='store', dest='blocks', required=False, nargs='+', help='Optional: Filter by specific block IDs')
+    sub.add_argument('-g', '--game', action='store', dest='game_id', required=False, default='default', help='Optional: Game ID (e.g., som, ff6) to use for custom parsing logic')
     sub.set_defaults(func=handle_export_translation)
 
     sub = subparsers.add_parser('amazon', help='Translate a dump using Amazon service')

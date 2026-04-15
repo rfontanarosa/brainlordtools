@@ -9,7 +9,7 @@ log_info "Starting import dump process"
 case $GAME_ID in
   "alcahest")
     DUMP_DIR="$RESOURCE_PATH/dump_all"
-    SOURCE_FILE_1="$DUMP_DIR/dialogue.txt"
+    SOURCE_FILE_1="$DUMP_DIR/all_text.txt"
 
     check_file "$SOURCE_FILE_1"
 
