@@ -5,6 +5,7 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import pathlib
+import re
 import sys
 
 from rhutils.table import Table
@@ -120,6 +121,30 @@ def decode_block(table, data):
     return ''.join(parts)
 
 
+# Matches <40,...> (uppercase from _decode_40) and <4A,...>\n (lowercase+newline from _decode_4A)
+_CUSTOM_ENC_RE = re.compile(r'(<40,[0-9A-Fa-f]+>|<4A,[0-9a-fA-F]+>\n?)')
+
+def encode_block(table, text):
+    """
+    Inverse of decode_block: re-encode text back to bytes.
+    Handles <40,...> and <4A,...> custom tokens; delegates everything
+    else to Table.encode.
+    """
+    result = b''
+    for part in _CUSTOM_ENC_RE.split(text):
+        if not part:
+            continue
+        if part.startswith('<40,'):
+            hex_str = part[4:part.index('>')]
+            result += b'\x40' + bytes.fromhex(hex_str)
+        elif part.startswith('<4A,'):
+            hex_str = part[4:part.index('>')]
+            result += b'\x4A' + bytes.fromhex(hex_str)
+        else:
+            result += table.encode(part)
+    return result
+
+
 # ============================================================
 # SNES ADDRESS → BANK ARRAY OFFSET (English Dialogue)
 # ============================================================
@@ -173,7 +198,6 @@ def read_pointers(bank, region):
 
     return pointers
 
-
 # ============================================================
 # DUMPER
 # ============================================================
@@ -214,8 +238,11 @@ def rsaga_text_dumper(args):
                     else:
                         try:
                             stop = bank.index(table.end_token[0], start)
-                        except (ValueError, TypeError):
-                            stop = len(bank) - 1
+                        except (ValueError, TypeError, AttributeError):
+                            try:
+                                stop = bank.index(0xFF, start)
+                            except ValueError:
+                                stop = start
                     blocks.append((idx, start, stop))
 
             filename = dump_path / f'dump_{name}.txt'
@@ -240,8 +267,101 @@ def rsaga_text_dumper(args):
 
             print(f'{name}: {len(blocks)} blocks written to {filename}')
 
+_HEADER_RE = re.compile(r'\[ID=(\d+).*?START=(0x[0-9a-fA-F]+).*?POINTERS=(0x[0-9a-fA-F]+)\]')
+
+def bank_offset_to_snes(offset):
+    """Inverse of snes_to_bank_offset: bank array offset → 24-bit SNES address."""
+    if offset < 0x8000:
+        return offset + 0x228000
+    elif offset < 0x10000:
+        return offset + 0x230000
+    elif offset < 0x18000:
+        return offset + 0x238000
+    elif offset < 0x20000:
+        return offset + 0x240000
+    else:
+        return offset + 0x248000
+
+
+def parse_translation_dump(filename):
+    """Parse a translation dump file.
+
+    Returns a list of (ptr_file_addr: int, text_start: int, text: str) tuples sorted by ID.
+    """
+    entries = {}
+    current_id = None
+    current_ptr = None
+    current_start = None
+    lines_acc = []
+    with open(filename, 'r', encoding='utf-8') as f:
+        for line in f:
+            m = _HEADER_RE.match(line.strip())
+            if m:
+                if current_id is not None:
+                    entries[current_id] = (current_ptr, current_start, ''.join(lines_acc).strip('\n'))
+                current_id = int(m.group(1))
+                current_start = int(m.group(2), 16)
+                current_ptr = int(m.group(3), 16)
+                lines_acc = []
+            elif current_id is not None:
+                lines_acc.append(line)
+    if current_id is not None:
+        entries[current_id] = (current_ptr, current_start, ''.join(lines_acc).strip('\n'))
+    return [entries[k] for k in sorted(entries)]
+
+
 def rsaga_text_inserter(args):
-    pass
+    dest_file = args.dest_file
+    table_file = args.table1
+    translation_path = pathlib.Path(args.translation_path)
+    table = Table(table_file)
+
+    with open(dest_file, 'r+b') as f:
+        for mode, region in REGIONS.items():
+            bank_start = region['bank_start']
+            section = region['section']
+            text_block_end = bank_start + region['bank_read_size'] - 1
+
+            dump_file = translation_path / f'dump_{mode}.txt'
+            if not dump_file.exists():
+                print(f'  [WARNING] Translation file not found: {dump_file}', file=sys.stderr)
+                continue
+
+            entries = parse_translation_dump(dump_file)
+            if not entries:
+                continue
+
+            # Use the first entry's original START as the text write position,
+            # so we don't overwrite any game data that may sit between the
+            # pointer table end and the actual text area.
+            text_block_start = entries[0][1]
+            print(hex(text_block_start))
+
+            f.seek(text_block_start)
+            for ptr_file_addr, _, text_str in entries:
+                new_text_addr = f.tell()
+                text_encoded = encode_block(table, text_str)
+
+                if f.tell() + len(text_encoded) > text_block_end + 1:
+                    available = text_block_end + 1 - f.tell()
+                    overflow = len(text_encoded) - available
+                    print(f'  [WARNING] {mode} block overflow by {overflow} bytes, truncating trailing filler', file=sys.stderr)
+                    text_encoded = text_encoded[:available]
+
+                f.write(text_encoded)
+                next_text_addr = f.tell()
+
+                if section == 'dialogue':
+                    snes_addr = bank_offset_to_snes(new_text_addr - bank_start)
+                    new_ptr_value = snes_addr.to_bytes(3, byteorder='little')
+                else:
+                    new_ptr_value = (new_text_addr - bank_start).to_bytes(2, byteorder='little')
+
+                f.seek(ptr_file_addr)
+                f.write(new_ptr_value)
+                f.seek(next_text_addr)
+
+            print(f'{mode}: {len(entries)} blocks inserted, {text_block_end + 1 - f.tell()} bytes free')
 
 # ============================================================
 # CLI
@@ -274,7 +394,6 @@ def main():
         args.func(args)
     else:
         parser.print_help()
-
 
 if __name__ == '__main__':
     main()
