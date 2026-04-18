@@ -11,6 +11,7 @@ import re
 import shutil
 import sys
 
+from rhutils.dump import extract_binary
 from rhutils.io import read_text
 from rhutils.table import Table
 
@@ -451,6 +452,14 @@ def rsaga_misc_dumper(args):
                     fields = [hex(text_address_start), text_decoded]
                     csv_writer.writerow(fields)
 
+def rsaga_gfx_dumper(args):
+    source_file = args.source_file
+    dump_path = pathlib.Path(args.dump_path)
+    shutil.rmtree(dump_path, ignore_errors=True)
+    os.mkdir(dump_path)
+    with open(source_file, 'rb') as f:
+        extract_binary(f, 0x0AEFC0 , 0x15EFC0 - 0x0AEFC0, dump_path / 'gfx_new_game.bin')
+
 def main():
     import argparse
     parser = argparse.ArgumentParser()
@@ -480,6 +489,11 @@ def main():
     sub.add_argument('-t3', '--table3', action='store', dest='table3', help='Tertiary TBL file')
     sub.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Output directory for dump files')
     sub.set_defaults(func=rsaga_misc_dumper)
+
+    sub = subparsers.add_parser('dump_gfx', help='Extract graphics to a binary file')
+    sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
+    sub.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Output directory for dump files')
+    sub.set_defaults(func=rsaga_gfx_dumper)
 
     args = parser.parse_args()
     if args.func:

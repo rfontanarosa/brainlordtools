@@ -14,6 +14,7 @@ TABLE2="$RESOURCE_PATH/tables/rsaga-misc.tbl"
 
 DUMP_TEXT_PATH="$RESOURCE_PATH/dump_text"
 DUMP_MISC_PATH="$RESOURCE_PATH/dump_misc"
+DUMP_GFX_PATH="$RESOURCE_PATH/dump_gfx"
 
 TRANSLATED_TEXT_PATH="$RESOURCE_PATH/translated_text"
 
@@ -22,5 +23,6 @@ python "$MANAGER_PATH/manager.py" copy_file -s "$SOURCE" -d "$DESTINATION" || ex
 
 python "$TOOLS_PATH/rsaga.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH" -db "$DB"
 python "$TOOLS_PATH/rsaga.py" dump_misc -s "$SOURCE" -t1 "$TABLE2" -dp "$DUMP_MISC_PATH"
+python "$TOOLS_PATH/rsaga.py" dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
 
 python "$TOOLS_PATH/rsaga.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -tp "$TRANSLATED_TEXT_PATH" -db "$DB" -u "$USER"
