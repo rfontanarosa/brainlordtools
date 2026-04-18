@@ -4,10 +4,14 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
+import csv
+import os
 import pathlib
 import re
+import shutil
 import sys
 
+from rhutils.io import read_text
 from rhutils.table import Table
 
 # ============================================================
@@ -378,9 +382,74 @@ def rsaga_text_inserter(args):
 
             print(f'{mode}: {len(entries)} blocks inserted, {text_block_end + 1 - f.tell()} bytes free')
 
-# ============================================================
-# CLI
-# ============================================================
+MISC_CONFIGS = ({
+    'name': 'Item Names',
+    'filename': 'item_names.csv',
+    'start_offset': 0x108000,
+    'end_offset': 0x109000,
+    'step': 16
+}, {
+    'name': 'Spell Names',
+    'filename': 'spell_names.csv',
+    'start_offset': 0x109000,
+    'end_offset': 0x109500,
+    'step': 16
+}, {
+    'name': 'Tech Names',
+    'filename': 'tech_names.csv',
+    'start_offset': 0x109500,
+    'end_offset': 0x10A400,
+    'step': 16
+}, {
+    'name': 'Enemies',
+    'filename': 'enemies.csv',
+    'start_offset': 0x10A400,
+    'end_offset': 0x10BB00,
+    'step': 16
+}, {
+    'name': 'Item Descriptions',
+    'filename': 'item_descriptions.csv',
+    'start_offset': 0x10BB00,
+    'end_offset': 0x10CB00,
+    'step': 0x40
+}, {
+    'name': 'Messages',
+    'filename': 'messages.csv',
+    'start_offset': 0x10CB00,
+    'end_offset': 0x10CB90,
+    'step': 16
+}, {
+    'name': 'Elements',
+    'filename': 'elements.csv',
+    'start_offset': 0x10CC00,
+    'end_offset': 0x10CCA0,
+    'step': 16
+})
+
+def rsaga_misc_dumper(args):
+    source_file = args.source_file
+    table1_file = args.table1
+    dump_path = pathlib.Path(args.dump_path)
+    table = Table(table1_file)
+    shutil.rmtree(dump_path, ignore_errors=True)
+    dump_path.mkdir()
+    with open(source_file, 'rb') as f:
+        for config in MISC_CONFIGS:
+            filepath = dump_path / config['filename']
+            with filepath.open('w+', encoding='utf-8') as csv_file:
+                csv_writer = csv.writer(csv_file)
+                csv_writer.writerow(['text_address', 'text', 'trans'])
+                start_offset, end_offset = config.get('start_offset'), config.get('end_offset')
+                f.seek(start_offset)
+                while f.tell() < end_offset:
+                    text_address_start = f.tell()
+                    if config.get('step'):
+                        length = config.get('length', config['step'])
+                        text = read_text(f, text_address_start, length=length)
+                        f.seek(config['step'] - length, os.SEEK_CUR)
+                    text_decoded = table.decode(text)
+                    fields = [hex(text_address_start), text_decoded]
+                    csv_writer.writerow(fields)
 
 def main():
     import argparse
@@ -403,6 +472,14 @@ def main():
     sub.add_argument('-db', '--database', action='store', dest='database_file', help='Path to the SQLite database')
     sub.add_argument('-u', '--user', action='store', dest='user', help='Username to filter translations')
     sub.set_defaults(func=rsaga_text_inserter)
+
+    sub = subparsers.add_parser('dump_misc', help='Dump miscellaneous texts to CSV files')
+    sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
+    sub.add_argument('-t1', '--table1', action='store', dest='table1', help='Primary TBL file')
+    sub.add_argument('-t2', '--table2', action='store', dest='table2', help='Secondary TBL file')
+    sub.add_argument('-t3', '--table3', action='store', dest='table3', help='Tertiary TBL file')
+    sub.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Output directory for dump files')
+    sub.set_defaults(func=rsaga_misc_dumper)
 
     args = parser.parse_args()
     if args.func:
