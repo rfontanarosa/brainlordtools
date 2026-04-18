@@ -28,6 +28,7 @@ REGIONS = {
         'ptr_table_start':  0x140000,
         'ptr_table_end':    0x1400D7,  # inclusive
         'bank_read_size':   0x008000,
+        'text_end':         0x141FFF,  # inclusive; last writable byte of the text area
         'section':          'menu',
     },
 }
@@ -283,6 +284,17 @@ def bank_offset_to_snes(offset):
         return offset + 0x248000
 
 
+def _strip_block_separator(text):
+    # The dumper appends "\n\n" after each text block. Strip exactly that
+    # back off — do NOT strip further, since the last decoded token may
+    # itself end with "\n" (e.g. "[FF]\n" -> 0xFF) and that "\n" is
+    # required for the reverse table to re-encode it correctly.
+    for _ in range(2):
+        if text.endswith('\n'):
+            text = text[:-1]
+    return text
+
+
 def parse_translation_dump(filename):
     """Parse a translation dump file.
 
@@ -298,7 +310,7 @@ def parse_translation_dump(filename):
             m = _HEADER_RE.match(line.strip())
             if m:
                 if current_id is not None:
-                    entries[current_id] = (current_ptr, current_start, ''.join(lines_acc).strip('\n'))
+                    entries[current_id] = (current_ptr, current_start, _strip_block_separator(''.join(lines_acc)))
                 current_id = int(m.group(1))
                 current_start = int(m.group(2), 16)
                 current_ptr = int(m.group(3), 16)
@@ -306,7 +318,7 @@ def parse_translation_dump(filename):
             elif current_id is not None:
                 lines_acc.append(line)
     if current_id is not None:
-        entries[current_id] = (current_ptr, current_start, ''.join(lines_acc).strip('\n'))
+        entries[current_id] = (current_ptr, current_start, _strip_block_separator(''.join(lines_acc)))
     return [entries[k] for k in sorted(entries)]
 
 
@@ -320,7 +332,10 @@ def rsaga_text_inserter(args):
         for mode, region in REGIONS.items():
             bank_start = region['bank_start']
             section = region['section']
-            text_block_end = bank_start + region['bank_read_size'] - 1
+            if 'text_end' in region:
+                text_block_end = region['text_end']
+            else:
+                text_block_end = bank_start + region['bank_read_size'] - 1
 
             dump_file = translation_path / f'dump_{mode}.txt'
             if not dump_file.exists():
