@@ -346,11 +346,12 @@ def seventhsaga_text_inserter(args):
     # insert text into the new location and collect old and new text offsets
     NEW_TEXT_SEGMENT_1_START = NEW_TEXT_SEGMENT_1_END = 0x300000
     text_offset_map = {}
+    mid_text_offset_map = {}
     with open(dest_file, 'r+b') as f:
         f.seek(NEW_TEXT_SEGMENT_1_START)
         rows = select_most_recent_translation(cur, ['1', '2', '3'])
         for row in rows:
-            _, _, text_decoded, address, _, translation, _, _, _ = row
+            current_id, _, text_decoded, address, _, translation, _, _, _ = row
             text = translation if translation else text_decoded
             encoded_text = table.encode(text)
             if f.tell() < 0x310000 and f.tell() + len(encoded_text) > 0x30ffff:
@@ -358,6 +359,8 @@ def seventhsaga_text_inserter(args):
             if f.tell() < 0x320000 and f.tell() + len(encoded_text) > 0x31ffff:
                 f.seek(0x320000)
             text_offset_map[int(address)] = (f.tell(), False)
+            if current_id in (936, 938):
+                mid_text_offset_map[int(address) + 6] = (f.tell() + 6, False)
             f.write(encoded_text)
             f.write(b'\xf7')
         NEW_TEXT_SEGMENT_1_END = f.tell()
@@ -391,8 +394,8 @@ def seventhsaga_text_inserter(args):
         write_byte(f, 0x21898, b'\xf0')
         write_byte(f, 0x21723, b'\xf0')
         # hardcoded internal pointers (not at the beginning of text)
-        # repoint_2byte_pointer(f, 0x2b9a5, text_offset_map, b'\xc6') # 0x6e3bf
-        # repoint_2byte_pointer(f, 0x2bb64, text_offset_map, b'\xc6') # 0x6e447
+        repoint_2byte_pointer(f, 0x2b9a5, mid_text_offset_map, b'\xc6', 'Mid-Text') # 0x6e3bf
+        repoint_2byte_pointer(f, 0x2bb64, mid_text_offset_map, b'\xc6', 'Mid-Text') # 0x6e447
     cur.close()
     conn.commit()
     conn.close()
