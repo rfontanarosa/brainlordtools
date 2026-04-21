@@ -180,6 +180,7 @@ def _get_misc_3byte_pointer_map(f, pointer_map):
         (0x4fbe0,  5,  3), # Use...
         (0x4eeb9,  11, 3), # party
         (0x1e76d,  7,  3), # Human...
+        (0x4950d,  2,  3), # Discard, Equip
     ]
     for table_start, count, step in misc_pointer_tables:
         table_end = table_start + count * step
