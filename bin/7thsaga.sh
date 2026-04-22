@@ -23,9 +23,12 @@ TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
 python "$MANAGER_PATH/manager.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
 python "$MANAGER_PATH/manager.py" copy_file -s "$SOURCE" -d "$DESTINATION" || exit 1
 
+require_asar
+asar "$RESOURCE_PATH/asm/misc.asm" "$DESTINATION"
+
 python "$TOOLS_PATH/7thsaga.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_TEXT_PATH" -db "$DB"
 python "$TOOLS_PATH/7thsaga.py" dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
-python "$TOOLS_PATH/7thsaga.py" dump_misc -s "$SOURCE" -t1 "$TABLE2" -dp "$DUMP_MISC_PATH"
+python "$TOOLS_PATH/7thsaga.py" dump_misc -s "$DESTINATION" -t1 "$TABLE2" -dp "$DUMP_MISC_PATH"
 
 python "$TOOLS_PATH/7thsaga.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE2" -tp "$TANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
 python "$TOOLS_PATH/7thsaga.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"

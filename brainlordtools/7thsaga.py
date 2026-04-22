@@ -126,13 +126,20 @@ sparse_pointers = (
     0x15b033, 0x15b039, 0x15bb49, 0x15d05b,
 )
 
+# Original pointers offsets Up/up (removed)
+# Up - 0x4a180
+# up - 0x18d19, 0x18d6f, 0x18dc5, 0x18e1b, 0x18e71, 0x18ec7
+# found - 0x190d3
+# gave up - 0x190ed
+# learned - 0x18f45
+
 def _get_misc_2byte_pointer_map(f, pointer_map):
     # Two-byte hardcoded pointers with bank byte \xc7 (file base 0x70000)
     two_byte_c7 = [
         0xcc2, 0xce0, 0xcfe, 0x245c, 0x2490, 0x24c5, 0x2fc5, 0x324c, 0x3351, 0x3456,
         0x34cf, 0x3547, 0x35bf, 0x9df3, 0x1e546, 0x1ead1, 0x1eaa5, 0x18b62, 0x18b7b, 0x18cab,
-        0x18cc3, 0x18d01, 0x18d19, 0x18d57, 0x18d6f, 0x18dc5, 0x18e1b, 0x18e71, 0x18ec7, 0x18f45,
-        0x190d3, 0x190ed, 0x19733, 0x1975b, 0x19783, 0x197ab, 0x197d3, 0x1e3ba, 0x1e3e6, 0x1e51a,
+        0x18cc3, 0x18d01, 0x18d57,
+        0x19733, 0x1975b, 0x19783, 0x197ab, 0x197d3, 0x1e3ba, 0x1e3e6, 0x1e51a,
         0x1e99d, 0x1e9c9, 0x1e9f5, 0x1ea21, 0x1ea4d, 0x1ea79, 0x217c0, 0x217f1, 0x41788, 0x440ff,
         0x45b06, 0x45fc9, 0x4719b, 0x47950, 0x47b1e, 0x485ac, 0x48657, 0x48739, 0x48676, 0x48758,
         0x487e0, 0x487c1, 0x48971, 0x48982, 0x18dad, 0x19b36, 0x1e412, 0x18e03, 0x19b62, 0x1e43e,
@@ -140,7 +147,7 @@ def _get_misc_2byte_pointer_map(f, pointer_map):
         0x477c3, 0x49025, 0x47911, 0x49392, 0x4a848, 0x4c371, 0x489d1, 0x489f3, 0x48a64, 0x48ad5,
         0x48b46, 0x48bb2, 0x48c1e, 0x48a42, 0x48ab3, 0x48b24, 0x48b90, 0x48bfc, 0x49353, 0x49639,
         0x49e76, 0x49e95, 0x49ef2, 0x49f11, 0x49f7e, 0x4a01c, 0x4a02d, 0x4a07c, 0x4a09e, 0x4a0ed,
-        0x4a10f, 0x4a15e, 0x4a180, 0x4a1cf, 0x4a1f1, 0x4a23b, 0x4a25d, 0x4a2a7, 0x4a2c9, 0x4a88d,
+        0x4a10f, 0x4a15e, 0x4a1cf, 0x4a1f1, 0x4a23b, 0x4a25d, 0x4a2a7, 0x4a2c9, 0x4a88d,
         0x4a8d2, 0x4a952, 0x4ae93, 0x4b4e8, 0x4b517, 0x485eb, 0x488fe, 0x49fb1, 0x4cadf, 0x48dc7,
         0x493d1, 0x5e0c8, 0x4b53c, 0x4b56c, 0x4b585, 0x4b5af, 0x4b613, 0x4b643, 0x4b65c, 0x4b686,
         0x4b6ab, 0x4b6da, 0x4b899, 0x4b8c4, 0x4b90a, 0x4b937, 0x4b950, 0x4b97a, 0x4b9ab, 0x4b9e9,
@@ -150,6 +157,11 @@ def _get_misc_2byte_pointer_map(f, pointer_map):
         0x4d79f, 0x4d7f3, 0x4d823, 0x4d83c, 0x4d866, 0x4d88b, 0x4d8ba, 0x4da38, 0x4da60, 0x4da96,
         0x4dac3, 0x4dadc, 0x4db06, 0x4db3c, 0x4db6b, 0x4db84, 0x4dbae, 0x4dce6, 0x4dd0d, 0x4dd60,
         0x4de01, 0x4de28, 0x5e0a1, 0x5e0b6, 0x5e3a3,
+        0x4a16f, # Up
+        0x18D12, 0x18D68, 0x018DBE, 0x018E14, 0x018E6A, 0x018EC0, # up
+        0x190c9, # found
+        0x190e3, # gave up
+        0x18f3a, # learned
     ]
     for p_offset in two_byte_c7:
         f.seek(p_offset)
@@ -223,8 +235,8 @@ def _get_text_2byte_pointer_map(f, pointer_map):
         0x9134, 0xa339, 0xb1d1, 0x94bc, 0x953d, 0xa732, 0x95ef, 0xa7cf, 0x960f, 0xa7ef,
         0x971f, 0xa8d5, 0x9800, 0xa995, 0x9870, 0xaa05, 0xb4db, 0x98cf, 0xaa64, 0x9962,
         0x9a44, 0x9b99, 0x9e7d, 0x9e2b, 0xa069, 0xacee, 0xad25, 0xb097, 0xb42a, 0xb0c2,
-        0xb4a5, 0xa9cf, 0xb5a5, 0xb604, 0xb6c6, 0x9c45, 0x9f60, 0x28b78, 0xa6fa, 0xa6b1,
-        0x9505, 0xc97b, 0x1f081, 0x2e1f6, 0x2c272,
+        0x983a, 0xb4a5, 0xa9cf, 0xb5a5, 0xb604, 0xb6c6, 0x9c45, 0x9f60, 0x28b78, 0xa6fa, 0xa6b1,
+        0x9505, 0xc97b, 0x1f081, 0x2e1f6, 0x2e3fe, 0x2c272,
     ] + list(special_pointers)
     for p_offset in two_byte_c6:
         f.seek(p_offset)
@@ -347,7 +359,7 @@ def seventhsaga_text_inserter(args):
     # insert text into the new location and collect old and new text offsets
     NEW_TEXT_SEGMENT_1_START = NEW_TEXT_SEGMENT_1_END = 0x300000
     text_offset_map = {}
-    mid_text_offset_map = {}
+    mid_text_offset_map_2byte = {}
     with open(dest_file, 'r+b') as f:
         f.seek(NEW_TEXT_SEGMENT_1_START)
         rows = select_most_recent_translation(cur, ['1', '2', '3'])
@@ -359,9 +371,11 @@ def seventhsaga_text_inserter(args):
                 f.seek(0x310000)
             if f.tell() < 0x320000 and f.tell() + len(encoded_text) > 0x31ffff:
                 f.seek(0x320000)
-            text_offset_map[int(address)] = (f.tell(), False)
+            text_offset_map[int(address)] = f.tell()
             if current_id in (936, 938):
-                mid_text_offset_map[int(address) + 6] = (f.tell() + 6, False)
+                mid_text_offset_map_2byte[int(address) + 6] = f.tell() + 6
+            if current_id in (318,):
+                text_offset_map[int(address) + 12] = f.tell() + 12
             f.write(encoded_text)
             f.write(b'\xf7')
         NEW_TEXT_SEGMENT_1_END = f.tell()
@@ -395,8 +409,9 @@ def seventhsaga_text_inserter(args):
         write_byte(f, 0x21898, b'\xf0')
         write_byte(f, 0x21723, b'\xf0')
         # hardcoded internal pointers (not at the beginning of text)
-        repoint_2byte_pointer(f, 0x2b9a5, mid_text_offset_map, b'\xc6', 'Mid-Text') # 0x6e3bf
-        repoint_2byte_pointer(f, 0x2bb64, mid_text_offset_map, b'\xc6', 'Mid-Text') # 0x6e447
+        repoint_2byte_pointer(f, 0x2b9a5, mid_text_offset_map_2byte, b'\xc6', 'Mid-Text (2-byte)') # 0x6e3bf
+        repoint_2byte_pointer(f, 0x2bb64, mid_text_offset_map_2byte, b'\xc6', 'Mid-Text (2-byte)') # 0x6e447
+        repoint_3byte_pointer(f, 0x64ddc + 3, text_offset_map, 'Mid-Text (3-byte)')
     cur.close()
     conn.commit()
     conn.close()
@@ -460,7 +475,7 @@ def seventhsaga_misc_inserter(args):
         text_offset_map = {}
         t_new_address = 0x350000
         for _, (_, text_address, original_text, translated_text) in enumerate(translated_texts):
-            text_offset_map[text_address] = (t_new_address, False)
+            text_offset_map[text_address] = t_new_address
             text = table.encode(translated_text)
             t_new_address = write_text(f, t_new_address, text, end_byte=b'\xf7')
         # repointing misc1
@@ -477,19 +492,22 @@ def repoint_2byte_pointer(f, pointer_offset, text_offset_map, bank_byte, type=No
     original_text_offset = decode_snes_addr(f, pointer_offset, base_addr=0xc00000, size=2, bank_byte=bank_byte)
     if pointer_offset in special_pointers:
         original_text_offset += 1
-    new_text_offset, _ = text_offset_map.get(original_text_offset, (None, None))
+    new_text_offset = text_offset_map.get(original_text_offset)
     if new_text_offset:
         new_pointer_value = encode_snes_addr(new_text_offset, base_addr=0xc00000, size=3)
         f.seek(-2, os.SEEK_CUR)
         f.write(new_pointer_value[:-1])
-        f.seek(5, os.SEEK_CUR)
+        if pointer_offset == 0x2e3fe:
+            f.seek(6, os.SEEK_CUR)
+        else:
+            f.seek(5, os.SEEK_CUR)
         f.write(new_pointer_value[2:3])
     else:
         print(f'Pointer not found - Type: {type} - Text offset: {hex(original_text_offset)} - Pointer offset: {hex(pointer_offset)}')
 
 def repoint_3byte_pointer(f, pointer_offset, text_offset_map, type=None):
     original_text_offset = decode_snes_addr(f, pointer_offset, base_addr=0xc00000, size=3)
-    new_text_offset, _ = text_offset_map.get(original_text_offset, (None, None))
+    new_text_offset = text_offset_map.get(original_text_offset)
     if new_text_offset:
         new_pointer_value = encode_snes_addr(new_text_offset, base_addr=0xc00000, size=3)
         if original_text_offset == 0x65081:
