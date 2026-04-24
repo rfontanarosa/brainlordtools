@@ -497,10 +497,9 @@ def repoint_2byte_pointer(f, pointer_offset, text_offset_map, bank_byte, type=No
         new_pointer_value = encode_snes_addr(new_text_offset, base_addr=0xc00000, size=3)
         f.seek(-2, os.SEEK_CUR)
         f.write(new_pointer_value[:-1])
-        if pointer_offset == 0x2e3fe:
-            f.seek(6, os.SEEK_CUR)
-        else:
-            f.seek(5, os.SEEK_CUR)
+        byte = f.read(1)
+        while byte != b'\xa9':
+            byte = f.read(1)
         f.write(new_pointer_value[2:3])
     else:
         print(f'Pointer not found - Type: {type} - Text offset: {hex(original_text_offset)} - Pointer offset: {hex(pointer_offset)}')
