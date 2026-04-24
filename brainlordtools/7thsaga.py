@@ -493,6 +493,8 @@ def repoint_2byte_pointer(f, pointer_offset, text_offset_map, bank_byte, type=No
     if pointer_offset in special_pointers:
         original_text_offset += 1
     new_text_offset = text_offset_map.get(original_text_offset)
+    if pointer_offset in special_pointers:
+        new_text_offset -= 1
     if new_text_offset:
         new_pointer_value = encode_snes_addr(new_text_offset, base_addr=0xc00000, size=3)
         f.seek(-2, os.SEEK_CUR)
