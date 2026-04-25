@@ -381,8 +381,10 @@ def seventhsaga_text_inserter(args):
             text_offset_map[int(address)] = f.tell()
             if current_id in (936, 938):
                 mid_text_offset_map_2byte[int(address) + 6] = f.tell() + 6
-            if current_id in (318,):
+            elif current_id in (318,):
                 text_offset_map[int(address) + 12] = f.tell() + 12
+            elif current_id in (742,):
+                text_offset_map[int(address) + 27] = f.tell() + 27
             f.write(encoded_text)
             f.write(b'\xf7')
         NEW_TEXT_SEGMENT_1_END = f.tell()
@@ -419,6 +421,8 @@ def seventhsaga_text_inserter(args):
         repoint_2byte_pointer(f, 0x2b9a5, mid_text_offset_map_2byte, b'\xc6', 'Mid-Text (2-byte)') # 0x6e3bf
         repoint_2byte_pointer(f, 0x2bb64, mid_text_offset_map_2byte, b'\xc6', 'Mid-Text (2-byte)') # 0x6e447
         repoint_3byte_pointer(f, 0x64ddc + 3, text_offset_map, 'Mid-Text (3-byte)')
+        repoint_3byte_pointer(f, 0x6ac9c + 9, text_offset_map, 'Mid-Text (3-byte)')
+        repoint_3byte_pointer(f, 0x6ac9c + 18, text_offset_map, 'Mid-Text (3-byte)')
     cur.close()
     conn.commit()
     conn.close()
