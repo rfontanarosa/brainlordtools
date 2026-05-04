@@ -61,6 +61,17 @@ case $GAME_ID in
         -db "$DB" -s "$SOURCE_FILE" -u "$USER"
     ;;
 
+  "rsaga")
+    TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translated_text"
+    SOURCE_FILE="$TRANSLATED_DUMP_DIR/dump_italian_${USER}_dialogue.txt"
+
+    check_file "$SOURCE_FILE"
+
+    log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
+    python "$SCRIPT_DIR/manager.py" import_translation \
+        -db "$DB" -s "$SOURCE_FILE" -u "$USER"
+    ;;
+
   "som" | "som_pal")
     TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
     SOURCE_EVENTS_FILE="$TRANSLATED_DUMP_DIR/dump_events_$USER.txt"

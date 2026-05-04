@@ -68,6 +68,17 @@ case $GAME_ID in
        -db "$DB" -s "$SOURCE_FILE" -g "$GAME_ID"
     ;;
 
+  "rsaga")
+    DUMP_DIR="$RESOURCE_PATH/dump_text"
+    SOURCE_FILE_1="$DUMP_DIR/dump_english_dialogue.txt"
+
+    check_file "$SOURCE_FILE_1"
+
+    log_step "Importing $SOURCE_FILE_1 [game=${YELLOW}$GAME_ID${NC}"
+    python "$SCRIPT_DIR/manager.py" import_dump \
+       -db "$DB" -s "$SOURCE_FILE_1"
+    ;;
+
   *)
     log_error "Unknown GAME_ID: $GAME_ID"
     exit 1
