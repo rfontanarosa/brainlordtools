@@ -106,5 +106,7 @@ def export_translation(db, destination_dump_path, user_name, blocks, game_id=Non
         text = translation if translation else text_decoded
         if game_id == 'starocean':
             f.write(f"{ref}\r\n{text}\r\n\r\n\r\n")
+        elif game_id == 'soe':
+            f.write(f"{text}<End>\n")
         else:
             f.write(f"{ref}\r\n{text}\r\n\r\n")
