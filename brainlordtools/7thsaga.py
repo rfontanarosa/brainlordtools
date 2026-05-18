@@ -371,23 +371,27 @@ def seventhsaga_text_inserter(args):
         f.seek(NEW_TEXT_SEGMENT_1_START)
         rows = select_most_recent_translation(cur, ['1', '2', '3'])
         for row in rows:
-            current_id, _, text_decoded, address, _, translation, _, _, _ = row
+            current_id, _, text_decoded, text_address, _, translation, _, _, _ = row
+            text_address = int(text_address)
             text = translation if translation else text_decoded
             encoded_text = table.encode(text)
             if f.tell() < 0x310000 and f.tell() + len(encoded_text) > 0x30ffff:
                 f.seek(0x310000)
             if f.tell() < 0x320000 and f.tell() + len(encoded_text) > 0x31ffff:
                 f.seek(0x320000)
-            text_offset_map[int(address)] = f.tell()
-            if current_id in (936, 938):
-                mid_text_offset_map_2byte[int(address) + 6] = f.tell() + 6
+            text_offset_map[text_address] = f.tell()
+            if current_id in (936,):
+                mid_text_offset_map_2byte[text_address + 6] = f.tell() + 6
             elif current_id in (318,):
-                text_offset_map[int(address) + 12] = f.tell() + 12
+                text_offset_map[text_address + 12] = f.tell() + 12
             elif current_id in (742,):
-                text_offset_map[int(address) + 27] = f.tell() + 27
+                text_offset_map[text_address + 27] = f.tell() + 27
             elif current_id in (787,):
                 index = encoded_text.find(b'\xff\xfc\xbc\xc6')
-                text_offset_map[int(address) + 211] = f.tell() + index + 4
+                text_offset_map[text_address + 211] = f.tell() + index + 4
+            elif current_id in (938,):
+                text_offset_map[text_address + 6] = f.tell() + 6
+                mid_text_offset_map_2byte[text_address + 6] = f.tell() + 6
             f.write(encoded_text)
             f.write(b'\xf7')
         NEW_TEXT_SEGMENT_1_END = f.tell()
@@ -426,7 +430,7 @@ def seventhsaga_text_inserter(args):
         repoint_3byte_pointer(f, 0x64ddc + 3, text_offset_map, 'Mid-Text (3-byte)')
         repoint_3byte_pointer(f, 0x6ac9c + 9, text_offset_map, 'Mid-Text (3-byte)')
         repoint_3byte_pointer(f, 0x6ac9c + 18, text_offset_map, 'Mid-Text (3-byte)')
-        repoint_3byte_pointer(f, 0x6bcfc - 3, text_offset_map, '-')
+        repoint_3byte_pointer(f, 0x6bcfc - 3, text_offset_map, 'Mid-Text (3-byte)')
     cur.close()
     conn.commit()
     conn.close()
