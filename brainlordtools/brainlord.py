@@ -289,21 +289,21 @@ def brainlord_gfx_inserter(args):
         insert_binary(f, FONT1_BLOCK[0], translation_path / 'gfx_font1.bin', max_length=FONT1_BLOCK[2])
         insert_binary(f, FONT2_BLOCK[0], translation_path / 'gfx_font2.bin', max_length=FONT2_BLOCK[2])
 
-def _brainlord_text_block_dumper(f, dump_path, table, id, block, cur, start=0x0, end=0x0):
+def _brainlord_text_block_dumper(f, dump_path, table, current_id, block, cur, start=0x0, end=0x0):
     f.seek(start)
     while f.tell() < end:
         text_address = f.tell()
         text = read_text(f, text_address, end_byte=b'\xf7', cmd_list={b'\xf2': 1, b'\xf5': 1, b'\xf6': 1, b'\xfb': 5, b'\xfc': 5, b'\xfd': 2, b'\xfe': 2, b'\xff': 3})
         text_decoded = table.decode(text)
-        ref = f'[ID={id} BLOCK={block} START={hex(text_address)}]'
+        ref = f'[ID={current_id} BLOCK={block} START={hex(text_address)}]'
         # dump - db
-        insert_text(cur, id, text, text_decoded, text_address, '', block, ref)
+        insert_text(cur, current_id, text_decoded, text_address, '', len(text), block, ref)
         # dump - txt
         filename = dump_path / 'dump_eng.txt'
         with open(filename, 'a+', encoding='utf-8') as out:
             out.write(f'{ref}\n{text_decoded}\n\n')
-        id += 1
-    return id
+        current_id += 1
+    return current_id
 
 def brainlord_text_dumper(args):
     source_file = args.source_file
