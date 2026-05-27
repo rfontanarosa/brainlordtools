@@ -1,12 +1,14 @@
 CREATE TABLE IF NOT EXISTS texts (
     id INTEGER PRIMARY KEY,
-    text BLOB NOT NULL,
-    text_decoded TEXT NOT NULL,
+    text TEXT NOT NULL,
     address TEXT NOT NULL,
     pointer_addresses TEXT,
     size INTEGER,
     block TEXT,
-    ref TEXT
+    ref TEXT,
+    dump_type TEXT,
+    filename TEXT,
+    file_index INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS translations (
