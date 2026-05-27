@@ -386,7 +386,7 @@ def _get_text_internal_pointer_map(f, pointer_map):
                 pointer_map.setdefault(p_value, []).append(p_offset)
     return pointer_map
 
-def seventhsaga_text_segment_dumper(f, dump_path, table, id, block, cur, text_pointer_map, start=0x0, end=0x0):
+def seventhsaga_text_segment_dumper(f, dump_path, table, current_id, block, cur, text_pointer_map, start=0x0, end=0x0):
     f.seek(start)
     while f.tell() < end:
         text_offset = f.tell()
@@ -394,15 +394,15 @@ def seventhsaga_text_segment_dumper(f, dump_path, table, id, block, cur, text_po
         text_decoded = table.decode(text)
         pointers_offsets = text_pointer_map.get(text_offset, [])
         pointers_offsets_str = ';'.join(hex(x) for x in pointers_offsets)
-        ref = f'[ID={id} START={hex(text_offset)} END={hex(f.tell() - 1)} POINTERS={pointers_offsets_str}]'
+        ref = f'[ID={current_id} START={hex(text_offset)} END={hex(f.tell() - 1)} POINTERS={pointers_offsets_str}]'
         # dump - db
-        insert_text(cur, id, text, text_decoded, text_offset, '', block, ref)
+        insert_text(cur, current_id, text_decoded, text_offset, pointers_offsets_str, len(text), block, ref)
         # dump - txt
-        filename = filename = dump_path / 'dump_eng.txt'
+        filename = dump_path / 'dump_eng.txt'
         with open(filename, 'a+', encoding='utf-8') as out:
             out.write(f'{ref}\n{text_decoded}\n\n')
-        id += 1
-    return id
+        current_id += 1
+    return current_id
 
 def item_pointers_finder(f):
     pointers = []
@@ -447,10 +447,10 @@ def seventhsaga_text_dumper(args):
         _get_text_sparse_pointer_map(f, text_pointer_map)
         _get_text_2byte_pointer_map(f, text_pointer_map)
         _get_text_internal_pointer_map(f, text_pointer_map)
-        id = 1
-        id = seventhsaga_text_segment_dumper(f, dump_path, table, id, 1, cur, text_pointer_map, TEXT_SEGMENT_1[0], TEXT_SEGMENT_1[1])
-        id = seventhsaga_text_segment_dumper(f, dump_path, table, id, 2, cur, text_pointer_map, TEXT_SEGMENT_2[0], TEXT_SEGMENT_2[1])
-        id = seventhsaga_text_segment_dumper(f, dump_path, table, id, 3, cur, text_pointer_map, TEXT_SEGMENT_3[0], TEXT_SEGMENT_3[1])
+        current_id = 1
+        current_id = seventhsaga_text_segment_dumper(f, dump_path, table, current_id, 1, cur, text_pointer_map, TEXT_SEGMENT_1[0], TEXT_SEGMENT_1[1])
+        current_id = seventhsaga_text_segment_dumper(f, dump_path, table, current_id, 2, cur, text_pointer_map, TEXT_SEGMENT_2[0], TEXT_SEGMENT_2[1])
+        current_id = seventhsaga_text_segment_dumper(f, dump_path, table, current_id, 3, cur, text_pointer_map, TEXT_SEGMENT_3[0], TEXT_SEGMENT_3[1])
     cur.close()
     conn.commit()
     conn.close()
