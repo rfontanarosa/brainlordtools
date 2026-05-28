@@ -381,7 +381,7 @@ def som_misc_inserter(args):
         with open(dest_file, 'r+b') as f:
             insert_binary(f, 0x77C00, translation_path / 'intro-code-compressed.bin', max_length=14437)
             insert_binary(f, 0x7B480, translation_path / 'intro-data-compressed.bin', max_length=3390)
-            insert_binary(f, 0x1CE800, translation_path / 'title-compressed.bin', max_length=2096)
+            # insert_binary(f, 0x1CE800, translation_path / 'title-compressed.bin', max_length=2096)
 
 def main():
     import argparse
