@@ -12,7 +12,7 @@ import shutil
 import sqlite3
 import sys
 
-from rhutils.db import insert_text, select_most_recent_translation, select_translation_by_author
+from rhutils.db import insert_text, select_translation_by_author
 from rhutils.dump import extract_binary, get_csv_translated_texts, insert_binary
 from rhutils.io import read_text
 from rhutils.snes import pc2snes_hirom
@@ -81,20 +81,21 @@ def som_text_dumper(args):
     dump_path.mkdir()
     with open(source_file, 'rb') as f:
         # TEXT POINTERS
-        id = 1
+        current_id = 1
+        index1, index2 = 0, 0
         for block, block_pointers in enumerate(POINTERS_OFFSETS, start=1):
             pointer_block_start, pointer_block_end, _, _, bank_offset, pointer_bytes, dump_type = block_pointers
             pointers = {}
             f.seek(pointer_block_start)
             while f.tell() < pointer_block_end:
-                p_address = f.tell()
+                pointer_address = f.tell()
                 if pointer_bytes == 3:
                     p_value = f.read(3)
                     text_address = int.from_bytes(p_value, byteorder='little') - 0xc00000
                 else:
                     p_value = f.read(2)
                     text_address = int.from_bytes(p_value, byteorder='little') + bank_offset
-                pointers.setdefault(text_address, []).append(p_address)
+                pointers.setdefault(text_address, []).append(pointer_address)
             if block == 7:
                 pointers[0x62E2] = [0x58B3]
                 pointers[0x62F3] = [0x58C1]
@@ -125,11 +126,11 @@ def som_text_dumper(args):
                 pointers[0x19FE7E] = [0x7C38]
                 pointers[0x19FED1] = [0x7B91]
             # TEXT
-            for _, (text_address, p_addresses) in enumerate(pointers.items()):
-                pointer_addresses = ';'.join(str(hex(x)) for x in p_addresses)
+            for _, (text_address, pointer_addresses) in enumerate(pointers.items()):
+                pointer_addresses_str = ';'.join(str(hex(x)) for x in pointer_addresses)
                 text = som_read_text(f, text_address, end_byte=b'\x00', cmd_list=cmd_list, append_end_byte=True)
                 # CREDITS
-                if id == 1278:
+                if current_id == 1278:
                     pattern = b'(?<!\x1d)(?<=\x7d)|(?<!\x1d)(?=\x7e)'
                     parts = re.split(pattern, text)
                     decoded_chunks = []
@@ -145,19 +146,21 @@ def som_text_dumper(args):
                     text_decoded = table.decode(text)
                 #
                 if dump_type == DumpType.EVENTS:
-                    ref = f'[ID={id} BLOCK={block} EVENT={hex(id - 1)} START={hex(text_address)} POINTERS={pointer_addresses}]'
+                    ref = f'[ID={current_id} BLOCK={block} EVENT={hex(current_id - 1)} START={hex(text_address)} POINTERS={pointer_addresses_str}]'
+                    filename = 'dump_events_eng.txt'
+                    index1 += 1
+                    index = index1
                 else:
-                    ref = f'[ID={id} BLOCK={block} START={hex(text_address)} POINTERS={pointer_addresses}]'
+                    ref = f'[ID={current_id} BLOCK={block} START={hex(text_address)} POINTERS={pointer_addresses_str}]'
+                    filename = 'dump_texts_eng.txt'
+                    index2 += 1
+                    index = index2
                 # dump - db
-                insert_text(cur, id, text, text_decoded, text_address, pointer_addresses, block, ref)
+                insert_text(cur, current_id, text_decoded, text_address, pointer_addresses_str, len(text), block, ref, 'default', filename, index)
                 # dump - txt
-                if dump_type == DumpType.EVENTS:
-                    filename = dump_path / 'dump_events_eng.txt'
-                else:
-                    filename = dump_path / 'dump_texts_eng.txt'
-                with open(filename, 'a+', encoding='utf-8') as out:
+                with open(dump_path / filename, 'a+', encoding='utf-8') as out:
                     out.write(f'{ref}\n{text_decoded}\n\n')
-                id += 1
+                current_id += 1
     cur.close()
     conn.commit()
     conn.close()

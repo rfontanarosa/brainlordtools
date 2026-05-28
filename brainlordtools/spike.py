@@ -5,7 +5,7 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import csv
-import os
+import pathlib
 import shutil
 import sqlite3
 import struct
@@ -34,16 +34,16 @@ NEW_TEXT_OFFSET_2 = 0x148000
 def spike_text_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     db = args.database_file
     table1 = Table(table1_file)
     conn = sqlite3.connect(db)
     conn.text_factory = str
     cur = conn.cursor()
     shutil.rmtree(dump_path, ignore_errors=True)
-    os.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f:
-        id = 1
+        current_id = 1
         # READ POINTER BLOCKS
         for block, pointer_block in enumerate(POINTER_BLOCKS, start=1):
             pointers = {}
@@ -59,18 +59,18 @@ def spike_text_dumper(args):
                     p_value = struct.unpack('H', pointer)[0] + 0x10000 - 0x8000
                 if p_value > 0:
                     pointers.setdefault(p_value, []).append(p_offset)
-            for _, (text_address, p_addresses) in enumerate(pointers.items()):
-                pointer_addresses = ';'.join(hex(x) for x in p_addresses)
+            for _, (text_address, pointer_addresses) in enumerate(pointers.items()):
+                pointer_addresses_str = ';'.join(hex(x) for x in pointer_addresses)
                 text = read_text(f, text_address, end_byte=b'\xf0', cmd_list={b'\xf4': 2, b'\xf6': 1, b'\xf8': 1, b'\xfa': 4, b'\xfc': 1, b'\xfd': 4, b'\xfe': 1, b'\xff': 2})
                 text_decoded = table1.decode(text, cmd_list={0xf4: 2, 0xf6: 1, 0xf8: 1, 0xfa: 4, 0xfc: 1, 0xfd: 4, 0xfe: 1, 0xff: 2})
-                ref = f'[ID={id} BLOCK={block} START={hex(text_address)} POINTERS={pointer_addresses}]'
+                ref = f'[ID={current_id} BLOCK={block} START={hex(text_address)} POINTERS={pointer_addresses_str}]'
+                filename = 'dump_eng.txt'
                 # dump - db
-                insert_text(cur, id, text, text_decoded, text_address, pointer_addresses, block, ref)
+                insert_text(cur, current_id, text_decoded, text_address, pointer_addresses_str, len(text), block, ref, 'default', filename, current_id)
                 # dump - txt
-                filename = os.path.join(dump_path, 'dump_eng.txt')
-                with open(filename, 'a+', encoding='utf-8') as out:
+                with open(dump_path / filename, 'a+', encoding='utf-8') as out:
                     out.write(f'{ref}\n{text_decoded}\n\n')
-                id += 1
+                current_id += 1
     cur.close()
     conn.commit()
     conn.close()
@@ -78,14 +78,14 @@ def spike_text_dumper(args):
 def spike_misc_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
-    os.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f:
         # Monsters
-        filename = os.path.join(dump_path, 'monsters.csv')
-        with open(filename, 'w+', encoding='utf-8') as csv_file:
+        filepath = dump_path / 'monsters.csv'
+        with filepath.open('w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             f.seek(0x62303)
@@ -156,14 +156,14 @@ def spike_misc_inserter(args):
     dest_file = args.dest_file
     table1_file = args.table1
     table2_file = args.table2
-    translation_path = args.translation_path
+    translation_path = pathlib.Path(args.translation_path)
     table = Table(table1_file)
     table2 = Table(table2_file)
     with open(dest_file, 'r+b') as f:
         # Enemies
-        translation_file = os.path.join(translation_path, 'monsters.csv')
+        translation_file = translation_path / 'monsters.csv'
         translated_texts = get_csv_translated_texts(translation_file)
-        for _, (_, t_address, t_value) in enumerate(translated_texts):
+        for t_address, _, t_value in translated_texts:
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
             if len(text) > 9:
                 sys.exit(f"{t_value} exceeds")
