@@ -178,7 +178,7 @@ def lufia_text_inserter(args):
     source_file = args.source_file
     dest_file = pathlib.Path(args.dest_file)
     table2_file = args.table2
-    translation_path = args.translation_path
+    translation_path = pathlib.Path(args.translation_path)
     db = args.database_file
     user_name = args.user
     table = Table(table2_file)
@@ -201,7 +201,7 @@ def lufia_text_inserter(args):
     conn.commit()
     conn.close()
     #
-    # translation_file = os.path.join(translation_path, 'dump_ita.txt')
+    # translation_file = translation_path / 'dump_ita.txt'
     # with open(translation_file, 'r') as f:
     #     for line in f:
     #         if '[BLOCK ' in line:
@@ -274,12 +274,12 @@ def lufia_misc_inserter(args):
     dest_file = pathlib.Path(args.dest_file)
     table1_file = args.table1
     table2_file = args.table2
-    translation_path = args.translation_path
+    translation_path = pathlib.Path(args.translation_path)
     table = Table(table1_file)
     table2 = Table(table2_file)
     with open(dest_file, 'r+b') as f1, open(dest_file, 'r+b') as f2:
         # Enemy Names
-        translation_file = os.path.join(translation_path, 'enemy_names.csv')
+        translation_file = translation_path / 'enemy_names.csv'
         translated_texts = get_csv_translated_texts(translation_file)
         for i, (t_address, _, t_value) in enumerate(translated_texts):
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
@@ -287,7 +287,7 @@ def lufia_misc_inserter(args):
                 sys.exit(f'{t_value} exceeds')
             write_text(f1, t_address, text, length=10)
         # Items
-        translation_file = os.path.join(translation_path, 'items.csv')
+        translation_file = translation_path / 'items.csv'
         translated_texts = get_csv_translated_texts(translation_file)
         for i, (t_address, _, t_value) in enumerate(translated_texts):
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
@@ -295,7 +295,7 @@ def lufia_misc_inserter(args):
                 sys.exit(f'{t_value} exceeds')
             write_text(f1, t_address, text, length=12)
         # Magic
-        translation_file = os.path.join(translation_path, 'magic.csv')
+        translation_file = translation_path / 'magic.csv'
         translated_texts = get_csv_translated_texts(translation_file)
         for i, (t_address, _, t_value) in enumerate(translated_texts):
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
@@ -308,7 +308,7 @@ def lufia_misc_inserter(args):
         while f2.tell() < 0xfdb6f:
             pointers_addresses.append(struct.unpack('H', f2.read(2))[0] + 0xfdb00 + 15)
         f1.seek(0x138000)
-        translation_file = os.path.join(translation_path, 'magic_descriptions.csv')
+        translation_file = translation_path / 'magic_descriptions.csv'
         translated_texts = get_csv_translated_texts(translation_file)
         for i, (t_address, _, t_value) in enumerate(translated_texts):
             pointer = struct.pack('H', f1.tell() - 0x130000)
@@ -319,7 +319,7 @@ def lufia_misc_inserter(args):
         # Attacks
         f2.seek(0x4150a)
         f1.seek(0x140000)
-        translation_file = os.path.join(translation_path, 'attacks.csv')
+        translation_file = translation_path / 'attacks.csv'
         translated_texts = get_csv_translated_texts(translation_file)
         for i, (t_address, _, t_value) in enumerate(translated_texts):
             pointer = struct.pack('H', f1.tell() - 0x138000)
@@ -329,7 +329,7 @@ def lufia_misc_inserter(args):
         # MTE 1
         f2.seek(MTE1_POINTERS_OFFSETS[0])
         f1.seek(0x54a72)
-        translation_file = os.path.join(translation_path, 'mte1.csv')
+        translation_file = translation_path / 'mte1.csv'
         translated_texts = get_csv_translated_texts(translation_file)
         for i, (t_address, _, t_value) in enumerate(translated_texts):
             pointer = struct.pack('H', pc2snes_lorom(f1.tell() & 0x00FFFF))
@@ -343,7 +343,7 @@ def lufia_misc_inserter(args):
         # MTE 2
         f2.seek(MTE2_POINTERS_OFFSETS[0])
         f1.seek(0x54b42)
-        translation_file = os.path.join(translation_path, 'mte2.csv')
+        translation_file = translation_path / 'mte2.csv'
         translated_texts = get_csv_translated_texts(translation_file)
         for i, (t_address, _, t_value) in enumerate(translated_texts):
             pointer = struct.pack('H', pc2snes_lorom(f1.tell() & 0x00FFFF))
@@ -359,7 +359,7 @@ def lufia_gfx_dumper(args):
     source_file = args.source_file
     dump_path = pathlib.Path(args.dump_path)
     shutil.rmtree(dump_path, ignore_errors=True)
-    os.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f:
         extract_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1] - FONT1_BLOCK[0], dump_path / 'gfx_font1.bin')
         extract_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[1] - FONT2_BLOCK[0], dump_path / 'gfx_font2.bin')
