@@ -86,7 +86,6 @@ def ffmq_misc_inserter(args):
     table2_file = args.table2
     translation_path = pathlib.Path(args.translation_path)
     table = Table(table1_file)
-    table2 = Table(table2_file)
     with open(dest_file, 'r+b') as f, open(dest_file, 'r+b') as f1:
         # Locations
         translated_texts = get_csv_translated_texts(translation_path / 'locations.csv')
@@ -140,7 +139,6 @@ def main():
     sub = subparsers.add_parser('insert_misc', help='Insert miscellaneous texts into the destination ROM')
     sub.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination ROM file')
     sub.add_argument('-t1', '--table1', action='store', dest='table1', help='Primary TBL file')
-    sub.add_argument('-t2', '--table2', action='store', dest='table2', help='Secondary TBL file')
     sub.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Directory containing translation files')
     sub.set_defaults(func=ffmq_misc_inserter)
 
