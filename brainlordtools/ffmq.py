@@ -92,28 +92,28 @@ def ffmq_misc_inserter(args):
         for _, (t_address, _, t_value) in enumerate(translated_texts):
             text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
             if len(text) != 16:
-                sys.exit(f'{t_value} exceeds {t_value} - {len(text)}')
+                sys.exit(f'"{t_value}" must encode to 16 bytes, got {len(text)}')
             write_text(f, t_address, text, length=16)
         # Items
         translated_texts = get_csv_translated_texts(translation_path / 'items.csv')
         for _, (t_address, _, t_value) in enumerate(translated_texts):
             text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
             if len(text) != 12:
-                sys.exit(f'{t_value} exceeds {t_value} - {len(text)}')
+                sys.exit(f'"{t_value}" must encode to 12 bytes, got {len(text)}')
             write_text(f, t_address, text, length=12)
         # Enemy Attacks
         translated_texts = get_csv_translated_texts(translation_path / 'enemy_attacks.csv')
         for _, (t_address, _, t_value) in enumerate(translated_texts):
             text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
             if len(text) != 12:
-                sys.exit(f'{t_value} exceeds {t_value} - {len(text)}')
+                sys.exit(f'"{t_value}" must encode to 12 bytes, got {len(text)}')
             write_text(f, t_address, text, length=12)
         # Enemy Names
         translated_texts = get_csv_translated_texts(translation_path / 'enemy_names.csv')
         for _, (t_address, _, t_value) in enumerate(translated_texts):
             text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
             if len(text) != 16:
-                sys.exit(f'{t_value} exceeds {t_value} - {len(text)}')
+                sys.exit(f'"{t_value}" must encode to 16 bytes, got {len(text)}')
             write_text(f, t_address, text, length=16)
         # Statuses
         f1.seek(0x19f6b)
