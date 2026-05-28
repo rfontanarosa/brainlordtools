@@ -4,7 +4,7 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import os
+import pathlib
 import shutil
 import sqlite3
 import struct
@@ -22,14 +22,14 @@ POINTER_TABLES_SIZES = (22, 22, 17, 37, 20, 21, 18, 17, 15, 115, 26, 3, 21, 30, 
 def ignition_text_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     db = args.database_file
     table = Table(table1_file)
     conn = sqlite3.connect(db)
     conn.text_factory = str
     cur = conn.cursor()
-    shutil.rmtree(dump_path, ignore_errors=False)
-    os.mkdir(dump_path)
+    shutil.rmtree(dump_path, ignore_errors=True)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f1, open(source_file, 'rb') as f2:
         id = 1
         block_pointers = []
@@ -47,18 +47,19 @@ def ignition_text_dumper(args):
             pointers = []
             f1.seek(b_address)
             for _ in range(0, p_qty):
-                p_offset = f1.tell()
-                p_value = struct.unpack('H', f1.read(2))[0] + (b_address & 0xff0000)
-                pointers.append((p_value, p_offset))
-            for index, (text_address, p_addresses) in enumerate(pointers):
-                pointer_addresses = hex(p_addresses)
+                pointer_address = f1.tell()
+                pointer_value = f1.read(2)
+                text_address = struct.unpack('H', pointer_value)[0] + (b_address & 0xff0000)
+                pointers.append((text_address, [pointer_address]))
+            for index, (text_address, pointer_addresses) in enumerate(pointers):
+                pointer_addresses_str = ';'.join(hex(x) for x in pointer_addresses)
                 text = read_text(f1, text_address, end_byte=b'\xff', cmd_list={b'\xfc': 2}, append_end_byte=True)
                 text_decoded = table.decode(text)
-                ref = f'[ID={id} BLOCK={block} ORDER={index} START={hex(text_address)} POINTERS={pointer_addresses}]'
+                ref = f'[ID={id} BLOCK={block} ORDER={index} START={hex(text_address)} POINTERS={pointer_addresses_str}]'
                 # dump - db
-                insert_text(cur, id, text, text_decoded, text_address, pointer_addresses, block, ref)
+                insert_text(cur, id, text_decoded, text_address, pointer_addresses_str, len(text), block, ref)
                 # dump - txt
-                filename = os.path.join(dump_path, 'dump_eng.txt')
+                filename = filename = dump_path / 'dump_eng.txt'
                 with open(filename, 'a+', encoding='utf-8') as out:
                     out.write(f'{ref}\n{text_decoded}\n\n')
                 id += 1
@@ -109,28 +110,33 @@ def ignition_text_inserter(args):
     cur.close()
     conn.close()
 
-import argparse
-parser = argparse.ArgumentParser()
-parser.set_defaults(func=None)
-subparsers = parser.add_subparsers()
-dump_text_parser = subparsers.add_parser('dump_text', help='Execute TEXT DUMP')
-dump_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-dump_text_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-dump_text_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-dump_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
-dump_text_parser.set_defaults(func=ignition_text_dumper)
-insert_text_parser = subparsers.add_parser('insert_text', help='Execute TEXT INSERTER')
-insert_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-insert_text_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-insert_text_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
-insert_text_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-insert_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
-insert_text_parser.add_argument('-u', '--user', action='store', dest='user', help='')
-insert_text_parser.set_defaults(func=ignition_text_inserter)
+def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.set_defaults(func=None)
+    subparsers = parser.add_subparsers()
 
-if __name__ == "__main__":
+    sub = subparsers.add_parser('dump_text', help='Dump dialogue strings to .txt and SQLite DB')
+    sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
+    sub.add_argument('-t1', '--table1', action='store', dest='table1', help='Primary TBL file')
+    sub.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Output directory for dump files')
+    sub.add_argument('-db', '--database', action='store', dest='database_file', help='Path to the SQLite database')
+    sub.set_defaults(func=ignition_text_dumper)
+
+    sub = subparsers.add_parser('insert_text', help='Insert translated text into the destination ROM')
+    sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
+    sub.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination ROM file')
+    sub.add_argument('-t2', '--table2', action='store', dest='table2', help='Secondary TBL file')
+    sub.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Directory containing translation files')
+    sub.add_argument('-db', '--database', action='store', dest='database_file', help='Path to the SQLite database')
+    sub.add_argument('-u', '--user', action='store', dest='user', help='Username to filter translations')
+    sub.set_defaults(func=ignition_text_inserter)
+
     args = parser.parse_args()
     if args.func:
         args.func(args)
     else:
         parser.print_help()
+
+if __name__ == "__main__":
+    main()
