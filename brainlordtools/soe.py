@@ -5,7 +5,7 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import csv
-import os
+import pathlib
 import shutil
 import struct
 
@@ -60,8 +60,8 @@ FONT2_VWF_TABLE = (0x41884, 0x41903) # 127
 
 def dump_blocks(f, table, dump_path):
     for _, (block_name, block_limits) in enumerate(TEXT_BLOCK.items()):
-        filename = os.path.join(dump_path, f'{block_name}.csv')
-        with open(filename, 'w+', encoding='utf-8') as csv_file:
+        filename = f'{block_name}.csv'
+        with open(dump_path / filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             f.seek(block_limits[0])
@@ -174,10 +174,10 @@ def repoint_npc_enemy_names(f, pointers, new_pointers, offset=0x340000):
 def soe_misc_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
-    os.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f:
         dump_blocks(f, table, dump_path)
 
@@ -185,7 +185,7 @@ def soe_misc_inserter(args):
     source_file = args.source_file
     dest_file = args.dest_file
     table1_file = args.table1
-    translation_path = args.translation_path
+    translation_path = pathlib.Path(args.translation_path)
     table = Table(table1_file)
     with open(source_file, 'rb') as f0:
         p_currency_names = get_pointers(f0, POINTER_BLOCK['currency_names'])
@@ -206,7 +206,7 @@ def soe_misc_inserter(args):
     with open(dest_file, 'r+b') as f1:
         translated_blocks = {}
         for _, (block_name, _) in enumerate(TEXT_BLOCK.items()):
-            translation_file = os.path.join(translation_path, block_name + '.csv')
+            translation_file = translation_path / f'{block_name}.csv'
             translated_blocks[block_name] = get_translated_texts(translation_file)
         # new pointers
         new_pointers = {}
@@ -250,77 +250,85 @@ def soe_custom_inserter(args):
     source_file = args.source_file
     dest_file = args.dest_file
     table1_file = args.table1
-    translation_path = args.translation_path
+    translation_path = pathlib.Path(args.translation_path)
     table = Table(table1_file)
     with open(dest_file, 'r+b') as f1:
-        custom_file = os.path.join(translation_path, 'misc.csv')
+        custom_file = translation_path / 'misc.csv'
         repoint_custom(custom_file, f1, table)
 
 def soe_gfx_dumper(args):
     source_file = args.source_file
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     shutil.rmtree(dump_path, ignore_errors=True)
-    os.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f:
-        extract_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1] - (16 * 8 * 3) - FONT1_BLOCK[0], os.path.join(dump_path, 'gfx_font1.bin'))
-        extract_binary(f, FONT1_VWF_TABLE[0], FONT1_VWF_TABLE[1] - 16 - FONT1_VWF_TABLE[0], os.path.join(dump_path, 'gfx_vwf1.bin'))
-        extract_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[1] - (16 * 8 * 3) - FONT2_BLOCK[0], os.path.join(dump_path, 'gfx_font2.bin'))
-        extract_binary(f, FONT2_VWF_TABLE[0], FONT2_VWF_TABLE[1] - 16 - FONT2_VWF_TABLE[0], os.path.join(dump_path, 'gfx_vwf2.bin'))
-        extract_binary(f, FONT1_BLOCK[0], 16 * 8 * 3, os.path.join(dump_path, 'gfx_exp_font1.bin'))
-        extract_binary(f, FONT1_VWF_TABLE[0], 16, os.path.join(dump_path, 'gfx_exp_vwf1.bin'))
-        extract_binary(f, FONT2_BLOCK[0], 16 * 8 * 3, os.path.join(dump_path, 'gfx_exp_font2.bin'))
-        extract_binary(f, FONT2_VWF_TABLE[0], 16, os.path.join(dump_path, 'gfx_exp_vwf2.bin'))
+        extract_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1] - (16 * 8 * 3) - FONT1_BLOCK[0], dump_path / 'gfx_font1.bin')
+        extract_binary(f, FONT1_VWF_TABLE[0], FONT1_VWF_TABLE[1] - 16 - FONT1_VWF_TABLE[0], dump_path / 'gfx_vwf1.bin')
+        extract_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[1] - (16 * 8 * 3) - FONT2_BLOCK[0], dump_path / 'gfx_font2.bin')
+        extract_binary(f, FONT2_VWF_TABLE[0], FONT2_VWF_TABLE[1] - 16 - FONT2_VWF_TABLE[0], dump_path / 'gfx_vwf2.bin')
+        extract_binary(f, FONT1_BLOCK[0], 16 * 8 * 3, dump_path / 'gfx_exp_font1.bin')
+        extract_binary(f, FONT1_VWF_TABLE[0], 16, dump_path / 'gfx_exp_vwf1.bin')
+        extract_binary(f, FONT2_BLOCK[0], 16 * 8 * 3, dump_path / 'gfx_exp_font2.bin')
+        extract_binary(f, FONT2_VWF_TABLE[0], 16, dump_path / 'gfx_exp_vwf2.bin')
 
 def soe_gfx_inserter(args):
     dest_file = args.dest_file
-    translation_path = args.translation_path
+    translation_path = pathlib.Path(args.translation_path)
     with open(dest_file, 'r+b') as f:
         #
         f.seek(0x129917)
         f.write(b'\x18')
         #
-        insert_binary(f, FONT1_BLOCK[0] + (16 * 8 * 3), os.path.join(translation_path, 'gfx_font1.bin'), max_length=FONT1_BLOCK[1] - (FONT1_BLOCK[0] + (16 * 8 * 3)))
-        insert_binary(f, FONT1_VWF_TABLE[0] + 16, os.path.join(translation_path, 'gfx_vwf1.bin'), max_length=FONT1_VWF_TABLE[1] - (FONT1_VWF_TABLE[0] + 16))
-        insert_binary(f, FONT2_BLOCK[0] + (16 * 8 * 3), os.path.join(translation_path, 'gfx_font2.bin'), max_length=FONT2_BLOCK[1] - FONT2_BLOCK[0] + (16 * 8 * 3))
-        insert_binary(f, FONT2_VWF_TABLE[0] + 16, os.path.join(translation_path, 'gfx_vwf2.bin'), max_length=FONT2_VWF_TABLE[1] - FONT2_VWF_TABLE[0] + 16)
-        insert_binary(f, FONT1_BLOCK[0], os.path.join(translation_path, 'gfx_exp_font1.bin'), max_length=16 * 8 * 3)
-        insert_binary(f, FONT1_VWF_TABLE[0], os.path.join(translation_path, 'gfx_exp_vwf1.bin'), max_length=16)
-        insert_binary(f, FONT2_BLOCK[0], os.path.join(translation_path, 'gfx_exp_font2.bin'), max_length=16 * 8 * 3)
-        insert_binary(f, FONT2_VWF_TABLE[0], os.path.join(translation_path, 'gfx_exp_vwf2.bin'), max_length=16)
+        insert_binary(f, FONT1_BLOCK[0] + (16 * 8 * 3), translation_path / 'gfx_font1.bin', max_length=FONT1_BLOCK[1] - (FONT1_BLOCK[0] + (16 * 8 * 3)))
+        insert_binary(f, FONT1_VWF_TABLE[0] + 16, translation_path / 'gfx_vwf1.bin', max_length=FONT1_VWF_TABLE[1] - (FONT1_VWF_TABLE[0] + 16))
+        insert_binary(f, FONT2_BLOCK[0] + (16 * 8 * 3), translation_path / 'gfx_font2.bin', max_length=FONT2_BLOCK[1] - FONT2_BLOCK[0] + (16 * 8 * 3))
+        insert_binary(f, FONT2_VWF_TABLE[0] + 16, translation_path / 'gfx_vwf2.bin', max_length=FONT2_VWF_TABLE[1] - FONT2_VWF_TABLE[0] + 16)
+        insert_binary(f, FONT1_BLOCK[0], translation_path / 'gfx_exp_font1.bin', max_length=16 * 8 * 3)
+        insert_binary(f, FONT1_VWF_TABLE[0], translation_path / 'gfx_exp_vwf1.bin', max_length=16)
+        insert_binary(f, FONT2_BLOCK[0], translation_path / 'gfx_exp_font2.bin', max_length=16 * 8 * 3)
+        insert_binary(f, FONT2_VWF_TABLE[0], translation_path / 'gfx_exp_vwf2.bin', max_length=16)
 
-import argparse
-parser = argparse.ArgumentParser()
-parser.set_defaults(func=None)
-subparsers = parser.add_subparsers()
-dump_misc_parser = subparsers.add_parser('dump_misc', help='Execute MISC DUMPER')
-dump_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-dump_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-dump_misc_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-dump_misc_parser.set_defaults(func=soe_misc_dumper)
-insert_misc_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
-insert_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-insert_misc_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-insert_misc_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-insert_misc_parser.set_defaults(func=soe_misc_inserter)
-insert_custom_parser = subparsers.add_parser('insert_custom', help='Execute CUSTOM INSERTER')
-insert_custom_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-insert_custom_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-insert_custom_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-insert_custom_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-insert_custom_parser.set_defaults(func=soe_custom_inserter)
-dump_gfx_parser = subparsers.add_parser('dump_gfx', help='Execute GFX DUMP')
-dump_gfx_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-dump_gfx_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-dump_gfx_parser.set_defaults(func=soe_gfx_dumper)
-insert_gfx_parser = subparsers.add_parser('insert_gfx', help='Execute GFX INSERTER')
-insert_gfx_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-insert_gfx_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-insert_gfx_parser.set_defaults(func=soe_gfx_inserter)
+def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.set_defaults(func=None)
+    subparsers = parser.add_subparsers()
 
-if __name__ == "__main__":
+    sub = subparsers.add_parser('dump_misc', help='Dump miscellaneous texts to CSV files')
+    sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
+    sub.add_argument('-t1', '--table1', action='store', dest='table1', help='Primary TBL file')
+    sub.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Output directory for dump files')
+    sub.set_defaults(func=soe_misc_dumper)
+
+    sub = subparsers.add_parser('insert_misc', help='Insert miscellaneous texts into the destination ROM')
+    sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
+    sub.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination ROM file')
+    sub.add_argument('-t1', '--table1', action='store', dest='table1', help='Primary TBL file')
+    sub.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Directory containing translation files')
+    sub.set_defaults(func=soe_misc_inserter)
+
+    sub = subparsers.add_parser('insert_custom', help='Insert custom texts into the destination ROM')
+    sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
+    sub.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination ROM file')
+    sub.add_argument('-t1', '--table1', action='store', dest='table1', help='Primary TBL file')
+    sub.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Directory containing translation files')
+    sub.set_defaults(func=soe_custom_inserter)
+
+    sub = subparsers.add_parser('dump_gfx', help='Extract graphics to a binary file')
+    sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
+    sub.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Output directory for dump files')
+    sub.set_defaults(func=soe_gfx_dumper)
+
+    sub = subparsers.add_parser('insert_gfx', help='Insert graphics into the destination ROM')
+    sub.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination ROM file')
+    sub.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Directory containing translation files')
+    sub.set_defaults(func=soe_gfx_inserter)
+
     args = parser.parse_args()
     if args.func:
         args.func(args)
     else:
         parser.print_help()
+
+if __name__ == "__main__":
+    main()
