@@ -51,13 +51,13 @@ def neugier_text_dumper(args):
             pointers.setdefault(text_address, []).append(p_address)
         # TEXT 1
         id = 1
-        for _, (text_address, p_addresses) in enumerate(pointers.items()):
-            pointer_addresses = ';'.join(str(hex(x)) for x in p_addresses)
+        for _, (text_address, pointer_addresses) in enumerate(pointers.items()):
+            pointer_addresses_str = ';'.join(str(hex(x)) for x in pointer_addresses)
             text = read_text(f, text_address, end_byte=b'\x00')
             text_decoded = table.decode(text)
-            ref = f'[ID={id} START={hex(text_address)} END={hex(f.tell() -1)} POINTERS={pointer_addresses}]'
+            ref = f'[ID={id} START={hex(text_address)} END={hex(f.tell() -1)} POINTERS={pointer_addresses_str}]'
             # dump - db
-            insert_text(cur, id, text, text_decoded, text_address, pointer_addresses, 1, ref)
+            insert_text(cur, id, text_decoded, text_address, pointer_addresses_str, len(text), 1, ref, None, None, None)
             # dump - txt
             filename = os.path.join(dump_path, 'dump_eng.txt')
             with open(filename, 'a+', encoding='utf-8') as out:
@@ -173,7 +173,7 @@ def neugier_misc_inserter(args):
         # Enemy names
         translation_file = os.path.join(translation_path, 'enemy_names.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for _, (_, t_address, t_value) in enumerate(translated_texts):
+        for t_address, _, t_value in translated_texts:
             text = t_value.encode()
             if len(text) != 10:
                 sys.exit(f'{t_value} exceeds 10')
