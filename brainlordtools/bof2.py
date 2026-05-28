@@ -5,7 +5,6 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import csv
-import os
 import pathlib
 import shutil
 import sqlite3
@@ -23,6 +22,8 @@ POINTERS_BLOCKS = (
     (0x22fae0, 0x22ffff, 0x2c0000)
 )
 
+cmd_list = {b'\x03': 1, b'\x07': 1, b'\x08': 1, b'\x09': 1, b'\x0b': 1, b'\x11': 1, b'\x12': 1, b'\x13': 1}
+
 def bof2_text_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
@@ -32,51 +33,52 @@ def bof2_text_dumper(args):
     conn = sqlite3.connect(db)
     conn.text_factory = str
     cur = conn.cursor()
-    shutil.rmtree(dump_path, ignore_errors=False)
-    pathlib.Path.mkdir(dump_path)
+    shutil.rmtree(dump_path, ignore_errors=True)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f:
-        id, id2 = 1, 0
-        for i, block_pointer in enumerate(POINTERS_BLOCKS):
-            start, end, offset = block_pointer
-            # READ POINTERS BLOCK
+        current_id, pointer_index = 1, 0
+        for block, block_pointers in enumerate(POINTERS_BLOCKS, start=1):
+            pointer_block_start, pointer_block_end, offset = block_pointers
             pointers = {}
-            f.seek(start)
-            while f.tell() < end:
-                p_offset = f.tell()
-                p_value = struct.unpack('H', f.read(2))[0] + offset
-                pointers.setdefault(p_value, []).append(p_offset)
-                # if len(pointers[p_value]) > 1 and pointers[p_value][-2] != pointers[p_value][-1] - 2:
-                #     pass
-            # READ TEXT BLOCK
-            for _, (text_address, paddresses) in enumerate(pointers.items()):
-                pointer_addresses = ';'.join(hex(x) for x in paddresses)
-                text = read_text(f, text_address, end_byte=b'\x01', cmd_list={b'\x03': 1, b'\x07': 1, b'\x08': 1, b'\x09': 1, b'\x11': 1, b'\x12': 1, b'\x13': 1}, append_end_byte=True)
+            # READ POINTERS
+            f.seek(pointer_block_start)
+            while f.tell() < pointer_block_end:
+                pointer_address = f.tell()
+                pointer_value = f.read(2)
+                text_address = struct.unpack('H', pointer_value)[0] + offset
+                pointers.setdefault(text_address, []).append(pointer_address)
+            # READ TEXT
+            for _, (text_address, pointer_addresses) in enumerate(pointers.items()):
+                pointer_addresses_str = ';'.join(hex(x) for x in pointer_addresses)
+                text = read_text(f, text_address, end_byte=b'\x01', cmd_list=cmd_list)
                 text_decoded = table.decode(text)
-                ref = f'[ID={id} ID2={id2} BLOCK={i} START={hex(text_address)} POINTERS={pointer_addresses}]'
+                ref = f'[ID={current_id} BLOCK={block} START={hex(text_address)} POINTER_INDEX={pointer_index} POINTERS={pointer_addresses_str}]'
+                filename = 'dump_eng.txt'
                 # dump - db
-                insert_text(cur, id, text, text_decoded, text_address, pointer_addresses, i, ref)
+                insert_text(cur, current_id, text_decoded, text_address, pointer_addresses_str, len(text), block, ref, 'default', filename, current_id)
                 # dump - txt
-                filename = dump_path / 'dump_eng.txt'
-                with open(filename, 'a+', encoding='utf-8') as out:
+                with open(dump_path /filename, 'a+', encoding='utf-8') as out:
                     out.write(f'{ref}\n{text_decoded}\n\n')
-                id += 1
-                id2 += len(paddresses)
+                current_id += 1
+                pointer_index += len(pointer_addresses)
     cur.close()
     conn.commit()
     conn.close()
 
 def bof2_text_inserter(args):
-    source_file = args.source_file
     dest_file = args.dest_file
     table2_file = args.table2
-    translation_path = args.translation_path
-    # db = args.database_file
-    # user_name = args.user
+    translation_path = pathlib.Path(args.translation_path)
+    db = args.database_file
+    user_name = args.user
     table = Table(table2_file)
+    conn = sqlite3.connect(db)
+    conn.text_factory = str
+    cur = conn.cursor()
+    #
     entries = []
     #
-    translation_file = os.path.join(translation_path, 'dump_ita.txt')
-    with open(translation_file, 'r', encoding='utf-8') as f:
+    with open(translation_path / 'dump_ita.txt', 'r', encoding='utf-8') as f:
         buffer = ['', 0]
         for line in f:
             if '[ID=' in line and 'POINTERS=' in line:
@@ -113,7 +115,7 @@ def bof2_text_inserter(args):
             ptr_table_offset = f.tell()
             # text
             f.seek(current_text_offset)
-            f.write(encoded_text)
+            f.write(encoded_text + b'x\01')
             current_bank_entries += number_of_pointers
 
         f.seek(0x22ddf2)
@@ -127,11 +129,10 @@ def bof2_misc_dumper(args):
     dump_path = pathlib.Path(args.dump_path)
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
-    pathlib.Path.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f:
         # ITEMS
-        filename = os.path.join(dump_path, 'items.csv')
-        with open(filename, 'w+', encoding='utf-8') as csv_file:
+        with open(dump_path / 'items.csv', 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             f.seek(0x70010)
@@ -141,8 +142,7 @@ def bof2_misc_dumper(args):
                 fields = [hex(f.tell()), text_decoded]
                 csv_writer.writerow(fields)
         # LOCATIONS
-        filename = os.path.join(dump_path, 'locations.csv')
-        with open(filename, 'w+', encoding='utf-8') as csv_file:
+        with open(dump_path / 'locations.csv', 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             f.seek(0x55168)
