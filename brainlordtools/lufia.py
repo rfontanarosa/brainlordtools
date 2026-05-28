@@ -5,6 +5,7 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import csv
+import pathlib
 import os
 import shutil
 import sqlite3
@@ -32,30 +33,30 @@ OFFSETS = list(dict.fromkeys(OFFSETS))
 def lufia_text_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     db = args.database_file
     table = Table(table1_file)
     conn = sqlite3.connect(db)
     conn.text_factory = str
     cur = conn.cursor()
     shutil.rmtree(dump_path, ignore_errors=False)
-    os.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f:
-        id = 1
+        current_id = 1
         for offset in OFFSETS:
             text_address = int(offset) - 0x200
             text = read_text(f, text_address, end_byte=b'\04', cmd_list={b'\x07': 1, b'\x08': 1, b'\x09': 1, b'\x0a': 1, b'\x0b': 1, b'\x0c': 1, b'\x0d': 1, b'\x0f': 1})
             text_decoded = table.decode(text, mte_resolver=True, dict_resolver=True, cmd_list={0x06: 1, 0x0f: 1})
             if len(text) < 3:
-                print(f'{text_address} - {id} - {text_decoded}')
-            ref = f'[BLOCK {id}: {hex(text_address)} to {hex(f.tell() - 1)}]'
+                print(f'{text_address} - {current_id} - {text_decoded}')
+            ref = f'[BLOCK {current_id}: {hex(text_address)} to {hex(f.tell() - 1)}]'
+            filename = 'dump_eng.txt'
             # dump - db
-            insert_text(cur, id, text, text_decoded, text_address, '', 1, ref)
+            insert_text(cur, current_id, text_decoded, text_address, '', len(text), 1, ref, 'default', filename, current_id)
             # dump - txt
-            filename = os.path.join(dump_path, 'dump_eng.txt')
-            with open(filename, 'a+', encoding='utf-8') as out:
+            with open(dump_path / filename, 'a+', encoding='utf-8') as out:
                 out.write(f'{ref}\n{text_decoded}\n\n')
-            id += 1
+            current_id += 1
     cur.close()
     conn.commit()
     conn.close()
@@ -63,14 +64,13 @@ def lufia_text_dumper(args):
 def lufia_misc_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
-    os.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f, open(source_file, 'rb') as f1:
         # Items
-        filename = os.path.join(dump_path, 'items.csv')
-        with open(filename, 'w+', encoding='utf-8') as csv_file:
+        with open(dump_path / 'items.csv', 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             pointers = {}
@@ -84,8 +84,7 @@ def lufia_misc_dumper(args):
                 fields = [hex(value), text_decoded]
                 csv_writer.writerow(fields)
         # Enemy names
-        filename = os.path.join(dump_path, 'enemy_names.csv')
-        with open(filename, 'w+', encoding='utf-8') as csv_file:
+        with open(dump_path / 'enemy_names.csv', 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             pointers = {}
@@ -99,8 +98,7 @@ def lufia_misc_dumper(args):
                 fields = [hex(value), text_decoded]
                 csv_writer.writerow(fields)
         # Magic
-        filename = os.path.join(dump_path, 'magic.csv')
-        with open(filename, 'w+', encoding='utf-8') as csv_file:
+        with open(dump_path / 'magic.csv', 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             pointers = {}
@@ -114,8 +112,7 @@ def lufia_misc_dumper(args):
                 fields = [hex(value), text_decoded]
                 csv_writer.writerow(fields)
         # Magic descriptions
-        filename = os.path.join(dump_path, 'magic_descriptions.csv')
-        with open(filename, 'w+', encoding='utf-8') as csv_file:
+        with open(dump_path / 'magic_descriptions.csv', 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             pointers = {}
@@ -130,8 +127,7 @@ def lufia_misc_dumper(args):
                 fields = [hex(value), text_decoded]
                 csv_writer.writerow(fields)
         # Attacks
-        filename = os.path.join(dump_path, 'attacks.csv')
-        with open(filename, 'w+', encoding='utf-8') as csv_file:
+        with open(dump_path / 'attacks.csv', 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             pointers = {}
@@ -146,8 +142,7 @@ def lufia_misc_dumper(args):
                 fields = [hex(value), text_decoded]
                 csv_writer.writerow(fields)
         # MTE 1
-        filename = os.path.join(dump_path, 'mte1.csv')
-        with open(filename, 'w+', encoding='utf-8') as csv_file:
+        with open(dump_path / 'mte1.csv', 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             pointers = {}
@@ -163,8 +158,7 @@ def lufia_misc_dumper(args):
                 csv_writer.writerow(fields)
                 f.seek(-2, os.SEEK_CUR)
         # MTE 2
-        filename = os.path.join(dump_path, 'mte2.csv')
-        with open(filename, 'w+', encoding='utf-8') as csv_file:
+        with open(dump_path / 'mte2.csv', 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
             pointers = {}
@@ -182,7 +176,7 @@ def lufia_misc_dumper(args):
 
 def lufia_text_inserter(args):
     source_file = args.source_file
-    dest_file = args.dest_file
+    dest_file = pathlib.Path(args.dest_file)
     table2_file = args.table2
     translation_path = args.translation_path
     db = args.database_file
@@ -277,7 +271,7 @@ def lufia_text_inserter(args):
             index += 1
 
 def lufia_misc_inserter(args):
-    dest_file = args.dest_file
+    dest_file = pathlib.Path(args.dest_file)
     table1_file = args.table1
     table2_file = args.table2
     translation_path = args.translation_path
@@ -287,7 +281,7 @@ def lufia_misc_inserter(args):
         # Enemy Names
         translation_file = os.path.join(translation_path, 'enemy_names.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for i, (_, t_address, t_value) in enumerate(translated_texts):
+        for i, (t_address, _, t_value) in enumerate(translated_texts):
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
             if len(text) != 10:
                 sys.exit(f'{t_value} exceeds')
@@ -295,7 +289,7 @@ def lufia_misc_inserter(args):
         # Items
         translation_file = os.path.join(translation_path, 'items.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for i, (_, t_address, t_value) in enumerate(translated_texts):
+        for i, (t_address, _, t_value) in enumerate(translated_texts):
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
             if len(text) != 12:
                 sys.exit(f'{t_value} exceeds')
@@ -303,7 +297,7 @@ def lufia_misc_inserter(args):
         # Magic
         translation_file = os.path.join(translation_path, 'magic.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for i, (_, t_address, t_value) in enumerate(translated_texts):
+        for i, (t_address, _, t_value) in enumerate(translated_texts):
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
             if len(text) != 8:
                 sys.exit(f'{t_value} exceeds')
@@ -316,7 +310,7 @@ def lufia_misc_inserter(args):
         f1.seek(0x138000)
         translation_file = os.path.join(translation_path, 'magic_descriptions.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for i, (_, t_address, t_value) in enumerate(translated_texts):
+        for i, (t_address, _, t_value) in enumerate(translated_texts):
             pointer = struct.pack('H', f1.tell() - 0x130000)
             f2.seek(pointers_addresses[i])
             f2.write(pointer)
@@ -327,7 +321,7 @@ def lufia_misc_inserter(args):
         f1.seek(0x140000)
         translation_file = os.path.join(translation_path, 'attacks.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for i, (_, t_address, t_value) in enumerate(translated_texts):
+        for i, (t_address, _, t_value) in enumerate(translated_texts):
             pointer = struct.pack('H', f1.tell() - 0x138000)
             f2.write(pointer)
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
@@ -337,7 +331,7 @@ def lufia_misc_inserter(args):
         f1.seek(0x54a72)
         translation_file = os.path.join(translation_path, 'mte1.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for i, (_, t_address, t_value) in enumerate(translated_texts):
+        for i, (t_address, _, t_value) in enumerate(translated_texts):
             pointer = struct.pack('H', pc2snes_lorom(f1.tell() & 0x00FFFF))
             f2.write(pointer)
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
@@ -351,7 +345,7 @@ def lufia_misc_inserter(args):
         f1.seek(0x54b42)
         translation_file = os.path.join(translation_path, 'mte2.csv')
         translated_texts = get_csv_translated_texts(translation_file)
-        for i, (_, t_address, t_value) in enumerate(translated_texts):
+        for i, (t_address, _, t_value) in enumerate(translated_texts):
             pointer = struct.pack('H', pc2snes_lorom(f1.tell() & 0x00FFFF))
             f2.write(pointer)
             text = table2.encode(t_value, mte_resolver=False, dict_resolver=False)
@@ -363,62 +357,71 @@ def lufia_misc_inserter(args):
 
 def lufia_gfx_dumper(args):
     source_file = args.source_file
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with open(source_file, 'rb') as f:
-        extract_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1] - FONT1_BLOCK[0], os.path.join(dump_path, 'gfx_font1.bin'))
-        extract_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[1] - FONT2_BLOCK[0], os.path.join(dump_path, 'gfx_font2.bin'))
+        extract_binary(f, FONT1_BLOCK[0], FONT1_BLOCK[1] - FONT1_BLOCK[0], dump_path / 'gfx_font1.bin')
+        extract_binary(f, FONT2_BLOCK[0], FONT2_BLOCK[1] - FONT2_BLOCK[0], dump_path / 'gfx_font2.bin')
 
 def lufia_gfx_inserter(args):
     dest_file = args.dest_file
-    translation_path = args.translation_path
+    translation_path = pathlib.Path(args.translation_path)
     with open(dest_file, 'r+b') as f:
-        insert_binary(f, FONT1_BLOCK[0], os.path.join(translation_path, 'gfx_font1.bin'), max_length=FONT1_BLOCK[1] - FONT1_BLOCK[0])
-        insert_binary(f, FONT2_BLOCK[0], os.path.join(translation_path, 'gfx_font2.bin'), max_length=FONT2_BLOCK[1] - FONT2_BLOCK[0])
-        insert_binary(f, 0x097c4d, os.path.join(translation_path, '097c4d_logo_ita_CMP.bin'), max_length=4497) # max size 4687
+        insert_binary(f, FONT1_BLOCK[0], translation_path / 'gfx_font1.bin', max_length=FONT1_BLOCK[1] - FONT1_BLOCK[0])
+        insert_binary(f, FONT2_BLOCK[0], translation_path / 'gfx_font2.bin', max_length=FONT2_BLOCK[1] - FONT2_BLOCK[0])
+        insert_binary(f, 0x097c4d, translation_path / '097c4d_logo_ita_CMP.bin', max_length=4497) # max size 4687
 
-import argparse
-parser = argparse.ArgumentParser()
-parser.set_defaults(func=None)
-subparsers = parser.add_subparsers()
-dump_text_parser = subparsers.add_parser('dump_text', help='Execute TEXT DUMP')
-dump_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-dump_text_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-dump_text_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-dump_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
-dump_text_parser.set_defaults(func=lufia_text_dumper)
-insert_text_parser = subparsers.add_parser('insert_text', help='Execute TEXT INSERTER')
-insert_text_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-insert_text_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-insert_text_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
-insert_text_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-insert_text_parser.add_argument('-db', '--database', action='store', dest='database_file', help='DB filename')
-insert_text_parser.add_argument('-u', '--user', action='store', dest='user', help='')
-insert_text_parser.set_defaults(func=lufia_text_inserter)
-dump_gfx_parser = subparsers.add_parser('dump_gfx', help='Execute GFX DUMP')
-dump_gfx_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-dump_gfx_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-dump_gfx_parser.set_defaults(func=lufia_gfx_dumper)
-insert_gfx_parser = subparsers.add_parser('insert_gfx', help='Execute GFX INSERTER')
-insert_gfx_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-insert_gfx_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-insert_gfx_parser.set_defaults(func=lufia_gfx_inserter)
-dump_misc_parser = subparsers.add_parser('dump_misc', help='Execute MISC DUMP')
-dump_misc_parser.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Original filename')
-dump_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-dump_misc_parser.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Dump path')
-dump_misc_parser.set_defaults(func=lufia_misc_dumper)
-insert_misc_parser = subparsers.add_parser('insert_misc', help='Execute MISC INSERTER')
-insert_misc_parser.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination filename')
-insert_misc_parser.add_argument('-t1', '--table1', action='store', dest='table1', help='Original table filename')
-insert_misc_parser.add_argument('-t2', '--table2', action='store', dest='table2', help='Modified table filename')
-insert_misc_parser.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Translation path')
-insert_misc_parser.set_defaults(func=lufia_misc_inserter)
+def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.set_defaults(func=None)
+    subparsers = parser.add_subparsers()
 
-if __name__ == "__main__":
+    sub = subparsers.add_parser('dump_text', help='Dump dialogue strings to .txt and SQLite DB')
+    sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
+    sub.add_argument('-t1', '--table1', action='store', dest='table1', help='Primary TBL file')
+    sub.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Output directory for dump files')
+    sub.add_argument('-db', '--database', action='store', dest='database_file', help='Path to the SQLite database')
+    sub.set_defaults(func=lufia_text_dumper)
+
+    sub = subparsers.add_parser('insert_text', help='Insert translated text into the destination ROM')
+    sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
+    sub.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination ROM file')
+    sub.add_argument('-t2', '--table2', action='store', dest='table2', help='Secondary TBL file')
+    sub.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Directory containing translation files')
+    sub.add_argument('-db', '--database', action='store', dest='database_file', help='Path to the SQLite database')
+    sub.add_argument('-u', '--user', action='store', dest='user', help='Username to filter translations')
+    sub.set_defaults(func=lufia_text_inserter)
+
+    sub = subparsers.add_parser('dump_gfx', help='Extract graphics to a binary file')
+    sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
+    sub.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Output directory for dump files')
+    sub.set_defaults(func=lufia_gfx_dumper)
+
+    sub = subparsers.add_parser('insert_gfx', help='Insert graphics into the destination ROM')
+    sub.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination ROM file')
+    sub.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Directory containing translation files')
+    sub.set_defaults(func=lufia_gfx_inserter)
+
+    sub = subparsers.add_parser('dump_misc', help='Dump miscellaneous texts to CSV files')
+    sub.add_argument('-s', '--source', action='store', dest='source_file', required=True, help='Source ROM file')
+    sub.add_argument('-t1', '--table1', action='store', dest='table1', help='Primary TBL file')
+    sub.add_argument('-dp', '--dump_path', action='store', dest='dump_path', help='Output directory for dump files')
+    sub.set_defaults(func=lufia_misc_dumper)
+
+    sub = subparsers.add_parser('insert_misc', help='Insert miscellaneous texts into the destination ROM')
+    sub.add_argument('-d', '--dest', action='store', dest='dest_file', required=True, help='Destination ROM file')
+    sub.add_argument('-t1', '--table1', action='store', dest='table1', help='Primary TBL file')
+    sub.add_argument('-t2', '--table2', action='store', dest='table2', help='Secondary TBL file')
+    sub.add_argument('-tp', '--translation_path', action='store', dest='translation_path', help='Directory containing translation files')
+    sub.set_defaults(func=lufia_misc_inserter)
+
     args = parser.parse_args()
     if args.func:
         args.func(args)
     else:
         parser.print_help()
+
+if __name__ == "__main__":
+    main()
