@@ -297,7 +297,7 @@ def _brainlord_text_block_dumper(f, dump_path, table, current_id, block, cur, st
         text_decoded = table.decode(text)
         ref = f'[ID={current_id} BLOCK={block} START={hex(text_address)}]'
         # dump - db
-        insert_text(cur, current_id, text_decoded, text_address, '', len(text), block, ref)
+        insert_text(cur, current_id, text_decoded, text_address, '', len(text), block, ref, 'default', 'dump_eng.txt', current_id)
         # dump - txt
         filename = dump_path / 'dump_eng.txt'
         with open(filename, 'a+', encoding='utf-8') as out:
