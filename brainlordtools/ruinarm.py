@@ -4,13 +4,13 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
-import os
+import pathlib
 import shutil
 import sqlite3
 import struct
 
-from rhtools3.Table import Table
 from rhutils.db import insert_text
+from rhutils.table import Table
 
 POINTER_BLOCKS = [
     (0x1867E, 0x18842, 0x10000),
@@ -27,7 +27,7 @@ def ruinarm_read_text(f, offset):
     f.seek(offset)
     while True:
         Bytes = f.read(2)[::-1]
-        if Bytes in (b'\xff\x00', b'\xff\x10',  b'\xff\x11',  b'\xff\x12', b'\xff\x13'):
+        if Bytes in (b'\xff\x00', b'\xff\x10', b'\xff\x11', b'\xff\x12', b'\xff\x13'):
             text += Bytes
             break
         elif Bytes == b'\xf0\x00':
@@ -40,17 +40,17 @@ def ruinarm_read_text(f, offset):
 def ruinarm_text_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     db = args.database_file
     table = Table(table1_file)
     conn = sqlite3.connect(db)
     conn.text_factory = str
     cur = conn.cursor()
     shutil.rmtree(dump_path, ignore_errors=True)
-    os.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f:
-        id = 1
-        for k, pointer_block in enumerate(POINTER_BLOCKS):
+        current_id = 1
+        for block, pointer_block in enumerate(POINTER_BLOCKS, start=1):
             # TEXT POINTERS
             pointers = {}
             f.seek(pointer_block[0])
@@ -60,18 +60,18 @@ def ruinarm_text_dumper(args):
                 text_address = struct.unpack('H', p_value)[0] + pointer_block[2]
                 pointers.setdefault(text_address, []).append(p_address)
             # TEXT
-            for i, (text_address, p_addresses) in enumerate(pointers.items()):
-                pointer_addresses = ';'.join(str(hex(x)) for x in p_addresses)
+            for _, (text_address, pointer_addresses) in enumerate(pointers.items()):
+                pointer_addresses_str = ';'.join(hex(x) for x in pointer_addresses)
                 text = ruinarm_read_text(f, text_address)
                 text_decoded = table.decode(text)
-                ref = '[BLOCK {}: {} to {} - BANK {} - {}]'.format(str(id), hex(text_address), hex(f.tell() -1), str(k + 1), pointer_addresses)
+                ref = f'[ID={current_id} BLOCK={block} START={hex(text_address)} POINTERS={pointer_addresses_str}]'
+                filename = 'dump_jap.txt'
                 # dump - db
-                insert_text(cur, id, text, text_decoded, text_address, pointer_addresses, 1, ref)
+                insert_text(cur, current_id, text_decoded, text_address, pointer_addresses_str, len(text), block, ref, 'default', filename, current_id)
                 # dump - txt
-                filename = os.path.join(dump_path, 'dump_jap.txt')
-                with open(filename, 'a+') as out:
+                with open(dump_path / filename, 'a+') as out:
                     out.write(f'{ref}\n{text_decoded}\n\n')
-                id += 1
+                current_id += 1
         cur.close()
         conn.commit()
         conn.close()
@@ -80,14 +80,14 @@ def ruinarm_text_inserter(args):
     source_file = args.source_file
     dest_file = args.dest_file
     table2_file = args.table2
-    translation_path = args.translation_path
+    translation_path = pathlib.Path(args.translation_path)
     db = args.database_file
     user_name = args.user
     table = Table(table2_file)
     buffer = {}
     #
-    translation_file = os.path.join(translation_path, 'dump_ita.txt')
-    with open(translation_file, 'r') as f:
+    filename = 'dump_ita.txt'
+    with open(translation_path / filename, 'r') as f:
         for line in f:
             if '[BLOCK ' in line:
                 splitted_line = line.split(' ')
