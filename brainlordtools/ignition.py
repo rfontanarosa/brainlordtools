@@ -31,7 +31,7 @@ def ignition_text_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     dump_path.mkdir()
     with open(source_file, 'rb') as f1, open(source_file, 'rb') as f2:
-        id = 1
+        current_id = 1
         block_pointers = []
         f1.seek(BLOCK_BANKS_OFFSETS[0])
         f2.seek(BLOCK_POINTERS_OFFSET[0])
@@ -55,14 +55,14 @@ def ignition_text_dumper(args):
                 pointer_addresses_str = ';'.join(hex(x) for x in pointer_addresses)
                 text = read_text(f1, text_address, end_byte=b'\xff', cmd_list={b'\xfc': 2}, append_end_byte=True)
                 text_decoded = table.decode(text)
-                ref = f'[ID={id} BLOCK={block} ORDER={index} START={hex(text_address)} POINTERS={pointer_addresses_str}]'
+                ref = f'[ID={current_id} BLOCK={block} ORDER={index} START={hex(text_address)} POINTERS={pointer_addresses_str}]'
+                filename = 'dump_eng.txt'
                 # dump - db
-                insert_text(cur, id, text_decoded, text_address, pointer_addresses_str, len(text), block, ref)
+                insert_text(cur, current_id, text_decoded, text_address, pointer_addresses_str, len(text), block, ref, 'default', filename, current_id)
                 # dump - txt
-                filename = filename = dump_path / 'dump_eng.txt'
-                with open(filename, 'a+', encoding='utf-8') as out:
+                with open(dump_path / filename, 'a+', encoding='utf-8') as out:
                     out.write(f'{ref}\n{text_decoded}\n\n')
-                id += 1
+                current_id += 1
     cur.close()
     conn.commit()
     conn.close()
