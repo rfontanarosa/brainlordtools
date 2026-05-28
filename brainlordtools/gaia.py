@@ -658,11 +658,12 @@ def gaia_misc_inserter(args):
         translation_file = translation_path / 'credits.csv'
         translated_texts = get_csv_translated_texts(translation_file)
         f1.seek(0x9f6b0)
-        for i, (pointer_offset, _, text_value) in enumerate(translated_texts):
+        for i, (pointer_addresses, _, _, text_value) in enumerate(translated_texts):
             # pointer
             new_pointer_value = struct.pack('<H', f1.tell() & 0x00ffff)
-            f2.seek(pointer_offset)
-            f2.write(new_pointer_value)
+            for pointer_address in pointer_addresses:
+                f2.seek(pointer_address)
+                f2.write(new_pointer_value)
             # text
             encoded_text = table1.encode(text_value, mte_resolver=False, dict_resolver=False)
             f1.write(encoded_text + b'\xc0')
@@ -675,7 +676,7 @@ def gaia_misc_inserter(args):
         translated_texts = get_csv_translated_texts(translation_file)
         new_pointers_offsets = range(0x6dce0, 0x6dce0 + 512, 2)
         f1.seek(0x6dce0 + 512)
-        for i, (_, _, text_value) in enumerate(translated_texts):
+        for i, (_, _, _, text_value) in enumerate(translated_texts):
             # pointer
             new_pointer_value = struct.pack('<H', f1.tell() & 0x00ffff)
             f2.seek(new_pointers_offsets[i])
@@ -690,7 +691,7 @@ def gaia_misc_inserter(args):
         translated_texts = get_csv_translated_texts(translation_file)
         new_pointers_offsets = range(0x6ece0, 0x6ece0 + 402, 2)
         f1.seek(0x6ece0 + 402)
-        for i, (_, text_offset, text_value) in enumerate(translated_texts):
+        for i, (_, _, _, text_value) in enumerate(translated_texts):
             # pointer
             new_pointer_value = struct.pack('<H', f1.tell() & 0x00ffff)
             f2.seek(new_pointers_offsets[i])
@@ -704,7 +705,7 @@ def gaia_misc_inserter(args):
         translation_file = translation_path / 'locations.csv'
         translated_texts = get_csv_translated_texts(translation_file)
         f1.seek(0x2f_200)
-        for i, (_, text_offset, text_value) in enumerate(translated_texts):
+        for i, (text_offset, _, text_value) in enumerate(translated_texts):
             if len(text_value) < 4:
                 continue
             # jump
@@ -726,11 +727,12 @@ def gaia_misc_inserter(args):
             table = table1 if tablename == 'main' else table2 if tablename == 'menu' else table3
             filepath = translation_path / filename
             translated_texts = get_csv_translated_texts(filepath)
-            for i, (pointer_offset, _, text_value) in enumerate(translated_texts):
+            for i, (pointer_addresses, _, _, text_value) in enumerate(translated_texts):
                 # pointer
                 new_pointer_value = struct.pack('<H', f1.tell() & 0x00ffff)
-                f2.seek(pointer_offset)
-                f2.write(new_pointer_value)
+                for pointer_address in pointer_addresses:
+                    f2.seek(pointer_address)
+                    f2.write(new_pointer_value)
                 # text
                 encoded_text = table.encode(text_value, mte_resolver=mte_resolver, dict_resolver=dict_resolver)
                 f1.write(encoded_text + end_byte)
@@ -740,11 +742,12 @@ def gaia_misc_inserter(args):
         translation_file = translation_path / 'world_map_locations.csv'
         translated_texts = get_csv_translated_texts(translation_file)
         f1.seek(0x3f_600)
-        for i, (pointer_offset, _, text_value) in enumerate(translated_texts):
+        for i, (pointer_addresses, _, _, text_value) in enumerate(translated_texts):
             # pointer
             new_pointer_value = struct.pack('<H', f1.tell() & 0x00ffff)
-            f2.seek(pointer_offset)
-            f2.write(new_pointer_value)
+            for pointer_address in pointer_addresses:
+                f2.seek(pointer_address)
+                f2.write(new_pointer_value)
             # text
             encoded_text = table3.encode(text_value, mte_resolver=False, dict_resolver=False)
             f1.write(encoded_text + b'\xca')
