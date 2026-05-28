@@ -5,7 +5,6 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import csv
-import os
 import pathlib
 import shutil
 import struct
@@ -56,7 +55,7 @@ def equinox_gfx_dumper(args):
     source_file = args.source_file
     dump_path = pathlib.Path(args.dump_path)
     shutil.rmtree(dump_path, ignore_errors=True)
-    os.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f:
         rom = f.read()
         data = (
@@ -73,10 +72,10 @@ def equinox_gfx_dumper(args):
 def equinox_misc_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
-    os.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f:
         # ATTRACT MODE - get pointers
         pointers = {}
@@ -87,7 +86,7 @@ def equinox_misc_dumper(args):
             p_value = snes2pc_lorom(raw)
             pointers.setdefault(p_value, []).append(p_offset)
         # ATTRACT MODE - text reading
-        filename = os.path.join(dump_path, f'attract_mode.csv')
+        filename = dump_path / 'attract_mode.csv'
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
@@ -112,7 +111,7 @@ def equinox_misc_dumper(args):
             p_value = snes2pc_lorom(raw) + 0x50000
             pointers.setdefault(p_value, []).append(p_offset)
         # MISC - text reading
-        filename = os.path.join(dump_path, f'misc.csv')
+        filename = dump_path / 'misc.csv'
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
@@ -122,7 +121,7 @@ def equinox_misc_dumper(args):
                 fields = [';'.join(hex(x) for x in pointer_addresses), hex(text_address), text_decoded]
                 csv_writer.writerow(fields)
         # TABLES
-        filename = os.path.join(dump_path, f'tables.csv')
+        filename = dump_path / 'tables.csv'
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
@@ -133,7 +132,7 @@ def equinox_misc_dumper(args):
                 fields = ['', hex(text_address_start), text_decoded]
                 csv_writer.writerow(fields)
         # CREDITS
-        filename = os.path.join(dump_path, f'credits.csv')
+        filename = dump_path / 'credits.csv'
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             text_address_start = 0x115f
             csv_writer = csv.writer(csv_file)
