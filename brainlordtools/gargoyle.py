@@ -319,14 +319,14 @@ def gargoyle_misc_inserter(args):
         # misc5
         translation_file = translation_path / 'misc5.csv'
         translated_texts = get_csv_translated_texts(translation_file)
-        for _, (_, t_address, t_value) in enumerate(translated_texts):
+        for _, (t_address, _, t_value) in enumerate(translated_texts):
             text = table2.encode(t_value)
             f1.seek(t_address)
             f1.write(text)
         # misc6
         translation_file = translation_path / 'misc6.csv'
         translated_texts = get_csv_translated_texts(translation_file)
-        for _, (_, t_address, t_value) in enumerate(translated_texts):
+        for _, (t_address, _, t_value) in enumerate(translated_texts):
             text = table3.encode(t_value)
             f1.seek(t_address)
             f1.write(text)
@@ -335,7 +335,7 @@ def gargoyle_misc_inserter(args):
         translated_texts = get_csv_translated_texts(translation_file)
         f1.seek(0xff34)
         # 0xfd74, 8
-        for _, (_, t_address, t_value) in enumerate(translated_texts[:8]):
+        for _, (_, _, t_value) in enumerate(translated_texts[:8]):
             text = table2.encode(t_value)
             if f1.tell() + len(text) > 0xffff:
                 sys.exit('Text overflow')
@@ -351,7 +351,7 @@ def gargoyle_misc_inserter(args):
         # 0xfdd5, 4
         pointer_value = struct.pack('H', f1.tell() - 0x8000)
         write_text(f2, 0xfdd5, pointer_value)
-        for _, (_, t_address, t_value) in enumerate(translated_texts[9:13]):
+        for _, (_, _, t_value) in enumerate(translated_texts[9:13]):
             text = table2.encode(t_value)
             if f1.tell() + len(text) > 0xffff:
                 sys.exit('Text overflow')
@@ -362,7 +362,7 @@ def gargoyle_misc_inserter(args):
         pointers_address = f1.tell() # pointers
         f1.seek(pointers_address + 16) # text
         bank_limit = 0xffff
-        for i, (_, t_address, t_value) in enumerate(translated_texts[13:]):
+        for i, (_, _, t_value) in enumerate(translated_texts[13:]):
             text = table2.encode(t_value)
             if f1.tell() + len(text) > bank_limit:
                 f1.seek(0xefb0)
