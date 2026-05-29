@@ -1,8 +1,8 @@
 #!/bin/bash
 
-BRAINLORD_PATH="$HOME/git"
-RESOURCE_PATH="$BRAINLORD_PATH/brainlordresources/starocean"
-TOOLS_PATH="$BRAINLORD_PATH/brainlordtools/brainlordtools"
+GAME_ID="starocean"
+
+source ./_common.sh
 
 SOURCE_EN="$RESOURCE_PATH/roms/Star_Ocean_U.sfc"
 SOURCE_ES="$RESOURCE_PATH/roms/Star_Ocean_ES.sfc"
