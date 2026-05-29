@@ -57,6 +57,23 @@ case $GAME_ID in
         -db "$DB" -s "$SOURCE_TEXT_FILE"
     ;;
 
+  "smrpg")
+    DUMP_DIR="$RESOURCE_PATH/dump_text"
+    SOURCE_DIALOGUES_FILE="$DUMP_DIR/dialogues.txt"
+    SOURCE_BATTLE_FILE="$DUMP_DIR/battleDialogues.txt"
+
+    check_file "$SOURCE_DIALOGUES_FILE"
+    check_file "$SOURCE_BATTLE_FILE"
+
+    log_step "Importing $SOURCE_DIALOGUES_FILE [game=${YELLOW}$GAME_ID${NC}"
+    python "$SCRIPT_DIR/manager.py" import_dump \
+        -db "$DB" -s "$SOURCE_DIALOGUES_FILE" -g "$GAME_ID"
+
+    log_step "Importing $SOURCE_BATTLE_FILE [game=${YELLOW}$GAME_ID${NC}"
+    python "$SCRIPT_DIR/manager.py" import_dump \
+        -db "$DB" -s "$SOURCE_BATTLE_FILE" -g "$GAME_ID"
+    ;;
+
   "starocean")
     DUMP_DIR="$RESOURCE_PATH/chester/resources"
     SOURCE_FILE="$DUMP_DIR/dialogues.txt"

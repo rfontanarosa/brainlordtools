@@ -4,7 +4,11 @@ __version__ = ""
 __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
+import os
 import re
+
+# SMRPG: dialogues occupy ids 1..4096 (block 1), battle dialogues start here.
+SMRPG_BATTLE_ID_OFFSET = 4097
 
 def parse_metadata(text: str) -> dict:
   matches = re.findall(r'(\w+)=([^\s\]]+)', text)
@@ -62,8 +66,31 @@ def _parse_starocean_dump(file_path: str) -> dict:
         buff[current_id][0] += line
   return buff
 
+def _parse_smrpg_dump(file_path: str) -> dict:
+  """Parse a Super Mario RPG dump exported in Lazy Shell format.
+
+  Each line is `{INDEX}\\ttext`. The block and the id offset are derived from
+  the filename: dialogues -> block 1 (id = index + 1), battleDialogues ->
+  block 2 (id = index + 4097). The ref is emitted as metadata so the generic
+  import loop can pick up ID and BLOCK.
+  """
+  is_battle = 'battle' in os.path.basename(file_path).lower()
+  block = 2 if is_battle else 1
+  id_offset = SMRPG_BATTLE_ID_OFFSET if is_battle else 1
+  buffer = {}
+  with open(file_path, 'r', encoding='utf-8') as f:
+    for line in f:
+      if '\t' not in line:
+        continue
+      ref_part, text = line.split('\t', 1)
+      index = ref_part.strip().strip('{}')
+      entry_id = int(index) + id_offset
+      buffer[entry_id] = [text.rstrip('\r\n'), f'[ID={entry_id} BLOCK={block}]']
+  return buffer
+
 GAME_PARSERS = {
   'soe': _parse_soe_dump,
   'starocean': _parse_starocean_dump,
+  'smrpg': _parse_smrpg_dump,
   'default': _parse_dump
 }

@@ -82,6 +82,32 @@ case $GAME_ID in
         -db "$DB" -d "$DEST_USER_TEXT_FILE" -u "$USER" -b 3 4 5 6 7 8
     ;;
 
+  "smrpg")
+    TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
+    DEST_DIALOGUES_FILE="$TRANSLATED_DUMP_DIR/dialogues_ita.txt"
+    DEST_BATTLE_FILE="$TRANSLATED_DUMP_DIR/battleDialogues_ita.txt"
+    DEST_USER_DIALOGUES_FILE="$TRANSLATED_DUMP_DIR/dialogues_ita_$USER.txt"
+    DEST_USER_BATTLE_FILE="$TRANSLATED_DUMP_DIR/battleDialogues_ita_$USER.txt"
+
+    mkdir -p "$TRANSLATED_DUMP_DIR"
+
+    log_step "Exporting $GAME_ID translation to $DEST_DIALOGUES_FILE"
+    python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_DIALOGUES_FILE" -b 1 -g "$GAME_ID"
+
+    log_step "Exporting $GAME_ID translation to $DEST_BATTLE_FILE"
+    python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_BATTLE_FILE" -b 2 -g "$GAME_ID"
+
+    log_step "Exporting $GAME_ID translation to $DEST_USER_DIALOGUES_FILE"
+    python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_USER_DIALOGUES_FILE" -u "$USER" -b 1 -g "$GAME_ID"
+
+    log_step "Exporting $GAME_ID translation to $DEST_USER_BATTLE_FILE"
+    python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_USER_BATTLE_FILE" -u "$USER" -b 2 -g "$GAME_ID"
+    ;;
+
   "starocean")
     TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
     DEST_FILE="$TRANSLATED_DUMP_DIR/dialogues.txt"
