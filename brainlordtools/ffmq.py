@@ -83,7 +83,6 @@ def ffmq_misc_dumper(args):
 def ffmq_misc_inserter(args):
     dest_file = args.dest_file
     table1_file = args.table1
-    table2_file = args.table2
     translation_path = pathlib.Path(args.translation_path)
     table = Table(table1_file)
     with open(dest_file, 'r+b') as f, open(dest_file, 'r+b') as f1:
