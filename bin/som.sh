@@ -55,7 +55,7 @@ python "$TOOLS_PATH/som.py" insert_tilemap -d "$TRANSLATION_MISC_PATH/intro-data
 
 python "$TOOLS_PATH/_som/decomp.py" "$TRANSLATION_MISC_PATH/intro-code.bin" "$TRANSLATION_MISC_PATH/intro-code-compressed.bin" --compress --compression-key="1"
 python "$TOOLS_PATH/_som/decomp.py" "$TRANSLATION_MISC_PATH/intro-data.bin" "$TRANSLATION_MISC_PATH/intro-data-compressed.bin" --compress --compression-key="4"
-python "$TOOLS_PATH/_som/decomp.py" "$TRANSLATION_MISC_PATH/title.bin" "$TRANSLATION_MISC_PATH/title-compressed.bin" --compress --compression-key="3"
+# python "$TOOLS_PATH/_som/decomp.py" "$TRANSLATION_MISC_PATH/title.bin" "$TRANSLATION_MISC_PATH/title-compressed.bin" --compress --compression-key="3"
 
 python "$TOOLS_PATH/som.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE4" -t2 "$TABLE6" -tp "$TRANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
 python "$TOOLS_PATH/som.py" insert_misc -d "$DESTINATION" -t1 "$TABLE5" -tp "$TRANSLATION_MISC_PATH"
