@@ -18,6 +18,8 @@ TANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
 TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
 TRANSLATION_CUSTOM_PATH="$RESOURCE_PATH/translation_custom"
 
+python "$MANAGER_PATH/manager.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
+
 CURRENT_PATH=$PWD
 cd $BRAINLORD_PATH/Romhacking
 source ./venv/bin/activate
@@ -25,8 +27,6 @@ source ./venv/bin/activate
 ./bin/evertool reinsert $SOURCE $TRANSLATION_TEXT_PATH/dump_ita_clomax.txt
 deactivate
 cd $CURRENT_PATH
-
-python "$MANAGER_PATH/manager.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
 
 python "$TOOLS_PATH/soe.py" dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
 python "$TOOLS_PATH/soe.py" dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_MISC_PATH"
