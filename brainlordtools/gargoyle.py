@@ -5,7 +5,7 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import csv
-import os
+import pathlib
 import shutil
 import struct
 import sys
@@ -22,10 +22,10 @@ BANK1_LIMIT = 0x17fff
 def gargoyle_text_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=False)
-    os.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f:
         # READ POINTERS BLOCK
         start, end = TEXT_POINTERS
@@ -45,7 +45,7 @@ def gargoyle_text_dumper(args):
             text_decoded = table.decode(text)
             ref = f'[ID {text_id} - TEXT {hex(taddress)} - POINTER {pointer_addresses}]'
             # dump - txt
-            filename = os.path.join(dump_path, 'dump_eng.txt')
+            filename = dump_path / 'dump_eng.txt'
             with open(filename, 'a+', encoding='utf-8') as out:
                 out.write(f'{ref}\n{text_decoded}\n\n')
             text_id += 1
@@ -55,15 +55,15 @@ def gargoyle_misc_dumper(args):
     table1_file = args.table1
     table2_file = args.table2
     table3_file = args.table3
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     table1 = Table(table1_file)
     table2 = Table(table2_file)
     table3 = Table(table3_file)
     shutil.rmtree(dump_path, ignore_errors=True)
-    os.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f, open(source_file, 'rb') as f2:
         # misc1
-        filename = os.path.join(dump_path, 'misc1.csv')
+        filename = dump_path / 'misc1.csv'
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
@@ -78,7 +78,7 @@ def gargoyle_misc_dumper(args):
                 fields = [hex(pointer), hex(value), text_decoded]
                 csv_writer.writerow(fields)
         # misc2
-        filename = os.path.join(dump_path, 'misc2.csv')
+        filename = dump_path / 'misc2.csv'
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
@@ -93,7 +93,7 @@ def gargoyle_misc_dumper(args):
                 fields = [hex(pointer), hex(value), text_decoded]
                 csv_writer.writerow(fields)
         # misc3
-        filename = os.path.join(dump_path, 'misc3.csv')
+        filename = dump_path / 'misc3.csv'
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['pointer_address', 'text_address', 'text', 'trans'])
@@ -124,7 +124,7 @@ def gargoyle_misc_dumper(args):
             fields = [hex(pointer), hex(text_address), text_decoded]
             csv_writer.writerow(fields)
         # misc4
-        filename = os.path.join(dump_path, 'misc4.csv')
+        filename = dump_path / 'misc4.csv'
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
@@ -137,7 +137,7 @@ def gargoyle_misc_dumper(args):
                 csv_writer.writerow(fields)
                 text_address = f.tell()
         # misc5
-        filename = os.path.join(dump_path, 'misc5.csv')
+        filename = dump_path / 'misc5.csv'
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
@@ -148,7 +148,7 @@ def gargoyle_misc_dumper(args):
                 fields = [hex(text_address), text_decoded]
                 csv_writer.writerow(fields)
         # misc6
-        filename = os.path.join(dump_path, 'misc6.csv')
+        filename = dump_path / 'misc6.csv'
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
@@ -165,7 +165,7 @@ def gargoyle_misc_dumper(args):
             fields = [hex(text_address), text_decoded]
             csv_writer.writerow(fields)
         # misc7
-        filename = os.path.join(dump_path, 'misc7.csv')
+        filename = dump_path / 'misc7.csv'
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
@@ -213,13 +213,13 @@ def gargoyle_text_inserter(args):
     dest_file = args.dest_file
     table1_file = args.table1
     table2_file = args.table2
-    translation_dump_path = args.translation_path1
-    translation_misc_path = args.translation_path2
+    translation_dump_path = pathlib.Path(args.translation_path1)
+    translation_misc_path = pathlib.Path(args.translation_path2)
     table1 = Table(table1_file)
     table2 = Table(table2_file)
     #
     buffer = {}
-    translation_file = os.path.join(translation_dump_path, 'dump_ita.txt')
+    translation_file = translation_dump_path / 'dump_ita.txt'
     with open(translation_file, 'r', encoding='utf-8') as f:
         for line in f:
             if '[ID ' in line:
@@ -232,7 +232,7 @@ def gargoyle_text_inserter(args):
     with open(dest_file, 'r+b') as f1, open(dest_file, 'r+b') as f2:
         f1.seek(0x1647f)
         # misc1
-        translation_file = os.path.join(translation_misc_path, 'misc1.csv')
+        translation_file = translation_misc_path / 'misc1.csv'
         with open(translation_file, 'r', encoding='utf-8') as csv_file:
             csv_reader = csv.DictReader(csv_file)
             for row in csv_reader:
@@ -245,7 +245,7 @@ def gargoyle_text_inserter(args):
                 f2.seek(pointer_address)
                 f2.write(pointer_value)
         # misc2
-        translation_file = os.path.join(translation_misc_path, 'misc2.csv')
+        translation_file = translation_misc_path / 'misc2.csv'
         with open(translation_file, 'r', encoding='utf-8') as csv_file:
             csv_reader = csv.DictReader(csv_file)
             for row in csv_reader:
@@ -277,14 +277,14 @@ def gargoyle_misc_inserter(args):
     table1_file = args.table1
     table2_file = args.table2
     table3_file = args.table3
-    translation_path = args.translation_path
+    translation_path = pathlib.Path(args.translation_path)
     table1 = Table(table1_file)
     table2 = Table(table2_file)
     table3 = Table(table3_file)
     with open(dest_file, 'r+b') as f1, open(dest_file, 'r+b') as f2:
         # misc3
         f1.seek(0x8980)
-        translation_file = os.path.join(translation_path, 'misc3.csv')
+        translation_file = translation_path / 'misc3.csv'
         with open(translation_file, 'r', encoding='utf-8') as csv_file:
             csv_reader = csv.DictReader(csv_file)
             for row in csv_reader:
@@ -309,7 +309,7 @@ def gargoyle_misc_inserter(args):
         write_text(f1, 0x1699, b'\xad') # 0xab -> 0xad
         write_text(f1, 0x185b, b'\x96\x38') # menu pointer address
         f1.seek(0x3896) # new menu address
-        translation_file = os.path.join(translation_path, 'misc4.csv')
+        translation_file = translation_path / 'misc4.csv'
         translated_texts = get_csv_translated_texts(translation_file)
         for _, (_, _, t_value) in enumerate(translated_texts):
             text = table2.encode(t_value)
@@ -317,21 +317,21 @@ def gargoyle_misc_inserter(args):
                 sys.exit(f'{t_value} exceeds')
             f1.write(text)
         # misc5
-        translation_file = os.path.join(translation_path, 'misc5.csv')
+        translation_file = translation_path / 'misc5.csv'
         translated_texts = get_csv_translated_texts(translation_file)
         for _, (_, t_address, t_value) in enumerate(translated_texts):
             text = table2.encode(t_value)
             f1.seek(t_address)
             f1.write(text)
         # misc6
-        translation_file = os.path.join(translation_path, 'misc6.csv')
+        translation_file = translation_path / 'misc6.csv'
         translated_texts = get_csv_translated_texts(translation_file)
         for _, (_, t_address, t_value) in enumerate(translated_texts):
             text = table3.encode(t_value)
             f1.seek(t_address)
             f1.write(text)
         # misc7
-        translation_file = os.path.join(translation_path, 'misc7.csv')
+        translation_file = translation_path / 'misc7.csv'
         translated_texts = get_csv_translated_texts(translation_file)
         f1.seek(0xff34)
         # 0xfd74, 8
@@ -374,20 +374,20 @@ def gargoyle_misc_inserter(args):
 
 def gargoyle_gfx_dumper(args):
     source_file = args.source_file
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     shutil.rmtree(dump_path, ignore_errors=True)
-    os.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f:
-        extract_binary(f, 0x18000, 0x18800 - 0x18000, os.path.join(dump_path, '18000_title.bin'))
-        extract_binary(f, 0x14000, 0x14200 - 0x14000, os.path.join(dump_path, '14000_font.bin'))
+        extract_binary(f, 0x18000, 0x18800 - 0x18000, dump_path / '18000_title.bin')
+        extract_binary(f, 0x14000, 0x14200 - 0x14000, dump_path / '14000_font.bin')
 
 def gargoyle_gfx_inserter(args):
     dest_file = args.dest_file
-    translation_path = args.translation_path
+    translation_path = pathlib.Path(args.translation_path)
     with open(dest_file, 'r+b') as f:
-        insert_binary(f, 0x18000, os.path.join(translation_path, '18000_title_ita.bin'), max_length=0x18800 - 0x18000)
-        # insert_binary(f, 0x14000, os.path.join(translation_path, '14000_font_ita.bin'), max_length=0x14200 - 0x14000)
-        insert_binary(f, 0x1c800, os.path.join(translation_path, '1C800_ingame_menu_ita.bin'), max_length=0x1cba0 - 0x1c800)
+        insert_binary(f, 0x18000, translation_path / '18000_title_ita.bin', max_length=0x18800 - 0x18000)
+        # insert_binary(f, 0x14000, translation_path / '14000_font_ita.bin', max_length=0x14200 - 0x14000)
+        insert_binary(f, 0x1c800, translation_path / '1C800_ingame_menu_ita.bin', max_length=0x1cba0 - 0x1c800)
         write_text(f, 0x2341, b'\xa4')
 
 import argparse
