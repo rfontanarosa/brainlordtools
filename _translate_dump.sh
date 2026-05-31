@@ -37,6 +37,7 @@ case $GAME_ID in
         exit 1
         ;;
     esac
+    ;;
 
   *)
     log_error "Unknown GAME_ID: $GAME_ID"
