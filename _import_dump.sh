@@ -24,7 +24,7 @@ case $GAME_ID in
 
     check_file "$SOURCE_FILE"
 
-    log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}"
+    log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}]"
     python "$SCRIPT_DIR/manager.py" import_dump \
        -db "$DB" -s "$SOURCE_FILE"
     ;;
@@ -35,7 +35,7 @@ case $GAME_ID in
 
     check_file "$SOURCE_FILE"
 
-    log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}"
+    log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}]"
     python "$SCRIPT_DIR/manager.py" import_dump \
        -db "$DB" -s "$SOURCE_FILE" -g "$GAME_ID"
     ;;
@@ -48,11 +48,11 @@ case $GAME_ID in
     check_file "$SOURCE_EVENTS_FILE"
     check_file "$SOURCE_TEXT_FILE"
 
-    log_step "Importing $SOURCE_EVENTS_FILE [game=${YELLOW}$GAME_ID${NC}"
+    log_step "Importing $SOURCE_EVENTS_FILE [game=${YELLOW}$GAME_ID${NC}]"
     python "$SCRIPT_DIR/manager.py" import_dump \
         -db "$DB" -s "$SOURCE_EVENTS_FILE"
 
-    log_step "Importing $SOURCE_TEXT_FILE [game=${YELLOW}$GAME_ID${NC}"
+    log_step "Importing $SOURCE_TEXT_FILE [game=${YELLOW}$GAME_ID${NC}]"
     python "$SCRIPT_DIR/manager.py" import_dump \
         -db "$DB" -s "$SOURCE_TEXT_FILE"
     ;;
@@ -65,11 +65,11 @@ case $GAME_ID in
     check_file "$SOURCE_DIALOGUES_FILE"
     check_file "$SOURCE_BATTLE_FILE"
 
-    log_step "Importing $SOURCE_DIALOGUES_FILE [game=${YELLOW}$GAME_ID${NC}"
+    log_step "Importing $SOURCE_DIALOGUES_FILE [game=${YELLOW}$GAME_ID${NC}]"
     python "$SCRIPT_DIR/manager.py" import_dump \
         -db "$DB" -s "$SOURCE_DIALOGUES_FILE" -g "$GAME_ID"
 
-    log_step "Importing $SOURCE_BATTLE_FILE [game=${YELLOW}$GAME_ID${NC}"
+    log_step "Importing $SOURCE_BATTLE_FILE [game=${YELLOW}$GAME_ID${NC}]"
     python "$SCRIPT_DIR/manager.py" import_dump \
         -db "$DB" -s "$SOURCE_BATTLE_FILE" -g "$GAME_ID"
     ;;
@@ -80,7 +80,7 @@ case $GAME_ID in
 
     check_file "$SOURCE_FILE"
 
-    log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}"
+    log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}]"
     python "$SCRIPT_DIR/manager.py" import_dump \
        -db "$DB" -s "$SOURCE_FILE" -g "$GAME_ID"
     ;;
@@ -91,7 +91,7 @@ case $GAME_ID in
 
     check_file "$SOURCE_FILE_1"
 
-    log_step "Importing $SOURCE_FILE_1 [game=${YELLOW}$GAME_ID${NC}"
+    log_step "Importing $SOURCE_FILE_1 [game=${YELLOW}$GAME_ID${NC}]"
     python "$SCRIPT_DIR/manager.py" import_dump \
        -db "$DB" -s "$SOURCE_FILE_1"
     ;;

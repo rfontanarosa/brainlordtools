@@ -136,7 +136,7 @@ case $GAME_ID in
     ;;
 
   *)
-    echo "Unknown GAME_ID: $GAME_ID"
+    log_error "Unknown GAME_ID: $GAME_ID"
     exit 1
     ;;
 esac

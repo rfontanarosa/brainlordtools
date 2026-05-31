@@ -5,7 +5,7 @@ USER=${2:-"clomax"}
 
 source ./_common.sh
 
-log_info "Starting import trandslation process"
+log_info "Starting import translation process"
 
 case $GAME_ID in
   "brainlord")
@@ -19,7 +19,7 @@ case $GAME_ID in
 
     log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
     python "$SCRIPT_DIR/manager.py" import_translation \
-        -db "$DB" -s "$SOURCE_FILE" -u "$USER" -od "$ORIGINAL_DUMP_PATH"
+      -db "$DB" -s "$SOURCE_FILE" -u "$USER" -od "$ORIGINAL_DUMP_PATH"
     ;;
 
   "brainlord_pt")
@@ -33,7 +33,7 @@ case $GAME_ID in
 
     log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
     python "$SCRIPT_DIR/manager.py" import_translation \
-        -db "$DB" -s "$SOURCE_FILE" -u "$USER" -od "$ORIGINAL_DUMP_PATH"
+      -db "$DB" -s "$SOURCE_FILE" -u "$USER" -od "$ORIGINAL_DUMP_PATH"
     ;;
 
   "gaia")
@@ -47,7 +47,7 @@ case $GAME_ID in
 
     log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
     python "$SCRIPT_DIR/manager.py" import_translation \
-        -db "$DB" -s "$SOURCE_FILE" -u "$USER" -od "$ORIGINAL_DUMP_PATH"
+      -db "$DB" -s "$SOURCE_FILE" -u "$USER" -od "$ORIGINAL_DUMP_PATH"
     ;;
 
   "7thsaga" | "ignition" | "spike")
@@ -58,7 +58,7 @@ case $GAME_ID in
 
     log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
     python "$SCRIPT_DIR/manager.py" import_translation \
-        -db "$DB" -s "$SOURCE_FILE" -u "$USER"
+      -db "$DB" -s "$SOURCE_FILE" -u "$USER"
     ;;
 
   "rsaga")
@@ -69,7 +69,7 @@ case $GAME_ID in
 
     log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
     python "$SCRIPT_DIR/manager.py" import_translation \
-        -db "$DB" -s "$SOURCE_FILE" -u "$USER"
+      -db "$DB" -s "$SOURCE_FILE" -u "$USER"
     ;;
 
   "som" | "som_pal")
@@ -82,11 +82,11 @@ case $GAME_ID in
 
     log_step "Importing $SOURCE_EVENTS_FILE [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
     python "$SCRIPT_DIR/manager.py" import_translation \
-        -db "$DB" -s "$SOURCE_EVENTS_FILE" -u "$USER"
+      -db "$DB" -s "$SOURCE_EVENTS_FILE" -u "$USER"
 
     log_step "Importing $SOURCE_TEXT_FILE [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
     python "$SCRIPT_DIR/manager.py" import_translation \
-        -db "$DB" -s "$SOURCE_TEXT_FILE" -u "$USER"
+      -db "$DB" -s "$SOURCE_TEXT_FILE" -u "$USER"
     ;;
 
   "smrpg")
@@ -99,11 +99,11 @@ case $GAME_ID in
 
     log_step "Importing $SOURCE_DIALOGUES_FILE [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
     python "$SCRIPT_DIR/manager.py" import_translation \
-        -db "$DB" -s "$SOURCE_DIALOGUES_FILE" -u "$USER" -g "$GAME_ID"
+      -db "$DB" -s "$SOURCE_DIALOGUES_FILE" -u "$USER" -g "$GAME_ID"
 
     log_step "Importing $SOURCE_BATTLE_FILE [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
     python "$SCRIPT_DIR/manager.py" import_translation \
-        -db "$DB" -s "$SOURCE_BATTLE_FILE" -u "$USER" -g "$GAME_ID"
+      -db "$DB" -s "$SOURCE_BATTLE_FILE" -u "$USER" -g "$GAME_ID"
     ;;
 
   "starocean")
@@ -117,7 +117,7 @@ case $GAME_ID in
 
     log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
     python "$SCRIPT_DIR/manager.py" import_translation \
-        -db "$DB" -s "$SOURCE_FILE" -u "$USER" -od "$ORIGINAL_DUMP_PATH" -g $GAME_ID
+      -db "$DB" -s "$SOURCE_FILE" -u "$USER" -od "$ORIGINAL_DUMP_PATH" -g "$GAME_ID"
     ;;
 
   *)
