@@ -26,7 +26,7 @@ case $GAME_ID in
 
     log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}]"
     python "$SCRIPT_DIR/manager.py" import_dump \
-       -db "$DB" -s "$SOURCE_FILE"
+      -db "$DB" -s "$SOURCE_FILE"
     ;;
 
   "soe")
@@ -37,7 +37,7 @@ case $GAME_ID in
 
     log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}]"
     python "$SCRIPT_DIR/manager.py" import_dump \
-       -db "$DB" -s "$SOURCE_FILE" -g "$GAME_ID"
+      -db "$DB" -s "$SOURCE_FILE" -g "$GAME_ID"
     ;;
 
   "som")
@@ -50,11 +50,11 @@ case $GAME_ID in
 
     log_step "Importing $SOURCE_EVENTS_FILE [game=${YELLOW}$GAME_ID${NC}]"
     python "$SCRIPT_DIR/manager.py" import_dump \
-        -db "$DB" -s "$SOURCE_EVENTS_FILE"
+      -db "$DB" -s "$SOURCE_EVENTS_FILE"
 
     log_step "Importing $SOURCE_TEXT_FILE [game=${YELLOW}$GAME_ID${NC}]"
     python "$SCRIPT_DIR/manager.py" import_dump \
-        -db "$DB" -s "$SOURCE_TEXT_FILE"
+      -db "$DB" -s "$SOURCE_TEXT_FILE"
     ;;
 
   "smrpg")
@@ -67,11 +67,11 @@ case $GAME_ID in
 
     log_step "Importing $SOURCE_DIALOGUES_FILE [game=${YELLOW}$GAME_ID${NC}]"
     python "$SCRIPT_DIR/manager.py" import_dump \
-        -db "$DB" -s "$SOURCE_DIALOGUES_FILE" -g "$GAME_ID"
+      -db "$DB" -s "$SOURCE_DIALOGUES_FILE" -g "$GAME_ID"
 
     log_step "Importing $SOURCE_BATTLE_FILE [game=${YELLOW}$GAME_ID${NC}]"
     python "$SCRIPT_DIR/manager.py" import_dump \
-        -db "$DB" -s "$SOURCE_BATTLE_FILE" -g "$GAME_ID"
+      -db "$DB" -s "$SOURCE_BATTLE_FILE" -g "$GAME_ID"
     ;;
 
   "starocean")
@@ -82,7 +82,7 @@ case $GAME_ID in
 
     log_step "Importing $SOURCE_FILE [game=${YELLOW}$GAME_ID${NC}]"
     python "$SCRIPT_DIR/manager.py" import_dump \
-       -db "$DB" -s "$SOURCE_FILE" -g "$GAME_ID"
+      -db "$DB" -s "$SOURCE_FILE" -g "$GAME_ID"
     ;;
 
   "rsaga")
@@ -93,7 +93,7 @@ case $GAME_ID in
 
     log_step "Importing $SOURCE_FILE_1 [game=${YELLOW}$GAME_ID${NC}]"
     python "$SCRIPT_DIR/manager.py" import_dump \
-       -db "$DB" -s "$SOURCE_FILE_1"
+      -db "$DB" -s "$SOURCE_FILE_1"
     ;;
 
   *)

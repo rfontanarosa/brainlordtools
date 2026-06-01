@@ -28,11 +28,11 @@ case $GAME_ID in
 
     log_step "Exporting $GAME_ID translation to $DEST_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
-       -db "$DB" -d "$DEST_FILE" -b 1 2 3 4 5 6 7
+      -db "$DB" -d "$DEST_FILE" -b 1 2 3 4 5 6 7
 
     log_step "Exporting $GAME_ID translation to $DEST_USER_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
-       -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -b 1 2 3 4 5 6 7
+      -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -b 1 2 3 4 5 6 7
     ;;
 
   "7thsaga" | "gaia" | "ignition" | "spike")
@@ -44,11 +44,11 @@ case $GAME_ID in
 
     log_step "Exporting $GAME_ID translation to $DEST_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
-        -db "$DB" -d "$DEST_FILE"
+      -db "$DB" -d "$DEST_FILE"
 
     log_step "Exporting $GAME_ID translation to $DEST_USER_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
-        -db "$DB" -d "$DEST_USER_FILE" -u "$USER"
+      -db "$DB" -d "$DEST_USER_FILE" -u "$USER"
     ;;
 
   "ffmq" | "lufia")
@@ -60,11 +60,11 @@ case $GAME_ID in
 
     log_step "Exporting $GAME_ID translation to $DEST_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
-       -db "$DB" -d "$DEST_FILE" -b 1
+      -db "$DB" -d "$DEST_FILE" -b 1
 
     log_step "Exporting $GAME_ID translation to $DEST_USER_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
-       -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -b 1
+      -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -b 1
     ;;
 
   "som" | "som_pal")
@@ -78,19 +78,19 @@ case $GAME_ID in
 
     log_step "Exporting $GAME_ID translation to $DEST_EVENTS_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
-        -db "$DB" -d "$DEST_EVENTS_FILE" -b 1 2
+      -db "$DB" -d "$DEST_EVENTS_FILE" -b 1 2
 
     log_step "Exporting $GAME_ID translation to $DEST_TEXT_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
-        -db "$DB" -d "$DEST_TEXT_FILE" -b 3 4 5 6 7 8
+      -db "$DB" -d "$DEST_TEXT_FILE" -b 3 4 5 6 7 8
 
     log_step "Exporting $GAME_ID translation to $DEST_USER_EVENTS_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
-        -db "$DB" -d "$DEST_USER_EVENTS_FILE" -u "$USER" -b 1 2
+      -db "$DB" -d "$DEST_USER_EVENTS_FILE" -u "$USER" -b 1 2
 
     log_step "Exporting $GAME_ID translation to $DEST_USER_TEXT_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
-        -db "$DB" -d "$DEST_USER_TEXT_FILE" -u "$USER" -b 3 4 5 6 7 8
+      -db "$DB" -d "$DEST_USER_TEXT_FILE" -u "$USER" -b 3 4 5 6 7 8
     ;;
 
   "smrpg")
@@ -104,19 +104,19 @@ case $GAME_ID in
 
     log_step "Exporting $GAME_ID translation to $DEST_DIALOGUES_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
-        -db "$DB" -d "$DEST_DIALOGUES_FILE" -b 1 -g "$GAME_ID"
+      -db "$DB" -d "$DEST_DIALOGUES_FILE" -b 1 -g "$GAME_ID"
 
     log_step "Exporting $GAME_ID translation to $DEST_BATTLE_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
-        -db "$DB" -d "$DEST_BATTLE_FILE" -b 2 -g "$GAME_ID"
+      -db "$DB" -d "$DEST_BATTLE_FILE" -b 2 -g "$GAME_ID"
 
     log_step "Exporting $GAME_ID translation to $DEST_USER_DIALOGUES_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
-        -db "$DB" -d "$DEST_USER_DIALOGUES_FILE" -u "$USER" -b 1 -g "$GAME_ID"
+      -db "$DB" -d "$DEST_USER_DIALOGUES_FILE" -u "$USER" -b 1 -g "$GAME_ID"
 
     log_step "Exporting $GAME_ID translation to $DEST_USER_BATTLE_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
-        -db "$DB" -d "$DEST_USER_BATTLE_FILE" -u "$USER" -b 2 -g "$GAME_ID"
+      -db "$DB" -d "$DEST_USER_BATTLE_FILE" -u "$USER" -b 2 -g "$GAME_ID"
     ;;
 
   "starocean")
@@ -128,11 +128,11 @@ case $GAME_ID in
 
     log_step "Exporting $GAME_ID translation to $DEST_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
-       -db "$DB" -d "$DEST_FILE" -b 1 -g "$GAME_ID"
+      -db "$DB" -d "$DEST_FILE" -b 1 -g "$GAME_ID"
 
     log_step "Exporting $GAME_ID translation to $DEST_USER_FILE"
     python "$SCRIPT_DIR/manager.py" export_translation \
-       -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -b 1 -g "$GAME_ID"
+      -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -b 1 -g "$GAME_ID"
     ;;
 
   *)
