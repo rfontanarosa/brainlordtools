@@ -7,7 +7,7 @@ source ./_common.sh
 
 log_info "Starting process for Game ID: ${YELLOW}$GAME_ID${NC}"
 
-case $GAME_ID in
+case "$GAME_ID" in
   "som")
     DUMP_DIR="$RESOURCE_PATH/dump_text"
     SOURCE_FILE="$DUMP_DIR/dump_texts_eng.txt"

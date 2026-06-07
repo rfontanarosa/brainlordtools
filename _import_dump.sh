@@ -13,7 +13,7 @@ source ./_common.sh
 
 log_info "Starting import dump process for Game ID: ${YELLOW}$GAME_ID${NC}"
 
-case $GAME_ID in
+case "$GAME_ID" in
   "alcahest")
     DUMP_DIR="$RESOURCE_PATH/dump_all"
     SOURCE_FILE_1="$DUMP_DIR/all_text.txt"

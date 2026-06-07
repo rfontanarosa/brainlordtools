@@ -16,7 +16,7 @@ source ./_common.sh
 
 log_info "Starting import translation process"
 
-case $GAME_ID in
+case "$GAME_ID" in
   "brainlord")
     TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
     SOURCE_FILE="$TRANSLATED_DUMP_DIR/dump_ita_$USER.txt"

@@ -10,12 +10,13 @@ if [ -z "$GAME_ID" ]; then
   echo "  game_id  game to export (e.g. som, brainlord, smrpg)" >&2
   echo "  user     optional translator; exports to a per-user file/dir" >&2
   exit 1
+fi
 
 source ./_common.sh
 
 log_info "Starting process for Game ID: ${YELLOW}$GAME_ID${NC}"
 
-case $GAME_ID in
+case "$GAME_ID" in
   "alcahest")
     TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translated_all"
     DEST_FILE="$TRANSLATED_DUMP_DIR/all_text.txt"
