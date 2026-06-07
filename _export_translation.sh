@@ -18,14 +18,21 @@ log_info "Starting export translation process for Game ID: ${YELLOW}$GAME_ID${NC
 
 case "$GAME_ID" in
   "alcahest")
-    TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translated_all"
-    DEST_FILE="$TRANSLATED_DUMP_DIR/all_text.txt"
+    if [ -n "$USER" ]; then
+      TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translated_all_$USER/text"
+      mkdir -p "$TRANSLATED_DUMP_DIR"
 
-    mkdir -p "$TRANSLATED_DUMP_DIR"
+      log_step "Exporting $GAME_ID translation to $TRANSLATED_DUMP_DIR"
+      python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$TRANSLATED_DUMP_DIR" -u "$USER"
+    else
+      TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translated_all/text"
+      mkdir -p "$TRANSLATED_DUMP_DIR"
 
-    log_step "Exporting $GAME_ID translation to $DEST_FILE"
-    python "$SCRIPT_DIR/manager.py" export_translation \
-       -db "$DB" -d "$DEST_FILE" -b 1 2 3 4 5 6 7 8 9 10 11 12 13
+      log_step "Exporting $GAME_ID translation to $TRANSLATED_DUMP_DIR"
+      python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$TRANSLATED_DUMP_DIR"
+    fi
     ;;
 
   "brainlord")

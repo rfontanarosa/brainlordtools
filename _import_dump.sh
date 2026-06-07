@@ -15,14 +15,34 @@ log_info "Starting import dump process for Game ID: ${YELLOW}$GAME_ID${NC}"
 
 case "$GAME_ID" in
   "alcahest")
-    DUMP_DIR="$RESOURCE_PATH/dump_all"
-    SOURCE_FILE_1="$DUMP_DIR/all_text.txt"
+    DUMP_DIR="$RESOURCE_PATH/dump_all/text"
 
-    check_file "$SOURCE_FILE_1"
+    SOURCE_FILES=(
+      dialogue.txt
+      ending.txt
+      credits.txt
+      items.txt
+      inventory.txt
+      partners.txt
+      passwords_1.txt
+      passwords_2.txt
+      passwords_3.txt
+      epilogue.txt
+      events_1.txt
+      events_2.txt
+      events_misc.txt
+      events_doors.txt
+    )
+    SOURCE_FILES=("${SOURCE_FILES[@]/#/$DUMP_DIR/}")
 
-    log_step "Importing $SOURCE_FILE_1 [game=${YELLOW}$GAME_ID${NC}]"
+    for f in "${SOURCE_FILES[@]}"; do
+      check_file "$f"
+    done
+
+    log_step "Importing ${SOURCE_FILES[0]} [game=${YELLOW}$GAME_ID${NC}]"
     python "$SCRIPT_DIR/manager.py" import_dump \
-       -db "$DB" -s "$SOURCE_FILE_1"
+      -db "$DB" \
+      -s "${SOURCE_FILES[@]}"
     ;;
 
   "ffmq" | "gaia")

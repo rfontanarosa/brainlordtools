@@ -17,6 +17,37 @@ source ./_common.sh
 log_info "Starting import translation process for Game ID: ${YELLOW}$GAME_ID${NC}"
 
 case "$GAME_ID" in
+  "alcahest")
+    TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translated_all_$USER/text"
+
+    SOURCE_FILES=(
+      dialogue.txt
+      ending.txt
+      credits.txt
+      items.txt
+      inventory.txt
+      partners.txt
+      passwords_1.txt
+      passwords_2.txt
+      passwords_3.txt
+      epilogue.txt
+      events_1.txt
+      events_2.txt
+      events_misc.txt
+      events_doors.txt
+    )
+    SOURCE_FILES=("${SOURCE_FILES[@]/#/$TRANSLATED_DUMP_DIR/}")
+
+    for f in "${SOURCE_FILES[@]}"; do
+      check_file "$f"
+    done
+
+    log_step "Importing $TRANSLATED_DUMP_DIR [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
+    python "$SCRIPT_DIR/manager.py" import_translation \
+      -db "$DB" -u "$USER" \
+      -s "${SOURCE_FILES[@]}"
+    ;;
+
   "brainlord")
     TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
     SOURCE_FILE="$TRANSLATED_DUMP_DIR/dump_ita_$USER.txt"
