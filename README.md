@@ -7,6 +7,8 @@ A set of ROM-hacking utilities for old school videogames - text dumping, reinser
 | ID         | Game                                       | Platform | Status      | Dependency                     |
 | ---------- | ------------------------------------------ | -------- | ----------- | ------------------------------ |
 | 7thsaga    | 7th Saga, The                              | SNES     | Stable      |                                |
+| alcahest   | Alcahest                                   | SNES     | Stable      | alcahest-tool                  |
+| brainlord  | Brain Lord                                 | SNES     | Stable      |                                |
 
 ## Getting started
 
