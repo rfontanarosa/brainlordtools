@@ -1,6 +1,14 @@
 #!/bin/bash
 
-GAME_ID=${1:-"som"}
+set -euo pipefail
+
+GAME_ID=${1:-""}
+
+if [ -z "$GAME_ID" ]; then
+  echo "Usage: $0 <game_id>" >&2
+  echo "  game_id  game to create the database for (e.g. som, brainlord, smrpg)" >&2
+  exit 1
+fi
 
 source ./_common.sh
 

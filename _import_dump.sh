@@ -1,10 +1,17 @@
 #!/bin/bash
 
-GAME_ID=${1:-"som"}
+set -euo pipefail
+
+GAME_ID=${1:-""}
+
+if [ -z "$GAME_ID" ]; then
+  echo "Usage: $0 <game_id>" >&2
+  exit 1
+fi
 
 source ./_common.sh
 
-log_info "Starting import dump process"
+log_info "Starting import dump process for Game ID: ${YELLOW}$GAME_ID${NC}"
 
 case $GAME_ID in
   "alcahest")

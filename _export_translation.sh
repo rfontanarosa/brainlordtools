@@ -1,7 +1,15 @@
 #!/bin/bash
 
-GAME_ID=${1:-"som"}
-USER=${2:-"clomax"}
+set -euo pipefail
+
+GAME_ID=${1:-""}
+USER=${2:-""}
+
+if [ -z "$GAME_ID" ]; then
+  echo "Usage: $0 <game_id> [user]" >&2
+  echo "  game_id  game to export (e.g. som, brainlord, smrpg)" >&2
+  echo "  user     optional translator; exports to a per-user file/dir" >&2
+  exit 1
 
 source ./_common.sh
 

@@ -1,7 +1,16 @@
 #!/bin/bash
 
-GAME_ID=${1:-"som"}
-USER=${2:-"clomax"}
+set -euo pipefail
+
+GAME_ID=${1:-""}
+USER=${2:-""}
+
+if [ -z "$GAME_ID" ] || [ -z "$USER" ]; then
+  echo "Usage: $0 <game_id> <user>" >&2
+  echo "  game_id  game to import (e.g. som, brainlord, smrpg)" >&2
+  echo "  user     translator whose file/dir to import (required)" >&2
+  exit 1
+fi
 
 source ./_common.sh
 
