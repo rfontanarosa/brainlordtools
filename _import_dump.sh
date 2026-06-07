@@ -20,7 +20,7 @@ case "$GAME_ID" in
 
     check_file "$SOURCE_FILE_1"
 
-    log_step "Importing $SOURCE_FILE_1 [game=${YELLOW}$GAME_ID${NC}"
+    log_step "Importing $SOURCE_FILE_1 [game=${YELLOW}$GAME_ID${NC}]"
     python "$SCRIPT_DIR/manager.py" import_dump \
        -db "$DB" -s "$SOURCE_FILE_1"
     ;;

@@ -14,7 +14,7 @@ fi
 
 source ./_common.sh
 
-log_info "Starting process for Game ID: ${YELLOW}$GAME_ID${NC}"
+log_info "Starting export translation process for Game ID: ${YELLOW}$GAME_ID${NC}"
 
 case "$GAME_ID" in
   "alcahest")
@@ -151,4 +151,4 @@ case "$GAME_ID" in
 esac
 
 log_success "All tasks completed successfully!"
-log_info "Database location: ${YELLOW}$TRANSLATED_DUMP_DIR${NC}"
+log_info "Output location: ${YELLOW}$TRANSLATED_DUMP_DIR${NC}"

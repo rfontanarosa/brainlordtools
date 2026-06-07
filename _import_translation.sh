@@ -14,7 +14,7 @@ fi
 
 source ./_common.sh
 
-log_info "Starting import translation process"
+log_info "Starting import translation process for Game ID: ${YELLOW}$GAME_ID${NC}"
 
 case "$GAME_ID" in
   "brainlord")
