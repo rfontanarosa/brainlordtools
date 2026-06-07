@@ -2,6 +2,12 @@
 
 A set of ROM-hacking utilities for old school videogames - text dumping, reinsertion, compression, and graphics tools.
 
+## Compatible games
+
+| ID         | Game                                       | Platform | Status      | Dependency                     |
+| ---------- | ------------------------------------------ | -------- | ----------- | ------------------------------ |
+| 7thsaga    | 7th Saga, The                              | SNES     | Stable      |                                |
+
 ## Getting started
 
 `_create_db.sh` is the first script to run before starting work on a project.
