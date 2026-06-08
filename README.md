@@ -9,6 +9,8 @@ A set of ROM-hacking utilities for old school videogames - text dumping, reinser
 | 7thsaga    | 7th Saga, The                              | SNES     | Stable      |                                |
 | alcahest   | Alcahest                                   | SNES     | Stable      | alcahest-tool                  |
 | brainlord  | Brain Lord                                 | SNES     | Stable      |                                |
+| neugier    | Neugier: Umi to Kaze no Koudou             | SNES     | Stable      |                                |
+| spike      | Twisted Tales of Spike McFang, The         | SNES     | Stable      | mcfang-dec                     |
 
 ## Getting started
 

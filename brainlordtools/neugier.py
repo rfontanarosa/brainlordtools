@@ -5,7 +5,7 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import csv
-import os
+import pathlib
 import shutil
 import sqlite3
 import struct
@@ -32,14 +32,14 @@ GFX_INTRO_OFFSETS = (0x29200, 0x2a800)
 def neugier_text_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     db = args.database_file
     table = Table(table1_file)
     conn = sqlite3.connect(db)
     conn.text_factory = str
     cur = conn.cursor()
     shutil.rmtree(dump_path, ignore_errors=True)
-    os.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f:
         # TEXT POINTERS 1
         pointers = {}
@@ -50,19 +50,19 @@ def neugier_text_dumper(args):
             text_address = snes2pc_lorom(struct.unpack('i', p_value[1:] + bytes([p_value[0]]) + b'\x00')[0])
             pointers.setdefault(text_address, []).append(p_address)
         # TEXT 1
-        id = 1
+        current_id = 1
         for _, (text_address, pointer_addresses) in enumerate(pointers.items()):
             pointer_addresses_str = ';'.join(str(hex(x)) for x in pointer_addresses)
             text = read_text(f, text_address, end_byte=b'\x00')
             text_decoded = table.decode(text)
-            ref = f'[ID={id} START={hex(text_address)} END={hex(f.tell() -1)} POINTERS={pointer_addresses_str}]'
+            ref = f'[ID={current_id} START={hex(text_address)} END={hex(f.tell() -1)} POINTERS={pointer_addresses_str}]'
+            filename = 'dump_eng.txt'
             # dump - db
-            insert_text(cur, id, text_decoded, text_address, pointer_addresses_str, len(text), 1, ref, None, None, None)
+            insert_text(cur, current_id, text_decoded, text_address, pointer_addresses_str, len(text), 1, ref, 'default', filename, current_id)
             # dump - txt
-            filename = os.path.join(dump_path, 'dump_eng.txt')
-            with open(filename, 'a+', encoding='utf-8') as out:
+            with open(dump_path / filename, 'a+', encoding='utf-8') as out:
                 out.write(f'{ref}\n{text_decoded}\n\n')
-            id += 1
+            current_id += 1
     cur.close()
     conn.commit()
     conn.close()
@@ -110,25 +110,25 @@ def neugier_text_inserter(args):
 
 def neugier_gfx_dumper(args):
     source_file = args.source_file
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     shutil.rmtree(dump_path, ignore_errors=True)
-    os.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f:
-        extract_binary(f, GFX_NEW_GAME_OFFSETS[0], GFX_NEW_GAME_OFFSETS[1] - GFX_NEW_GAME_OFFSETS[0], os.path.join(dump_path, 'gfx_new_game.bin'))
-        extract_binary(f, GFX_TITLE[0], GFX_TITLE[1] - GFX_TITLE[0], os.path.join(dump_path, 'gfx_title.bin'))
-        extract_binary(f, GFX_STATUS_OFFSETS[0], GFX_STATUS_OFFSETS[1] - GFX_STATUS_OFFSETS[0], os.path.join(dump_path, 'gfx_status.bin'))
-        extract_binary(f, GFX_FONT_OFFSETS[0], GFX_FONT_OFFSETS[1] - GFX_FONT_OFFSETS[0], os.path.join(dump_path, 'gfx_font.bin'))
-        extract_binary(f, GFX_INTRO_OFFSETS[0], GFX_INTRO_OFFSETS[1] - GFX_INTRO_OFFSETS[0], os.path.join(dump_path, 'gfx_intro.bin'))
+        extract_binary(f, GFX_NEW_GAME_OFFSETS[0], GFX_NEW_GAME_OFFSETS[1] - GFX_NEW_GAME_OFFSETS[0], dump_path / 'gfx_new_game.bin')
+        extract_binary(f, GFX_TITLE[0], GFX_TITLE[1] - GFX_TITLE[0], dump_path / 'gfx_title.bin')
+        extract_binary(f, GFX_STATUS_OFFSETS[0], GFX_STATUS_OFFSETS[1] - GFX_STATUS_OFFSETS[0], dump_path / 'gfx_status.bin')
+        extract_binary(f, GFX_FONT_OFFSETS[0], GFX_FONT_OFFSETS[1] - GFX_FONT_OFFSETS[0], dump_path / 'gfx_font.bin')
+        extract_binary(f, GFX_INTRO_OFFSETS[0], GFX_INTRO_OFFSETS[1] - GFX_INTRO_OFFSETS[0], dump_path / 'gfx_intro.bin')
 
 def neugier_gfx_inserter(args):
     dest_file = args.dest_file
-    translation_path = args.translation_path
+    translation_path = pathlib.Path(args.translation_path)
     with open(dest_file, 'r+b') as f:
-        insert_binary(f, GFX_NEW_GAME_OFFSETS[0], os.path.join(translation_path, 'gfx_new_game.bin'), max_length=GFX_NEW_GAME_OFFSETS[1] - GFX_NEW_GAME_OFFSETS[0])
-        insert_binary(f, GFX_TITLE[0], os.path.join(translation_path, 'gfx_title.bin'), max_length=GFX_TITLE[1] - GFX_TITLE[0])
-        insert_binary(f, GFX_STATUS_OFFSETS[0], os.path.join(translation_path, 'gfx_status.bin'), max_length=GFX_STATUS_OFFSETS[1] - GFX_STATUS_OFFSETS[0])
-        insert_binary(f, GFX_FONT_OFFSETS[0], os.path.join(translation_path, 'gfx_font.bin'), max_length=GFX_FONT_OFFSETS[1] - GFX_FONT_OFFSETS[0])
-        insert_binary(f, GFX_INTRO_OFFSETS[0], os.path.join(translation_path, 'gfx_intro.bin'), max_length=GFX_INTRO_OFFSETS[1] - GFX_INTRO_OFFSETS[0])
+        insert_binary(f, GFX_NEW_GAME_OFFSETS[0], translation_path / 'gfx_new_game.bin', max_length=GFX_NEW_GAME_OFFSETS[1] - GFX_NEW_GAME_OFFSETS[0])
+        insert_binary(f, GFX_TITLE[0], translation_path / 'gfx_title.bin', max_length=GFX_TITLE[1] - GFX_TITLE[0])
+        insert_binary(f, GFX_STATUS_OFFSETS[0], translation_path / 'gfx_status.bin', max_length=GFX_STATUS_OFFSETS[1] - GFX_STATUS_OFFSETS[0])
+        insert_binary(f, GFX_FONT_OFFSETS[0], translation_path / 'gfx_font.bin', max_length=GFX_FONT_OFFSETS[1] - GFX_FONT_OFFSETS[0])
+        insert_binary(f, GFX_INTRO_OFFSETS[0], translation_path / 'gfx_intro.bin', max_length=GFX_INTRO_OFFSETS[1] - GFX_INTRO_OFFSETS[0])
         # VWF
         write_byte(f, 0x110050, b'\x07')
         write_byte(f, 0x110051, b'\x07')
@@ -141,13 +141,13 @@ def neugier_gfx_inserter(args):
 def neugier_misc_dumper(args):
     source_file = args.source_file
     table1_file = args.table1
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     table = Table(table1_file)
     shutil.rmtree(dump_path, ignore_errors=True)
-    os.mkdir(dump_path)
+    dump_path.mkdir()
     with open(source_file, 'rb') as f:
         # Enemy names
-        filename = os.path.join(dump_path, 'enemy_names.csv')
+        filename = dump_path / 'enemy_names.csv'
         with open(filename, 'w+', encoding='utf-8') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['text_address', 'text', 'trans'])
@@ -160,18 +160,18 @@ def neugier_misc_dumper(args):
                 csv_writer.writerow(fields)
         # Credits
         with open(source_file, 'rb') as f:
-            extract_binary(f, 0xd0919, 0xd0f37 - 0xd0919, os.path.join(dump_path, 'credits.bin'))
+            extract_binary(f, 0xd0919, 0xd0f37 - 0xd0919, dump_path / 'credits.bin')
 
 def neugier_misc_inserter(args):
     dest_file = args.dest_file
     table1_file = args.table1
     table2_file = args.table2
-    translation_path = args.translation_path
+    translation_path = pathlib.Path(args.translation_path)
     table = Table(table1_file)
     table2 = Table(table2_file)
     with open(dest_file, 'r+b') as f:
         # Enemy names
-        translation_file = os.path.join(translation_path, 'enemy_names.csv')
+        translation_file = translation_path / 'enemy_names.csv'
         translated_texts = get_csv_translated_texts(translation_file)
         for t_address, _, t_value in translated_texts:
             text = t_value.encode()
@@ -179,16 +179,16 @@ def neugier_misc_inserter(args):
                 sys.exit(f'{t_value} exceeds 10')
             write_text(f, t_address, text, length=10)
         # Credits
-        insert_binary(f, 0xd0919, os.path.join(translation_path, 'credits.bin'), max_length=0xd0f37 - 0xd0919)
+        insert_binary(f, 0xd0919, translation_path / 'credits.bin', max_length=0xd0f37 - 0xd0919)
 
 def neugier_credits_dumper(args):
     source_file = args.source_file
     table3_file = args.table3
-    dump_path = args.dump_path
+    dump_path = pathlib.Path(args.dump_path)
     table = Table(table3_file)
     shutil.rmtree(dump_path, ignore_errors=True)
-    os.mkdir(dump_path)
-    filename = os.path.join(dump_path, 'credits.txt')
+    dump_path.mkdir()
+    filename = dump_path / 'credits.txt'
     with open(source_file, 'rb') as f:
         pointers = {}
         f.seek(snes2pc_lorom(0x1aea74))
