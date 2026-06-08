@@ -5,7 +5,7 @@ __maintainer__ = "Roberto Fontanarosa"
 __email__ = "robertofontanarosa@gmail.com"
 
 import sys, string, re, operator
-from utils import hex2dec, int2byte, hex2byte, byte2int, int_to_bytes
+from .utils import hex2dec, int2byte, hex2byte, byte2int, int_to_bytes
 from collections import OrderedDict
 
 class Table():
