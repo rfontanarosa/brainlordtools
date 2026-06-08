@@ -9,12 +9,15 @@ A set of ROM-hacking utilities for old school videogames - text dumping, reinser
 | 7thsaga    | 7th Saga, The                              | SNES     | Stable      |                                |
 | alcahest   | Alcahest                                   | SNES     | Stable      | alcahest-tool                  |
 | brainlord  | Brain Lord                                 | SNES     | Stable      |                                |
+| bof2       | Breath of Fire 2                           | SNES     | Incomplete  |                                |
 | equinox    | Equinox                                    | SNES     | Stable      |                                |
 | gargoyle   | Gargoyle's Quest                           | GB       | Stable      |                                |
 | ignition   | Ignition Factor, The                       | SNES     | Stable      |                                |
+| lom        | Legend of Mana                             | PSX      | Not started | Legend-Of-Mana-ITA             |
 | lufia      | Lufia & the Fortress of Doom               | SNES     | To migrate  |                                |
 | neugier    | Neugier: Umi to Kaze no Koudou             | SNES     | Stable      |                                |
 | ruinarm    | Ruin Arm                                   | SNES     | In progress |                                |
+| soe        | Secret of Evermore                         | SNES     | Stable      | Romhacking                     |
 | spike      | Twisted Tales of Spike McFang, The         | SNES     | Stable      | mcfang-dec                     |
 
 ## Getting started
