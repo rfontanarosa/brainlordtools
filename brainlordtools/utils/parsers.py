@@ -66,6 +66,40 @@ def _parse_starocean_dump(file_path: str) -> dict:
         buff[current_id][0] += line
   return buff
 
+FFMQ_HEADER_RE = re.compile(r'\[BLOCK\s+(\d+):\s+(0x[0-9A-Fa-f]+)\s+to\s+(0x[0-9A-Fa-f]+)\]')
+
+def _parse_ffmq_dump(file_path: str) -> dict:
+  """Parse a Final Fantasy: Mystic Quest text dump.
+
+  Blocks are delimited by a `[BLOCK N: 0xSTART to 0xEND]` header followed by the
+  block's text up to the next header (a trailing blank line separates blocks).
+
+  Entries are keyed by a 1-based sequential id so the key equals the text row's
+  global id and a re-imported translation links by id (same invariant as the
+  SoE/default round-trip). The dump's block number N is emitted as `ID` so it
+  becomes the entry's file_index, and START/END/SIZE carry the ROM addresses;
+  the DB `block` is left to default to 1 (what the `-b 1` export expects).
+  """
+  buffer = {}
+  with open(file_path, 'r', encoding='utf-8') as f:
+    current_id = 0
+    temp_text = []
+    for line in f:
+      match = FFMQ_HEADER_RE.match(line)
+      if match:
+        if current_id:
+          buffer[current_id][0] = "".join(temp_text).strip('\r\n')
+        block_no, start, end = match.group(1), match.group(2), match.group(3)
+        size = int(end, 16) - int(start, 16)
+        current_id += 1
+        buffer[current_id] = ['', f'[ID={block_no} START={start} END={end} SIZE={size}]']
+        temp_text = []
+      elif current_id:
+        temp_text.append(line)
+    if current_id:
+      buffer[current_id][0] = "".join(temp_text).strip('\r\n')
+  return buffer
+
 def _parse_smrpg_dump(file_path: str) -> dict:
   """Parse a Super Mario RPG dump exported in Lazy Shell format.
 
@@ -89,6 +123,7 @@ def _parse_smrpg_dump(file_path: str) -> dict:
   return buffer
 
 GAME_PARSERS = {
+  'ffmq': _parse_ffmq_dump,
   'soe': _parse_soe_dump,
   'starocean': _parse_starocean_dump,
   'smrpg': _parse_smrpg_dump,

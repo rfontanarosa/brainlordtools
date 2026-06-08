@@ -11,6 +11,7 @@ A set of ROM-hacking utilities for old school videogames - text dumping, reinser
 | brainlord  | Brain Lord                                 | SNES     | Stable      |                                |
 | bof2       | Breath of Fire 2                           | SNES     | Incomplete  |                                |
 | equinox    | Equinox                                    | SNES     | Stable      |                                |
+| ffmq       | Final Fantasy: Mystic Quest                | SNES     | Stable      | Final-Fantasy-Mystic-Quest-ITA |
 | gargoyle   | Gargoyle's Quest                           | GB       | Stable      |                                |
 | ignition   | Ignition Factor, The                       | SNES     | Stable      |                                |
 | lom        | Legend of Mana                             | PSX      | Not started | Legend-Of-Mana-ITA             |
