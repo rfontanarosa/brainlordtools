@@ -51,36 +51,40 @@ case "$GAME_ID" in
       -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -b 1 2 3 4 5 6 7
     ;;
 
-  "7thsaga" | "gaia" | "ignition" | "spike")
+  "7thsaga" | "lufia" | "gaia" | "ignition" | "spike")
     TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
     DEST_FILE="$TRANSLATED_DUMP_DIR/dump_ita.txt"
     DEST_USER_FILE="$TRANSLATED_DUMP_DIR/dump_ita_$USER.txt"
 
     mkdir -p "$TRANSLATED_DUMP_DIR"
 
-    log_step "Exporting $GAME_ID translation to $DEST_FILE"
-    python "$SCRIPT_DIR/manager.py" export_translation \
-      -db "$DB" -d "$DEST_FILE"
-
-    log_step "Exporting $GAME_ID translation to $DEST_USER_FILE"
-    python "$SCRIPT_DIR/manager.py" export_translation \
-      -db "$DB" -d "$DEST_USER_FILE" -u "$USER"
+    if [ -n "$USER" ]; then
+      log_step "Exporting $GAME_ID translation to $DEST_USER_FILE"
+      python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_USER_FILE" -u "$USER"
+    else
+      log_step "Exporting $GAME_ID translation to $DEST_FILE"
+      python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_FILE"
+    fi
     ;;
 
-  "ffmq" | "lufia")
+  "ffmq")
     TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
     DEST_FILE="$TRANSLATED_DUMP_DIR/dump_ita.txt"
     DEST_USER_FILE="$TRANSLATED_DUMP_DIR/dump_ita_$USER.txt"
 
     mkdir -p "$TRANSLATED_DUMP_DIR"
 
-    log_step "Exporting $GAME_ID translation to $DEST_FILE"
-    python "$SCRIPT_DIR/manager.py" export_translation \
-      -db "$DB" -d "$DEST_FILE" -b 1
-
-    log_step "Exporting $GAME_ID translation to $DEST_USER_FILE"
-    python "$SCRIPT_DIR/manager.py" export_translation \
-      -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -b 1
+    if [ -n "$USER" ]; then
+      log_step "Exporting $GAME_ID translation to $DEST_USER_FILE"
+      python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -b 1
+    else
+      log_step "Exporting $GAME_ID translation to $DEST_FILE"
+      python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_FILE" -b 1
+    fi
     ;;
 
   "som" | "som_pal")
@@ -142,13 +146,15 @@ case "$GAME_ID" in
 
     mkdir -p "$TRANSLATED_DUMP_DIR"
 
-    log_step "Exporting $GAME_ID translation to $DEST_FILE"
-    python "$SCRIPT_DIR/manager.py" export_translation \
-      -db "$DB" -d "$DEST_FILE" -b 1 -g "$GAME_ID"
-
-    log_step "Exporting $GAME_ID translation to $DEST_USER_FILE"
-    python "$SCRIPT_DIR/manager.py" export_translation \
-      -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -b 1 -g "$GAME_ID"
+    if [ -n "$USER" ]; then
+      log_step "Exporting $GAME_ID translation to $DEST_USER_FILE"
+      python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -b 1 -g "$GAME_ID"
+    else
+      log_step "Exporting $GAME_ID translation to $DEST_FILE"
+      python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_FILE" -b 1 -g "$GAME_ID"
+    fi
     ;;
 
   *)
