@@ -10,5 +10,5 @@ DESTINATION="$RESOURCE_PATH/roms/Alcahest (I).sfc"
 CURRENT_PATH=$PWD
 cd "$BRAINLORD_PATH/alcahest-tool"
 uv run alcahest-tool dump --rom "$SOURCE" --output "$RESOURCE_PATH/dump_all"
-uv run alcahest-tool build --rom "$SOURCE" --translated "$RESOURCE_PATH/translated_all" --output "$DESTINATION" --tbl "$RESOURCE_PATH/tables/alcahest_ita.tbl"
+uv run alcahest-tool build --rom "$SOURCE" --translated "$RESOURCE_PATH/translated_all" --output "$DESTINATION" --tbl "$RESOURCE_PATH/tables/alcahest_ita.tbl" --asm "$RESOURCE_PATH/asm"
 cd $CURRENT_PATH
