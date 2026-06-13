@@ -82,7 +82,6 @@ def som_text_dumper(args):
     with open(source_file, 'rb') as f:
         # TEXT POINTERS
         current_id = 1
-        index1, index2 = 0, 0
         for block, block_pointers in enumerate(POINTERS_OFFSETS, start=1):
             pointer_block_start, pointer_block_end, _, _, bank_offset, pointer_bytes, dump_type = block_pointers
             pointers = {}
@@ -148,15 +147,11 @@ def som_text_dumper(args):
                 if dump_type == DumpType.EVENTS:
                     ref = f'[ID={current_id} BLOCK={block} EVENT={hex(current_id - 1)} START={hex(text_address)} POINTERS={pointer_addresses_str}]'
                     filename = 'dump_events_eng.txt'
-                    index1 += 1
-                    index = index1
                 else:
                     ref = f'[ID={current_id} BLOCK={block} START={hex(text_address)} POINTERS={pointer_addresses_str}]'
                     filename = 'dump_texts_eng.txt'
-                    index2 += 1
-                    index = index2
                 # dump - db
-                insert_text(cur, current_id, text_decoded, text_address, pointer_addresses_str, len(text), block, ref, 'default', filename, index)
+                insert_text(cur, current_id, text_decoded, text_address, pointer_addresses_str, len(text), block, ref, 'default', filename, current_id)
                 # dump - txt
                 with open(dump_path / filename, 'a+', encoding='utf-8') as out:
                     out.write(f'{ref}\n{text_decoded}\n\n')

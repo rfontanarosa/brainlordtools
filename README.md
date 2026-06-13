@@ -19,6 +19,8 @@ A set of ROM-hacking utilities for old school videogames - text dumping, reinser
 | neugier    | Neugier: Umi to Kaze no Koudou             | SNES     | Stable      |                                |
 | ruinarm    | Ruin Arm                                   | SNES     | In progress |                                |
 | soe        | Secret of Evermore                         | SNES     | Stable      | Romhacking                     |
+| som        | Secret of Mana                             | SNES     | Stable      |                                |
+| som_pal    | Secret of Mana (PAL)                       | SNES     | Stable      |                                |
 | starocean  | Star Ocean                                 | SNES     | Stable      | PrivateRomhacking              |
 | spike      | Twisted Tales of Spike McFang, The         | SNES     | Stable      | mcfang-dec                     |
 
