@@ -80,21 +80,23 @@ case "$GAME_ID" in
 
     mkdir -p "$TRANSLATED_DUMP_DIR"
 
-    log_step "Exporting $GAME_ID translation to $DEST_EVENTS_FILE"
-    python "$SCRIPT_DIR/manager.py" export_translation \
-      -db "$DB" -d "$DEST_EVENTS_FILE" -b 1 2
+    if [ -n "$USER" ]; then
+      log_step "Exporting $GAME_ID translation to $DEST_USER_EVENTS_FILE"
+      python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_USER_EVENTS_FILE" -u "$USER" -b 1 2
 
-    log_step "Exporting $GAME_ID translation to $DEST_TEXT_FILE"
-    python "$SCRIPT_DIR/manager.py" export_translation \
-      -db "$DB" -d "$DEST_TEXT_FILE" -b 3 4 5 6 7 8
+      log_step "Exporting $GAME_ID translation to $DEST_USER_TEXT_FILE"
+      python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_USER_TEXT_FILE" -u "$USER" -b 3 4 5 6 7 8
+    else
+      log_step "Exporting $GAME_ID translation to $DEST_EVENTS_FILE"
+      python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_EVENTS_FILE" -b 1 2
 
-    log_step "Exporting $GAME_ID translation to $DEST_USER_EVENTS_FILE"
-    python "$SCRIPT_DIR/manager.py" export_translation \
-      -db "$DB" -d "$DEST_USER_EVENTS_FILE" -u "$USER" -b 1 2
-
-    log_step "Exporting $GAME_ID translation to $DEST_USER_TEXT_FILE"
-    python "$SCRIPT_DIR/manager.py" export_translation \
-      -db "$DB" -d "$DEST_USER_TEXT_FILE" -u "$USER" -b 3 4 5 6 7 8
+      log_step "Exporting $GAME_ID translation to $DEST_TEXT_FILE"
+      python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_TEXT_FILE" -b 3 4 5 6 7 8
+    fi
     ;;
 
   "smrpg")
@@ -106,21 +108,41 @@ case "$GAME_ID" in
 
     mkdir -p "$TRANSLATED_DUMP_DIR"
 
-    log_step "Exporting $GAME_ID translation to $DEST_DIALOGUES_FILE"
-    python "$SCRIPT_DIR/manager.py" export_translation \
-      -db "$DB" -d "$DEST_DIALOGUES_FILE" -b 1 -g "$GAME_ID"
+    if [ -n "$USER" ]; then
+      log_step "Exporting $GAME_ID translation to $DEST_USER_DIALOGUES_FILE"
+      python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_USER_DIALOGUES_FILE" -u "$USER" -b 1 -g "$GAME_ID"
 
-    log_step "Exporting $GAME_ID translation to $DEST_BATTLE_FILE"
-    python "$SCRIPT_DIR/manager.py" export_translation \
-      -db "$DB" -d "$DEST_BATTLE_FILE" -b 2 -g "$GAME_ID"
+      log_step "Exporting $GAME_ID translation to $DEST_USER_BATTLE_FILE"
+      python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_USER_BATTLE_FILE" -u "$USER" -b 2 -g "$GAME_ID"
+    else
+      log_step "Exporting $GAME_ID translation to $DEST_DIALOGUES_FILE"
+      python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_DIALOGUES_FILE" -b 1 -g "$GAME_ID"
 
-    log_step "Exporting $GAME_ID translation to $DEST_USER_DIALOGUES_FILE"
-    python "$SCRIPT_DIR/manager.py" export_translation \
-      -db "$DB" -d "$DEST_USER_DIALOGUES_FILE" -u "$USER" -b 1 -g "$GAME_ID"
+      log_step "Exporting $GAME_ID translation to $DEST_BATTLE_FILE"
+      python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_BATTLE_FILE" -b 2 -g "$GAME_ID"
+    fi
+    ;;
 
-    log_step "Exporting $GAME_ID translation to $DEST_USER_BATTLE_FILE"
-    python "$SCRIPT_DIR/manager.py" export_translation \
-      -db "$DB" -d "$DEST_USER_BATTLE_FILE" -u "$USER" -b 2 -g "$GAME_ID"
+  "soe")
+    TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
+    DEST_FILE="$TRANSLATED_DUMP_DIR/dump_ita.txt"
+    DEST_USER_FILE="$TRANSLATED_DUMP_DIR/dump_ita_$USER.txt"
+
+    mkdir -p "$TRANSLATED_DUMP_DIR"
+
+    if [ -n "$USER" ]; then
+      log_step "Exporting $GAME_ID translation to $DEST_USER_FILE"
+      python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -g "$GAME_ID"
+    else
+      log_step "Exporting $GAME_ID translation to $DEST_FILE"
+      python "$SCRIPT_DIR/manager.py" export_translation \
+        -db "$DB" -d "$DEST_FILE" -g "$GAME_ID"
+    fi
     ;;
 
   "starocean")

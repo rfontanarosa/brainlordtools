@@ -7,6 +7,7 @@ source ./_common.sh
 USER="clomax"
 DB="$RESOURCE_PATH/db/$GAME_ID.sqlite3"
 SOURCE="$RESOURCE_PATH/roms/Romancing SaGa (U) (V1.2) [!].sfc"
+# SOURCE="$RESOURCE_PATH/roms/rs1_patched -it - lv complete -intro comp-lv50.smc"
 DESTINATION="$RESOURCE_PATH/roms/Romancing SaGa (I) (V1.0) [!].sfc"
 
 TABLE1="$RESOURCE_PATH/tables/rs.tbl"
