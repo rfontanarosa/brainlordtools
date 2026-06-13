@@ -45,7 +45,7 @@ case "$GAME_ID" in
       -s "${SOURCE_FILES[@]}"
     ;;
 
-  "7thsaga" | "neugier" | "gaia")
+  "7thsaga" | "brainlord" | "ignition" | "lufia" | "neugier" | "spike")
     DUMP_DIR="$RESOURCE_PATH/dump_text"
     SOURCE_FILE="$DUMP_DIR/dump_eng.txt"
 

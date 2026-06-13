@@ -35,23 +35,7 @@ case "$GAME_ID" in
     fi
     ;;
 
-  "brainlord")
-    TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
-    DEST_FILE="$TRANSLATED_DUMP_DIR/dump_ita.txt"
-    DEST_USER_FILE="$TRANSLATED_DUMP_DIR/dump_ita_$USER.txt"
-
-    mkdir -p "$TRANSLATED_DUMP_DIR"
-
-    log_step "Exporting $GAME_ID translation to $DEST_FILE"
-    python "$SCRIPT_DIR/manager.py" export_translation \
-      -db "$DB" -d "$DEST_FILE" -b 1 2 3 4 5 6 7
-
-    log_step "Exporting $GAME_ID translation to $DEST_USER_FILE"
-    python "$SCRIPT_DIR/manager.py" export_translation \
-      -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -b 1 2 3 4 5 6 7
-    ;;
-
-  "7thsaga" | "lufia" | "gaia" | "ignition" | "spike")
+  "7thsaga" | "brainlord" | "ignition" | "lufia" | "neugier" | "spike")
     TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
     DEST_FILE="$TRANSLATED_DUMP_DIR/dump_ita.txt"
     DEST_USER_FILE="$TRANSLATED_DUMP_DIR/dump_ita_$USER.txt"
@@ -79,11 +63,11 @@ case "$GAME_ID" in
     if [ -n "$USER" ]; then
       log_step "Exporting $GAME_ID translation to $DEST_USER_FILE"
       python "$SCRIPT_DIR/manager.py" export_translation \
-        -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -b 1
+        -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -g "$GAME_ID"
     else
       log_step "Exporting $GAME_ID translation to $DEST_FILE"
       python "$SCRIPT_DIR/manager.py" export_translation \
-        -db "$DB" -d "$DEST_FILE" -b 1
+        -db "$DB" -d "$DEST_FILE" -g "$GAME_ID"
     fi
     ;;
 
