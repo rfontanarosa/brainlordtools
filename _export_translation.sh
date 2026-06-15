@@ -73,14 +73,14 @@ case "$GAME_ID" in
 
   "som" | "som_pal" | "smrpg")
     if [ -n "$USER" ]; then
-      TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text_$USER"
+      TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translated_text_$USER"
       mkdir -p "$TRANSLATED_DUMP_DIR"
 
       log_step "Exporting $GAME_ID translation to $TRANSLATED_DUMP_DIR"
       python "$SCRIPT_DIR/manager.py" export_translation \
         -db "$DB" -d "$TRANSLATED_DUMP_DIR" -u "$USER" -g "$GAME_ID"
     else
-      TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text_ita"
+      TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translated_text"
       mkdir -p "$TRANSLATED_DUMP_DIR"
 
       log_step "Exporting $GAME_ID translation to $TRANSLATED_DUMP_DIR"

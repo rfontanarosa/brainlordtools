@@ -130,20 +130,16 @@ case "$GAME_ID" in
     ;;
 
   "smrpg")
-    TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
+    TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translated_text_$USER"
     SOURCE_DIALOGUES_FILE="$TRANSLATED_DUMP_DIR/dialogues_ita_$USER.txt"
     SOURCE_BATTLE_FILE="$TRANSLATED_DUMP_DIR/battleDialogues_ita_$USER.txt"
 
     check_file "$SOURCE_DIALOGUES_FILE"
     check_file "$SOURCE_BATTLE_FILE"
 
-    log_step "Importing $SOURCE_DIALOGUES_FILE [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
+    log_step "Importing $SOURCE_DIALOGUES_FILE and $SOURCE_BATTLE_FILE [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
     python "$SCRIPT_DIR/manager.py" import_translation \
-      -db "$DB" -s "$SOURCE_DIALOGUES_FILE" -u "$USER" -g "$GAME_ID"
-
-    log_step "Importing $SOURCE_BATTLE_FILE [game=${YELLOW}$GAME_ID${NC}, user=${YELLOW}$USER]${NC}"
-    python "$SCRIPT_DIR/manager.py" import_translation \
-      -db "$DB" -s "$SOURCE_BATTLE_FILE" -u "$USER" -g "$GAME_ID"
+      -db "$DB" -s "$SOURCE_DIALOGUES_FILE" "$SOURCE_BATTLE_FILE" -u "$USER" -g "$GAME_ID"
     ;;
 
   "starocean")
