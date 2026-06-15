@@ -12,8 +12,8 @@ TABLE1="$RESOURCE_PATH/tables/som_main.tbl"
 TABLE3="$RESOURCE_PATH/tables/som_main_with_dte_sadnes.tbl"
 TABLE6="$RESOURCE_PATH/tables/som_credits.tbl"
 
-DUMP_TEXT_PATH="$RESOURCE_PATH/$USER/dump_text"
-DUMP_MISC_PATH="$RESOURCE_PATH/$USER/dump_misc"
+DUMP_TEXT_PATH="$RESOURCE_PATH/translated_text_$USER"
+DUMP_MISC_PATH="$RESOURCE_PATH/translated_misc_$USER"
 
 python "$MANAGER_PATH/manager.py" crc_check -s "$SOURCE" -g "som_sadnes" || exit 1
 
