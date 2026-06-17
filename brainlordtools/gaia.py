@@ -15,6 +15,7 @@ import sys
 from _quintet.quintet_comp import compress as quintet_compress
 from _quintet.quintet_decomp import decompress as quintet_decompress
 from rhtools3.Table import Table
+from rhutils.db import insert_text
 from rhutils.dump import get_csv_translated_texts, read_dump
 from rhutils.io import fill, write_byte
 from rhutils.snes import pc2snes_hirom, snes2pc_hirom
@@ -269,16 +270,16 @@ def gaia_text_dumper(args):
         pointers[0x1ff36] = []
         pointers[0x1ff48] = []
         pointers[0x1cb66] = []
-        for block, (text_offset, pointers_offsets) in enumerate(pointers.items(), start=1):
-            text = gaia_read_text(f, text_offset, end_byte=(b'\xc0', b'\xca'), cmd_list=cmd_list, append_end_byte=True)
+        for _, (text_address, pointers_offsets) in enumerate(pointers.items(), start=1):
+            text = gaia_read_text(f, text_address, end_byte=(b'\xc0', b'\xca'), cmd_list=cmd_list, append_end_byte=True)
             text_decoded = table1.decode(text, mte_resolver=True, dict_resolver=True)
-            pointers_offsets_str = ';'.join(hex(x) for x in pointers_offsets)
-            ref = f'[ID={current_id} START={hex(text_offset)} END={hex(f.tell() - 1)} POINTERS={pointers_offsets_str}]'
+            pointer_addresses_str = ';'.join(hex(x) for x in pointers_offsets)
+            ref = f'[ID={current_id} START={hex(text_address)} END={hex(f.tell() - 1)} POINTERS={pointer_addresses_str}]'
             filename = 'dump_eng.txt'
             # dump - db
-            # insert_text(cur, id, text, text_decoded, text_offset, '', 1, ref)
+            insert_text(cur, current_id, text_decoded, text_address, pointer_addresses_str, len(text), 1, ref, 'default', filename, current_id)
             # dump - txt
-            with open(dump_path / 'dump_eng.txt', 'a+', encoding='utf-8') as out:
+            with open(dump_path / filename, 'a+', encoding='utf-8') as out:
                 out.write(f'{ref}\n{text_decoded}\n\n')
             current_id += 1
         # Menu
@@ -299,26 +300,23 @@ def gaia_text_dumper(args):
         pointers[0xbf6df] = []
         pointers[0xbf6ec] = []
         pointers[0xbf6f9] = []
-        for _, (text_offset, pointers_offsets) in enumerate(pointers.items()):
-            text = gaia_read_text(f, text_offset, end_byte=(b'\xc0', b'\xca'), cmd_list=cmd_list, append_end_byte=True)
+        for _, (text_address, pointers_offsets) in enumerate(pointers.items()):
+            text = gaia_read_text(f, text_address, end_byte=(b'\xc0', b'\xca'), cmd_list=cmd_list, append_end_byte=True)
             text_decoded = table1.decode(text, mte_resolver=True, dict_resolver=True)
-            pointers_offsets_str = ';'.join(hex(x) for x in pointers_offsets)
-            ref = f'[ID={current_id} START={hex(text_offset)} END={hex(f.tell() - 1)} POINTERS={pointers_offsets_str}]'
+            pointer_addresses_str = ';'.join(hex(x) for x in pointers_offsets)
+            ref = f'[ID={current_id} START={hex(text_address)} END={hex(f.tell() - 1)} POINTERS={pointer_addresses_str}]'
             filename = 'dump_menu_eng.txt'
-            # dump - db
-            # insert_text(cur, id, text, text_decoded, text_offset, '', 2, ref)
             # dump - txt
-            with open(dump_path / 'dump_menu_eng.txt', 'a+', encoding='utf-8') as out:
+            with open(dump_path / filename, 'a+', encoding='utf-8') as out:
                 out.write(f'{ref}\n{text_decoded}\n\n')
             current_id += 1
         #
         for config in TEXTS_CONFIGS:
-            _, filename, pointers_offsets, texts_offsets = config['name'], config['filename'], config.get('pointers_offsets'), config.get('texts_offsets')
+            _, filename, pointers_offsets, _ = config['name'], config['filename'], config.get('pointers_offsets'), config.get('texts_offsets')
             end_byte, append_end_byte = config['end_byte'], config['append_end_byte']
             tablename, mte_resolver, dict_resolver = config['tablename'], config['mte_resolver'], config['dict_resolver']
             custom_after_read_text = config.get('custom_after_read_text')
             table = table1 if tablename == 'main' else table3
-            filepath = dump_path / filename
             #
             current_id = 1
             pointers = {}
@@ -335,10 +333,8 @@ def gaia_text_dumper(args):
                 text_decoded = table.decode(text, mte_resolver=mte_resolver, dict_resolver=dict_resolver)
                 pointers_offsets_str = ';'.join(hex(x) for x in pointers_offsets_list)
                 ref = f'[ID={current_id} START={hex(text_offset)} END={hex(f.tell() - 1)} POINTERS={pointers_offsets_str}]'
-                # dump - db
-                # insert_text(cur, id, text, text_decoded, text_offset, '', 2, ref)
                 # dump - txt
-                with open(filepath, 'a+', encoding='utf-8') as out:
+                with open(dump_path / filename, 'a+', encoding='utf-8') as out:
                     out.write(f'{ref}\n{text_decoded}\n\n')
                 current_id += 1
     cur.close()
@@ -429,25 +425,6 @@ def gaia_text_inserter(args):
     user_name = args.user
     table = Table(table2_file)
     table3 = Table(table3_file)
-    #
-    # buffer = dict()
-    # conn = sqlite3.connect(db)
-    # conn.text_factory = str
-    # cur = conn.cursor()
-    # rows = select_most_recent_translation(cur, ['1'])
-    # for row in rows:
-    #     _, _, text_decoded, _, _, translation, _, _, ref = row
-    #     splitted_line = ref.split(' ')
-    #     block = int(splitted_line[1].replace(':', ''))
-    #     offset_from = int(splitted_line[2], 16)
-    #     offset_to = int(splitted_line[4].replace(']', ''), 16)
-    #     buffer[block] = ['', [offset_from, offset_to]]
-    #     text = translation if translation else text_decoded
-    #     buffer[block][0] = text + '\n\n'
-    # cur.close()
-    # conn.commit()
-    # conn.close()
-    #
     translation_file = translation_path / 'dump_ita.txt'
     dump = read_dump(translation_file)
     with open(dest_file, 'rb+') as f:
