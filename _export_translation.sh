@@ -71,7 +71,7 @@ case "$GAME_ID" in
     fi
     ;;
 
-  "som" | "som_pal" | "smrpg")
+  "som" | "som_pal" | "smrpg" | "starocean")
     if [ -n "$USER" ]; then
       TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translated_text_$USER"
       mkdir -p "$TRANSLATED_DUMP_DIR"
@@ -86,24 +86,6 @@ case "$GAME_ID" in
       log_step "Exporting $GAME_ID translation to $TRANSLATED_DUMP_DIR"
       python "$SCRIPT_DIR/manager.py" export_translation \
         -db "$DB" -d "$TRANSLATED_DUMP_DIR" -g "$GAME_ID"
-    fi
-    ;;
-
-  "starocean")
-    TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
-    DEST_FILE="$TRANSLATED_DUMP_DIR/dialogues.txt"
-    DEST_USER_FILE="$TRANSLATED_DUMP_DIR/dialogues_$USER.txt"
-
-    mkdir -p "$TRANSLATED_DUMP_DIR"
-
-    if [ -n "$USER" ]; then
-      log_step "Exporting $GAME_ID translation to $DEST_USER_FILE"
-      python "$SCRIPT_DIR/manager.py" export_translation \
-        -db "$DB" -d "$DEST_USER_FILE" -u "$USER" -b 1 -g "$GAME_ID"
-    else
-      log_step "Exporting $GAME_ID translation to $DEST_FILE"
-      python "$SCRIPT_DIR/manager.py" export_translation \
-        -db "$DB" -d "$DEST_FILE" -b 1 -g "$GAME_ID"
     fi
     ;;
 
