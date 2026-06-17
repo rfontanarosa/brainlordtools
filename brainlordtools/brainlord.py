@@ -296,11 +296,11 @@ def _brainlord_text_block_dumper(f, dump_path, table, current_id, block, cur, st
         text = read_text(f, text_address, end_byte=b'\xf7', cmd_list={b'\xf2': 1, b'\xf5': 1, b'\xf6': 1, b'\xfb': 5, b'\xfc': 5, b'\xfd': 2, b'\xfe': 2, b'\xff': 3})
         text_decoded = table.decode(text)
         ref = f'[ID={current_id} BLOCK={block} START={hex(text_address)}]'
+        filename = 'dump_eng.txt'
         # dump - db
-        insert_text(cur, current_id, text_decoded, text_address, '', len(text), block, ref, 'default', 'dump_eng.txt', current_id)
+        insert_text(cur, current_id, text_decoded, text_address, '', len(text), block, ref, 'default', filename, current_id)
         # dump - txt
-        filename = dump_path / 'dump_eng.txt'
-        with open(filename, 'a+', encoding='utf-8') as out:
+        with open(dump_path / filename, 'a+', encoding='utf-8') as out:
             out.write(f'{ref}\n{text_decoded}\n\n')
         current_id += 1
     return current_id

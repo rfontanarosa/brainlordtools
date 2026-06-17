@@ -395,11 +395,11 @@ def seventhsaga_text_segment_dumper(f, dump_path, table, current_id, block, cur,
         pointers_offsets = text_pointer_map.get(text_offset, [])
         pointers_offsets_str = ';'.join(hex(x) for x in pointers_offsets)
         ref = f'[ID={current_id} START={hex(text_offset)} END={hex(f.tell() - 1)} POINTERS={pointers_offsets_str}]'
+        filename = 'dump_eng.txt'
         # dump - db
-        insert_text(cur, current_id, text_decoded, text_offset, pointers_offsets_str, len(text), block, ref, 'default', 'dump_eng.txt', current_id)
+        insert_text(cur, current_id, text_decoded, text_offset, pointers_offsets_str, len(text), block, ref, 'default', filename, current_id)
         # dump - txt
-        filename = dump_path / 'dump_eng.txt'
-        with open(filename, 'a+', encoding='utf-8') as out:
+        with open(dump_path / filename, 'a+', encoding='utf-8') as out:
             out.write(f'{ref}\n{text_decoded}\n\n')
         current_id += 1
     return current_id
