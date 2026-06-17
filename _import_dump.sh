@@ -67,7 +67,7 @@ case "$GAME_ID" in
       -db "$DB" -s "$SOURCE_FILE" -g "$GAME_ID"
     ;;
 
-  "som")
+  "som" | "som_pal")
     DUMP_DIR="$RESOURCE_PATH/dump_text"
     SOURCE_EVENTS_FILE="$DUMP_DIR/dump_events_eng.txt"
     SOURCE_TEXT_FILE="$DUMP_DIR/dump_texts_eng.txt"
