@@ -5,7 +5,7 @@ GAME_ID="gaia"
 source ./_common.sh
 
 USER="clomax"
-DB="$RESOURCE_PATH/db/$GAME.sqlite3"
+DB="$RESOURCE_PATH/db/$GAME_ID.sqlite3"
 SOURCE="$RESOURCE_PATH/roms/Illusion of Gaia (U) [!] + Sprint hack.sfc"
 DESTINATION="$RESOURCE_PATH/roms/Illusion of Gaia (I) [!].sfc"
 
@@ -19,9 +19,9 @@ DUMP_TEXT_PATH="$RESOURCE_PATH/dump_text"
 DUMP_MISC_PATH="$RESOURCE_PATH/dump_misc"
 DUMP_GFX_PATH="$RESOURCE_PATH/dump_gfx"
 
-TRANSLATION_TEXT_PATH="$RESOURCE_PATH/translation_text"
-TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
-TANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
+TRANSLATED_TEXT_PATH="$RESOURCE_PATH/translated_text"
+TRANSLATED_MISC_PATH="$RESOURCE_PATH/translated_misc"
+TRANSLATED_GFX_PATH="$RESOURCE_PATH/translated_gfx"
 
 python "$MANAGER_PATH/manager.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
 python "$MANAGER_PATH/manager.py" copy_file -s "$SOURCE" -d "$DESTINATION" || exit 1
@@ -31,14 +31,14 @@ python "$TOOLS_PATH/gaia.py" dump_text -s "$SOURCE" -t1 "$TABLE1" -t3 "$TABLE4" 
 python "$TOOLS_PATH/gaia.py" dump_misc -s "$SOURCE" -t1 "$TABLE1" -t2 "$TABLE3" -t3 "$TABLE4" -dp "$DUMP_MISC_PATH"
 python "$TOOLS_PATH/gaia.py" dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
 
-python "$TOOLS_PATH/gaia.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE2" -t3 "$TABLE5" -tp "$TRANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
-python "$TOOLS_PATH/gaia.py" insert_misc -d "$DESTINATION" -t1 "$TABLE2" -t2 "$TABLE3" -t3 "$TABLE5" -tp "$TRANSLATION_MISC_PATH"
-python "$TOOLS_PATH/gaia.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
+python "$TOOLS_PATH/gaia.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE2" -t3 "$TABLE5" -tp "$TRANSLATED_TEXT_PATH" -db "$DB" -u "$USER"
+python "$TOOLS_PATH/gaia.py" insert_misc -d "$DESTINATION" -t1 "$TABLE2" -t2 "$TABLE3" -t3 "$TABLE5" -tp "$TRANSLATED_MISC_PATH"
+python "$TOOLS_PATH/gaia.py" insert_gfx -d "$DESTINATION" -tp "$TRANSLATED_GFX_PATH"
 
 require_asar
-asar "$RESOURCE_PATH/asm/intro_it.asm" "$TANSLATION_GFX_PATH/1d7773_intro_data_ita.bin"
-cp "$DUMP_GFX_PATH/173f7c_end_data.bin" "$TANSLATION_GFX_PATH/173f7c_end_data_ita.bin"
-asar "$RESOURCE_PATH/asm/end_it.asm" "$TANSLATION_GFX_PATH/173f7c_end_data_ita.bin"
+asar "$RESOURCE_PATH/asm/intro_it.asm" "$TRANSLATED_GFX_PATH/1d7773_intro_data_ita.bin"
+cp "$DUMP_GFX_PATH/173f7c_end_data.bin" "$TRANSLATED_GFX_PATH/173f7c_end_data_ita.bin"
+asar "$RESOURCE_PATH/asm/end_it.asm" "$TRANSLATED_GFX_PATH/173f7c_end_data_ita.bin"
 
 require_asar
 asar "$RESOURCE_PATH/asm/main.asm" "$DESTINATION"
