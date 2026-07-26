@@ -1,5 +1,7 @@
 CREATE TABLE IF NOT EXISTS texts (
-    id INTEGER PRIMARY KEY,
+    filename TEXT NOT NULL,
+    file_index INTEGER NOT NULL,
+    id INTEGER,
     text TEXT NOT NULL,
     address TEXT NOT NULL,
     pointer_addresses TEXT,
@@ -7,25 +9,26 @@ CREATE TABLE IF NOT EXISTS texts (
     block TEXT,
     ref TEXT,
     dump_type TEXT,
-    filename TEXT,
-    file_index INTEGER
+    PRIMARY KEY(filename, file_index)
 );
 
+CREATE INDEX IF NOT EXISTS idx_texts_id ON texts(id);
+
 CREATE TABLE IF NOT EXISTS translations (
-    id_text INTEGER NOT NULL,
-    project TEXT NOT NULL,
+    filename TEXT NOT NULL,
+    file_index INTEGER NOT NULL,
     author TEXT NOT NULL,
     translation TEXT NOT NULL,
     status INTEGER NOT NULL,
     date INTEGER NOT NULL,
     tags TEXT,
     comment TEXT,
-    PRIMARY KEY(id_text, project, author)
+    PRIMARY KEY(filename, file_index, author)
 );
 
 CREATE TABLE IF NOT EXISTS translations_history (
-    id_text INTEGER NOT NULL,
-    project TEXT NOT NULL,
+    filename TEXT NOT NULL,
+    file_index INTEGER NOT NULL,
     author TEXT NOT NULL,
     translation TEXT,
     status INTEGER,
@@ -45,14 +48,14 @@ WHEN OLD.translation IS NOT NEW.translation
    OR OLD.tags IS NOT NEW.tags
    OR OLD.comment IS NOT NEW.comment
 BEGIN
-    INSERT INTO translations_history (id_text, project, author, translation, status, date, tags, comment, operation)
-    VALUES (OLD.id_text, OLD.project, OLD.author, OLD.translation, OLD.status, OLD.date, OLD.tags, OLD.comment, 'UPDATE');
+    INSERT INTO translations_history (filename, file_index, author, translation, status, date, tags, comment, operation)
+    VALUES (OLD.filename, OLD.file_index, OLD.author, OLD.translation, OLD.status, OLD.date, OLD.tags, OLD.comment, 'UPDATE');
 END;
 
 -- Archive the record whenever a translation is deleted.
 CREATE TRIGGER IF NOT EXISTS translations_history_ad
 AFTER DELETE ON translations
 BEGIN
-    INSERT INTO translations_history (id_text, project, author, translation, status, date, tags, comment, operation)
-    VALUES (OLD.id_text, OLD.project, OLD.author, OLD.translation, OLD.status, OLD.date, OLD.tags, OLD.comment, 'DELETE');
+    INSERT INTO translations_history (filename, file_index, author, translation, status, date, tags, comment, operation)
+    VALUES (OLD.filename, OLD.file_index, OLD.author, OLD.translation, OLD.status, OLD.date, OLD.tags, OLD.comment, 'DELETE');
 END;
