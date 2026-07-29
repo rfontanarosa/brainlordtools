@@ -105,7 +105,11 @@ class Table():
                 if isinstance(node.get(node_key), ControlCode):
                     raise Exception(f"Entry key conflicts with existing ControlCode at {node_key!r}")
                 new_value = node.setdefault(node_key, {})
-                new_value[''] = value
+                # duplicate text: keep the shortest hex sequence, ties go to the last entry
+                previous = new_value.get('')
+                is_longer_duplicate = isinstance(previous, bytes) and isinstance(value, bytes) and len(value) > len(previous)
+                if not is_longer_duplicate:
+                    new_value[''] = value
                 node[node_key] = new_value
         else:
             existing = node.get(key[0])
@@ -214,6 +218,11 @@ $07=[07],%X
 $08=[08]\\n,%X,%X
 05=[COLOR]
 0b00=SWORD
+0c=test
+0d=test
+0e01=test
+0f10=ab
+11=ab
 '''
     table = Table(test_table_data)
     test_cases = [
@@ -255,6 +264,10 @@ $08=[08]\\n,%X,%X
         (b'\x01\x02', "A😆"),
         # sequence mixing special tokens
         (b'\xfd\x01\xff', "\nA[END]"),
+        # duplicate text (0c/0d/0e01=test): shortest wins over 0e01, tie with 0c goes to the last
+        (b'\x0d', "test"),
+        # duplicate text (0f10/11=ab): a later 1-byte entry replaces the earlier 2-byte one
+        (b'\x11', "ab"),
     ]
     for source_bytes, expected_str in test_cases:
         decoded = table.decode(source_bytes)
