@@ -18,6 +18,7 @@ class TableEncodeError(Exception):
         super().__init__(f'{reason} {text!r}{where}')
 
 class ControlCode():
+    """A labelled entry, such as [END] or [Color], with optional parameter bytes."""
 
     def __init__(self, hexadecimal_seq, label_and_params):
         self.key = bytes.fromhex(hexadecimal_seq)
@@ -45,6 +46,7 @@ class ControlCode():
         return f'ControlCode - {self.value}'
 
 class Table():
+    """A bidirectional byte/text mapping parsed from a table file."""
 
     COMMENT_CHAR = ';'
     END_TOKEN_CHAR = '/'
@@ -184,7 +186,7 @@ class Table():
         data_length = len(data)
         while i < data_length:
             try:
-            count, value = self._data_encode(self._reverse_table, data[i:])
+                count, value = self._data_encode(self._reverse_table, data[i:])
             except TableEncodeError as error:
                 text = data[i:i + error.length] if error.length else error.text
                 raise TableEncodeError(error.reason, text, i) from None
