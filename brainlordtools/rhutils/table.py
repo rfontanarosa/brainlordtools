@@ -6,6 +6,17 @@ __email__ = "robertofontanarosa@gmail.com"
 
 import io, os, pprint, re
 
+class TableEncodeError(Exception):
+    """Raised when a string contains something the table cannot encode."""
+
+    def __init__(self, reason, text, position=None, length=None):
+        self.reason = reason
+        self.text = text
+        self.position = position
+        self.length = length
+        where = '' if position is None else f' at position {position}'
+        super().__init__(f'{reason} {text!r}{where}')
+
 class ControlCode():
 
     def __init__(self, hexadecimal_seq, label_and_params):
@@ -134,7 +145,7 @@ class Table():
             else:
                 if buffer:
                     return (buffer[0], buffer[1])
-                return (1, data[0].encode())
+                raise TableEncodeError('no table entry for', data[0], length=i)
         elif isinstance(node, ControlCode):
             if data[0] == ']':
                 return (len(node.string_to_format), node.key)
@@ -142,12 +153,14 @@ class Table():
                 Bytes = node.key
                 m = node.re.match(data[1:])
                 if m is None:
-                    return (1, data[0].encode())
+                    end = data.find(']')
+                    fragment = node.value + (data[1:end + 1] if end != -1 else data[1:17])
+                    raise TableEncodeError('malformed control code parameters in', fragment)
                 for hex_to_decode in m.groups():
                     Bytes += bytes.fromhex(hex_to_decode)
                 return (len(node.value) + m.end(), Bytes)
         else:
-            return (1, data[0].encode())
+            raise TableEncodeError('no table entry for', data[0], length=i)
 
     def decode(self, data):
         """Transform bytes into a string by traversing the table graph and joining results."""
@@ -170,7 +183,11 @@ class Table():
         i = 0
         data_length = len(data)
         while i < data_length:
+            try:
             count, value = self._data_encode(self._reverse_table, data[i:])
+            except TableEncodeError as error:
+                text = data[i:i + error.length] if error.length else error.text
+                raise TableEncodeError(error.reason, text, i) from None
             encoded_parts.append(value)
             i += count
         return b''.join(encoded_parts)
@@ -244,5 +261,24 @@ $08=[08]\\n,%X,%X
         print(f"Source:  {source_bytes.hex().upper()}")
         print(f"Decoded: {decoded} (Expected: {expected_str})")
         print(f"Encoded: {encoded.hex().upper()}")
+        print(f"Result:  {status}")
+        print("-" * 40)
+    # insertion must fail loudly rather than silently emitting utf-8 bytes
+    error_cases = [
+        # character with no table entry
+        'Z',
+        # known prefix that is not an entry on its own (0b00=SWORD)
+        'SWORE',
+        # control code with unterminated parameters
+        '[07 00',
+    ]
+    for source_str in error_cases:
+        try:
+            encoded = table.encode(source_str)
+            result, status = encoded.hex().upper(), "\033[31m" + "FAIL" + "\033[0m"
+        except TableEncodeError as error:
+            result, status = error, "\033[32m" + "PASS" + "\033[0m"
+        print(f"Source:  {source_str!r}")
+        print(f"Encoded: {result} (Expected: TableEncodeError)")
         print(f"Result:  {status}")
         print("-" * 40)
