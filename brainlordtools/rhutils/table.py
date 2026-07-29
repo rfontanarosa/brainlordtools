@@ -268,32 +268,24 @@ $08=[08]\\n,%X,%X
         (b'\x0d', "test"),
         # duplicate text (0f10/11=ab): a later 1-byte entry replaces the earlier 2-byte one
         (b'\x11', "ab"),
-    ]
-    for source_bytes, expected_str in test_cases:
-        decoded = table.decode(source_bytes)
-        encoded = table.encode(decoded)
-        status = "\033[32m" + "PASS" + "\033[0m" if decoded == expected_str and encoded == source_bytes else "\033[31m" + "FAIL" + "\033[0m"
-        print(f"Source:  {source_bytes.hex().upper()}")
-        print(f"Decoded: {decoded} (Expected: {expected_str})")
-        print(f"Encoded: {encoded.hex().upper()}")
-        print(f"Result:  {status}")
-        print("-" * 40)
-    # insertion must fail loudly rather than silently emitting utf-8 bytes
-    error_cases = [
+        # str source: insertion must fail loudly rather than silently emitting utf-8 bytes
         # character with no table entry
-        'Z',
+        ('Z', TableEncodeError),
         # known prefix that is not an entry on its own (0b00=SWORD)
-        'SWORE',
+        ('SWORE', TableEncodeError),
         # control code with unterminated parameters
-        '[07 00',
+        ('[07 00', TableEncodeError),
     ]
-    for source_str in error_cases:
+    for source, expected in test_cases:
         try:
-            encoded = table.encode(source_str)
-            result, status = encoded.hex().upper(), "\033[31m" + "FAIL" + "\033[0m"
+            decoded = table.decode(source) if isinstance(source, bytes) else source
+            encoded = table.encode(decoded)
+            passed = decoded == expected and encoded == source
         except TableEncodeError as error:
-            result, status = error, "\033[32m" + "PASS" + "\033[0m"
-        print(f"Source:  {source_str!r}")
-        print(f"Encoded: {result} (Expected: TableEncodeError)")
+            decoded, encoded, passed = source, error, expected is TableEncodeError
+        status = "\033[32m" + "PASS" + "\033[0m" if passed else "\033[31m" + "FAIL" + "\033[0m"
+        print(f"Source:  {source.hex().upper() if isinstance(source, bytes) else repr(source)}")
+        print(f"Decoded: {decoded} (Expected: {getattr(expected, '__name__', expected)})")
+        print(f"Encoded: {encoded.hex().upper() if isinstance(encoded, bytes) else encoded}")
         print(f"Result:  {status}")
         print("-" * 40)
