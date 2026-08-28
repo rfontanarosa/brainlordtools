@@ -22,3 +22,10 @@ check_file() {
         exit 1
     fi
 }
+
+check_dir() {
+    if [ ! -d "$1" ]; then
+        log_error "Source folder missing: $1"
+        exit 1
+    fi
+}

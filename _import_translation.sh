@@ -113,9 +113,9 @@ case "$GAME_ID" in
     ;;
 
   "som" | "som_pal")
-    TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translation_text"
-    SOURCE_EVENTS_FILE="$TRANSLATED_DUMP_DIR/dump_events_$USER.txt"
-    SOURCE_TEXT_FILE="$TRANSLATED_DUMP_DIR/dump_texts_$USER.txt"
+    TRANSLATED_DUMP_DIR="$RESOURCE_PATH/translated_text_$USER"
+    SOURCE_EVENTS_FILE="$TRANSLATED_DUMP_DIR/dump_events_eng.txt"
+    SOURCE_TEXT_FILE="$TRANSLATED_DUMP_DIR/dump_texts_eng.txt"
 
     check_file "$SOURCE_EVENTS_FILE"
     check_file "$SOURCE_TEXT_FILE"

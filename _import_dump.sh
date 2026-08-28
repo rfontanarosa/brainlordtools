@@ -17,32 +17,21 @@ case "$GAME_ID" in
   "alcahest")
     DUMP_DIR="$RESOURCE_PATH/dump_all/text"
 
-    SOURCE_FILES=(
-      dialogue.txt
-      ending.txt
-      credits.txt
-      items.txt
-      inventory.txt
-      partners.txt
-      passwords_1.txt
-      passwords_2.txt
-      passwords_3.txt
-      epilogue.txt
-      events_1.txt
-      events_2.txt
-      events_misc.txt
-      events_doors.txt
-    )
-    SOURCE_FILES=("${SOURCE_FILES[@]/#/$DUMP_DIR/}")
+    check_dir "$DUMP_DIR"
 
-    for f in "${SOURCE_FILES[@]}"; do
-      check_file "$f"
-    done
-
-    log_step "Importing ${SOURCE_FILES[0]} [game=${YELLOW}$GAME_ID${NC}]"
+    log_step "Importing $DUMP_DIR [game=${YELLOW}$GAME_ID${NC}]"
     python "$SCRIPT_DIR/manager.py" import_dump \
-      -db "$DB" \
-      -s "${SOURCE_FILES[@]}"
+      -db "$DB" -r "$DUMP_DIR"
+    ;;
+
+  "brandishdr")
+    DUMP_DIR="$RESOURCE_PATH/dump"
+
+    check_dir "$DUMP_DIR"
+
+    log_step "Importing $DUMP_DIR [game=${YELLOW}$GAME_ID${NC}]"
+    python "$SCRIPT_DIR/manager.py" import_dump \
+      -db "$DB" -r "$DUMP_DIR"
     ;;
 
   "7thsaga" | "brainlord" | "ignition" | "lufia" | "neugier" | "spike")

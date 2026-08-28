@@ -34,13 +34,13 @@ def handle_expand_file(args):
 
 def handle_import_dump(args):
     db = args.database_file
-    source_dump_path = args.source
+    source_dump_path = args.source or args.root
     game_id = args.game_id
     import_dump(db, source_dump_path, game_id)
 
 def handle_import_translation(args):
     db = args.database_file
-    source_dump_path = args.source
+    source_dump_path = args.source or args.root
     user_name = args.user_name
     original_dump_path = args.original_dump
     game_id = args.game_id
@@ -98,13 +98,17 @@ def main():
 
     sub = subparsers.add_parser('import_dump', help='Import source from a dump file')
     sub.add_argument('-db', '--database', action='store', dest='database_file', required=True, help='Path to the SQLite database')
-    sub.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the source .txt dump file')
+    source_or_root = sub.add_mutually_exclusive_group(required=True)
+    source_or_root.add_argument('-s', '--source', action='store', dest='source', nargs='+', help='Path to one or more source .txt dump files')
+    source_or_root.add_argument('-r', '--root', action='store', dest='root', help='Path to the dump root folder, walked recursively; filenames are stored relative to it, so sub-folders are recreated on export')
     sub.add_argument('-g', '--game', action='store', dest='game_id', required=False, default='default', help='Optional: Game ID (e.g., som, ff6) to use for custom parsing logic')
     sub.set_defaults(func=handle_import_dump)
 
     sub = subparsers.add_parser('import_translation', help='Import translations from a dump file')
     sub.add_argument('-db', '--database', action='store', dest='database_file', required=True, help='Path to the SQLite database')
-    sub.add_argument('-s', '--source', action='store', dest='source', required=True, help='Path to the translated .txt dump file')
+    source_or_root = sub.add_mutually_exclusive_group(required=True)
+    source_or_root.add_argument('-s', '--source', action='store', dest='source', nargs='+', help='Path to one or more translated .txt dump files')
+    source_or_root.add_argument('-r', '--root', action='store', dest='root', help='Path to the translated dump root folder, walked recursively; files are matched to the DB by their path relative to it')
     sub.add_argument('-u', '--user', action='store', dest='user_name', required=True, help='The author of the translation')
     sub.add_argument('-od', '--original_dump', action='store', dest='original_dump', required=False, help='Path to the source .txt original dump file')
     sub.add_argument('-g', '--game', action='store', dest='game_id', required=False, default='default',help='Optional: Game ID (e.g., som, ff6) to use for custom parsing logic')
