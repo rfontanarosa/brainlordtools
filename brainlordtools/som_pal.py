@@ -177,7 +177,7 @@ def som_text_inserter(args):
             if dump_type == DumpType.EVENTS:
                 f.seek(text_block_start)
                 current_text_address = f.tell()
-                rows = select_translation_by_author(cur, 'clomax', [str(block),])
+                rows = select_translation_by_author(cur, user_name, [str(block),])
                 for row in rows:
                     id, _, text_decoded, _, pointer_addresses, translation, _, _, _ = row
                     text = translation if translation else text_decoded
@@ -218,7 +218,7 @@ def som_text_inserter(args):
                     text_block_end = 0xb3fff
                     f.seek(text_block_start)
                     current_text_address = f.tell()
-                    rows = select_translation_by_author(cur, 'clomax', [str(block),])
+                    rows = select_translation_by_author(cur, user_name, [str(block),])
                     for row in rows:
                         _, _, text_decoded, _, pointer_addresses, translation, _, _, _ = row
                         text = translation if translation else text_decoded
@@ -241,7 +241,7 @@ def som_text_inserter(args):
                 elif block == 7:
                     f.seek(text_block_start)
                     current_text_address = f.tell()
-                    rows = select_translation_by_author(cur, 'clomax', [str(block),])
+                    rows = select_translation_by_author(cur, user_name, [str(block),])
                     for row in rows:
                         _, _, text_decoded, _, pointer_addresses, translation, _, _, _ = row
                         text = translation if translation else text_decoded
@@ -263,7 +263,7 @@ def som_text_inserter(args):
                 elif block == 8:
                     f.seek(text_block_start)
                     current_text_address = f.tell()
-                    rows = select_translation_by_author(cur, 'clomax', [str(block),])
+                    rows = select_translation_by_author(cur, user_name, [str(block),])
                     for row in rows:
                         _, _, text_decoded, _, pointer_addresses, translation, _, _, _ = row
                         text = translation if translation else text_decoded
@@ -288,7 +288,7 @@ def som_text_inserter(args):
         text_block_end = 0x74fff
         f.seek(text_block_start)
         current_text_address = f.tell()
-        rows = select_translation_by_author(cur, 'clomax', ['3', '4', '6'])
+        rows = select_translation_by_author(cur, user_name, ['3', '4', '6'])
         for row in rows:
             id, _, text_decoded, _, pointer_addresses, translation, _, _, _ = row
             # SKIP
