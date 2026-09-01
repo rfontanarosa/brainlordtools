@@ -11,5 +11,9 @@ DESTINATION="$RESOURCE_PATH/roms/Star_Ocean_IT.sfc"
 CURRENT_PATH=$PWD
 cd $BRAINLORD_PATH/PrivateRomhacking
 uv run starocean extract $SOURCE_EN $SOURCE_ES
+
+rm -rf "$BRAINLORD_PATH/PrivateRomhacking/starocean/translated"
+cp -r "$RESOURCE_PATH/chester/translated" "$BRAINLORD_PATH/PrivateRomhacking/starocean/translated"
+
 uv run starocean reinsert $SOURCE_ES
 cd $CURRENT_PATH
