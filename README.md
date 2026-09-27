@@ -31,6 +31,7 @@ A set of ROM-hacking utilities for old school videogames - text dumping, reinser
 | smrpg      | Super Mario RPG: Legend of the Seven Stars | SNES     | Stable      | Super-Mario-RPG-ITA            |
 | starocean  | Star Ocean                                 | SNES     | Stable      | PrivateRomhacking              |
 | spike      | Twisted Tales of Spike McFang, The         | SNES     | Stable      | mcfang-dec                     |
+| terranigma | Terranigma                                 | SNES     | In progress | terranigma-tool                |
 | ys3        | Ys III: Wanderers from Ys                  | SNES     | Legacy      |                                |
 | ys4        | Ys IV: Mask of the Sun                     | SNES     | Legacy      |                                |
 

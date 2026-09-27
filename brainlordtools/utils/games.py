@@ -34,6 +34,7 @@ CRC_TABLE = {
     'som_pal_10': 'C5CB2F26',
     'som_sadnes': '31114AAC',
     'spike': '8C2068D1',
+    'terranigma': '8C2068D1',
     'ys3': '64A91E64',
     'ys4': '27577EC8',
     'ys4_original': 'CA7B4DB9'
