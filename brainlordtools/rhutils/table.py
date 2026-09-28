@@ -66,7 +66,7 @@ class Table():
                 self._parse(buffer)
 
     def _parse(self, file_object):
-        for line in file_object:
+        for line_number, line in enumerate(file_object, start=1):
             line = line.strip('\r\n')
             if line.startswith(Table.COMMENT_CHAR) or line.startswith('//'):
                 pass
@@ -92,7 +92,7 @@ class Table():
                         self._create_graph(self._table, control_code.key, control_code)
                         self._create_graph(self._reverse_table, control_code.value, control_code)
                     else:
-                        raise Exception(line)
+                        raise ValueError(f'invalid table entry at line {line_number}: {line!r}')
 
     def _create_graph(self, node, key, value):
         if len(key) == 1:
