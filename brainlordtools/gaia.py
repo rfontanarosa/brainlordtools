@@ -14,11 +14,11 @@ import sys
 
 from _quintet.quintet_comp import compress as quintet_compress
 from _quintet.quintet_decomp import decompress as quintet_decompress
-from rhtools3.Table import Table
 from rhutils.db import insert_text
 from rhutils.dump import get_csv_translated_texts, read_dump
 from rhutils.io import fill, write_byte
 from rhutils.snes import pc2snes_hirom, snes2pc_hirom
+from rhutils.table import Table
 
 pointers_offsets_to_exclude = (0x5c94, 0x64e1c, 0xa0f3e, 0xaf75e, 0xdbdc, 0x11318, 0xd2ebc, 0x13321, 0x329b9, 0x80f93, 0xbe1ec, 0xba2dc, 0xba4f3, 0x80f93, 0xaedf9, 0xa468b, 0x226ab, 0x31732, 0xd3016, 0xdd242, 0xdd244, 0xdf92a, 0xe7728, 0xe7e76, 0xf3496, 0x1032df, 0x103c2a, 0x10d8c7, 0x118258, 0x12846b, 0x12b8f4, 0x13c9dd, 0x13f292, 0x14bd72, 0x151bc7, 0x1527eb, 0x15637d, 0x16c614, 0x16c61e, 0x171027, 0x184e15, 0x188d3b, 0x1909f0, 0x19853c, 0x1ddd09, 0x1e6886, 0x1ebcf8, 0x1edec7, 0x1f0973, 0x1f0b8b, 0x1f0bcb, 0x1f189b, 0x1f8cb2, 0x1f8e28, 0x1f9e90)
 
@@ -38,18 +38,14 @@ TEXTS_CONFIGS = ({
     'pointers_offsets': tuple(range(0x8eb8f, 0x8eb9b, 2)) + tuple(range(0x8ebd3, 0x8ebdf, 2)),
     'end_byte': (b'\xc0', b'\xca'),
     'append_end_byte': True,
-    'tablename': 'main',
-    'mte_resolver': True,
-    'dict_resolver': True
+    'tablename': 'main'
 }, {
     'name': 'Intro',
     'filename': 'dump_intro_eng.txt',
     'pointers_offsets': intro_pointers_offsets,
     'end_byte': b'\xca',
     'append_end_byte': False,
-    'tablename': 'intro',
-    'mte_resolver': False,
-    'dict_resolver': False
+    'tablename': 'intro'
 }, {
     'name': 'Menu locations',
     'filename': 'dump_menu_locations_eng.txt',
@@ -57,8 +53,6 @@ TEXTS_CONFIGS = ({
     'end_byte': b'\xca',
     'append_end_byte': True,
     'tablename': 'main',
-    'mte_resolver': True,
-    'dict_resolver': True,
     'custom_after_read_text': True
 }, {
 #     'name': 'Menu',
@@ -66,18 +60,14 @@ TEXTS_CONFIGS = ({
 #     'pointers_offsets': initial_menu_pointers_offsets,
 #     'end_byte': (b'\xc0', b'\xca'),
 #     'append_end_byte': True,
-#     'tablename': 'main',
-#     'mte_resolver': True,
-#     'dict_resolver': True
+#     'tablename': 'main'
 # }, {
     'name': 'Other text',
     'filename': 'dump_other_text_eng.txt',
     'pointers_offsets': range(0x1fd24, 0x1fda3, 2),
     'end_byte': (b'\xc0', b'\xca'),
     'append_end_byte': True,
-    'tablename': 'main',
-    'mte_resolver': True,
-    'dict_resolver': True
+    'tablename': 'main'
 })
 
 MISCS_CONFIGS = ({
@@ -86,108 +76,84 @@ MISCS_CONFIGS = ({
     'pointers_offsets': credits_pointers_offsets,
     'end_byte': b'\xc0',
     'append_end_byte': False,
-    'tablename': 'main',
-    'mte_resolver': False,
-    'dict_resolver': False
+    'tablename': 'main'
 }, {
     'name': 'Dictionary 1',
     'filename': 'dictionary1.csv',
     'pointers_offsets': range(0x1eba8, 0x1eda7, 2),
     'end_byte': b'\xca',
     'append_end_byte': False,
-    'tablename': 'main',
-    'mte_resolver': False,
-    'dict_resolver': False
+    'tablename': 'main'
 }, {
     'name': 'Dictionary 2',
     'filename': 'dictionary2.csv',
     'pointers_offsets': range(0x1f54d, 0x1f6dc, 2),
     'end_byte': b'\xca',
     'append_end_byte': False,
-    'tablename': 'main',
-    'mte_resolver': False,
-    'dict_resolver': False
+    'tablename': 'main'
 }, {
     'name': 'Locations',
     'filename': 'locations.csv',
     'texts_offsets': locations_text_offsets,
     'end_byte': (b'\xc0', b'\xca'),
     'append_end_byte': False,
-    'tablename': 'main',
-    'mte_resolver': False,
-    'dict_resolver': True
+    'tablename': 'main'
 }, {
     'name': 'Misc 1',
     'filename': 'misc1.csv',
     'pointers_offsets': range(0x1dabf, 0x1db3e, 2),
     'end_byte': b'\x00',
     'append_end_byte': False,
-    'tablename': 'menu',
-    'mte_resolver': True,
-    'dict_resolver': True
+    'tablename': 'menu'
 }, {
     'name': 'Misc 2',
     'filename': 'misc2.csv',
     'pointers_offsets': range(0x1de1e, 0x1de9e, 2),
     'end_byte': b'\x00',
     'append_end_byte': False,
-    'tablename': 'menu',
-    'mte_resolver': True,
-    'dict_resolver': True
+    'tablename': 'menu'
 }, {
     'name': 'Misc 3',
     'filename': 'misc3.csv',
     'pointers_offsets': range(0x1e132, 0x1e184, 2),
     'end_byte': b'\x00',
     'append_end_byte': False,
-    'tablename': 'menu',
-    'mte_resolver': True,
-    'dict_resolver': True
+    'tablename': 'menu'
 }, {
     'name': 'Misc 4',
     'filename': 'misc4.csv',
     'pointers_offsets': range(0x1e5ee, 0x1e603, 2),
     'end_byte': b'\x00',
     'append_end_byte': False,
-    'tablename': 'menu',
-    'mte_resolver': True,
-    'dict_resolver': True
+    'tablename': 'menu'
 }, {
     'name': 'Misc 5',
     'filename': 'misc5.csv',
     'pointers_offsets': range(0x1e65f, 0x1e674, 2),
     'end_byte': b'\x00',
     'append_end_byte': False,
-    'tablename': 'menu',
-    'mte_resolver': True,
-    'dict_resolver': True
+    'tablename': 'menu'
 }, {
     'name': 'Misc 6',
     'filename': 'misc6.csv',
     'pointers_offsets': range(0x1e6de, 0x1e6f5, 2),
     'end_byte': b'\x00',
     'append_end_byte': False,
-    'tablename': 'menu',
-    'mte_resolver': True,
-    'dict_resolver': True
+    'tablename': 'menu'
 }, {
     'name': 'Misc 7',
     'filename': 'misc7.csv',
     'pointers_offsets': range(0x1e7ce, 0x1e7d5, 2),
     'end_byte': b'\x00',
     'append_end_byte': False,
-    'tablename': 'menu',
-    'mte_resolver': True,
-    'dict_resolver': True
+    'tablename': 'menu'
 }, {
     'name': 'World Map Locations',
     'filename': 'world_map_locations.csv',
     'pointers_offsets': range(0x3b1d5, 0x3b244, 3),
     'end_byte': b'\xca',
     'append_end_byte': False,
-    'tablename': 'intro',
-    'mte_resolver': False,
-    'dict_resolver': False
+    'tablename': 'intro'
 })
 
 def gaia_read_text(f, offset=None, length=None, end_byte=None, cmd_list=None, append_end_byte=False):
@@ -272,7 +238,7 @@ def gaia_text_dumper(args):
         pointers[0x1cb66] = []
         for _, (text_address, pointers_offsets) in enumerate(pointers.items(), start=1):
             text = gaia_read_text(f, text_address, end_byte=(b'\xc0', b'\xca'), cmd_list=cmd_list, append_end_byte=True)
-            text_decoded = table1.decode(text, mte_resolver=True, dict_resolver=True)
+            text_decoded = table1.decode(text)
             pointer_addresses_str = ';'.join(hex(x) for x in pointers_offsets)
             ref = f'[ID={current_id} START={hex(text_address)} END={hex(f.tell() - 1)} POINTERS={pointer_addresses_str}]'
             filename = 'dump_eng.txt'
@@ -302,7 +268,7 @@ def gaia_text_dumper(args):
         pointers[0xbf6f9] = []
         for _, (text_address, pointers_offsets) in enumerate(pointers.items()):
             text = gaia_read_text(f, text_address, end_byte=(b'\xc0', b'\xca'), cmd_list=cmd_list, append_end_byte=True)
-            text_decoded = table1.decode(text, mte_resolver=True, dict_resolver=True)
+            text_decoded = table1.decode(text)
             pointer_addresses_str = ';'.join(hex(x) for x in pointers_offsets)
             ref = f'[ID={current_id} START={hex(text_address)} END={hex(f.tell() - 1)} POINTERS={pointer_addresses_str}]'
             filename = 'dump_menu_eng.txt'
@@ -314,7 +280,7 @@ def gaia_text_dumper(args):
         for config in TEXTS_CONFIGS:
             _, filename, pointers_offsets, _ = config['name'], config['filename'], config.get('pointers_offsets'), config.get('texts_offsets')
             end_byte, append_end_byte = config['end_byte'], config['append_end_byte']
-            tablename, mte_resolver, dict_resolver = config['tablename'], config['mte_resolver'], config['dict_resolver']
+            tablename = config['tablename']
             custom_after_read_text = config.get('custom_after_read_text')
             table = table1 if tablename == 'main' else table3
             #
@@ -330,7 +296,7 @@ def gaia_text_dumper(args):
                 text = gaia_read_text(f, text_offset, end_byte=end_byte, cmd_list=cmd_list, append_end_byte=append_end_byte)
                 if custom_after_read_text:
                     text += f.read(4)
-                text_decoded = table.decode(text, mte_resolver=mte_resolver, dict_resolver=dict_resolver)
+                text_decoded = table.decode(text)
                 pointers_offsets_str = ';'.join(hex(x) for x in pointers_offsets_list)
                 ref = f'[ID={current_id} START={hex(text_offset)} END={hex(f.tell() - 1)} POINTERS={pointers_offsets_str}]'
                 # dump - txt
@@ -356,7 +322,7 @@ def gaia_misc_dumper(args):
         for config in MISCS_CONFIGS:
             _, filename, pointers_offsets, texts_offsets = config['name'], config['filename'], config.get('pointers_offsets'), config.get('texts_offsets')
             end_byte, append_end_byte = config['end_byte'], config['append_end_byte']
-            tablename, mte_resolver, dict_resolver = config['tablename'], config['mte_resolver'], config['dict_resolver']
+            tablename = config['tablename']
             table = table1 if tablename == 'main' else table2 if tablename == 'menu' else table3
             filepath = dump_path / filename
             with open(filepath, 'w+', encoding='utf-8') as csv_file:
@@ -369,14 +335,14 @@ def gaia_misc_dumper(args):
                         bank_byte = pointer_offset & 0xff0000
                         text_offset = pointer_value[0] + (pointer_value[1] << 8) + bank_byte
                         text = gaia_read_text(f, text_offset, end_byte=end_byte, cmd_list=cmd_list, append_end_byte=append_end_byte)
-                        text_decoded = table.decode(text, mte_resolver=mte_resolver, dict_resolver=dict_resolver)
+                        text_decoded = table.decode(text)
                         fields = [hex(pointer_offset), hex(text_offset), text_decoded]
                         csv_writer.writerow(fields)
                 elif texts_offsets:
                     csv_writer.writerow(['text_address', 'text', 'trans'])
                     for text_offset in locations_text_offsets:
                         text = gaia_read_text(f, text_offset, end_byte=end_byte, cmd_list=cmd_list, append_end_byte=append_end_byte)
-                        text_decoded = table.decode(text, mte_resolver=mte_resolver, dict_resolver=dict_resolver)
+                        text_decoded = table.decode(text)
                         fields = [hex(text_offset), text_decoded]
                         csv_writer.writerow(fields)
 
@@ -436,7 +402,7 @@ def gaia_text_inserter(args):
                 continue
             text, offsets, pointers = value
             original_text_offset, _ = offsets
-            encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
+            encoded_text = table.encode(text[:-2])
             if len(encoded_text) < 5:
                 continue
             if f.tell() + len(encoded_text) > new_offset + 0x8_000:
@@ -469,7 +435,7 @@ def gaia_text_inserter(args):
         for block, value in list(dump_attacks.items())[:6]:
             text, _, _ = value
             pointers += struct.pack('<I', f.tell())[:2]
-            encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
+            encoded_text = table.encode(text[:-2])
             f.write(encoded_text)
         pointer_offset = f.tell()
         f.write(pointers)
@@ -477,7 +443,7 @@ def gaia_text_inserter(args):
         dialog = dump[1165]
         text, offsets, _ = dialog
         original_text_offset, _ = offsets
-        encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
+        encoded_text = table.encode(text[:-2])
         c5_index = encoded_text.find(b'\xc5')
         encoded_text = encoded_text[:c5_index + 1] + struct.pack('<I', pointer_offset)[:2] + encoded_text[c5_index + 3:]
         new_text_offset = f.tell()
@@ -494,7 +460,7 @@ def gaia_text_inserter(args):
         for block, value in list(dump_attacks.items())[6:]:
             text, _, _ = value
             pointers += struct.pack('<I', f.tell())[:2]
-            encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
+            encoded_text = table.encode(text[:-2])
             f.write(encoded_text)
         pointer_offset = f.tell()
         f.write(pointers)
@@ -502,7 +468,7 @@ def gaia_text_inserter(args):
         dialog = dump[1166]
         text, offsets, _ = dialog
         original_text_offset, _ = offsets
-        encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
+        encoded_text = table.encode(text[:-2])
         c5_index = encoded_text.find(b'\xc5')
         encoded_text = encoded_text[:c5_index + 1] + struct.pack('<I', pointer_offset)[:2] + encoded_text[c5_index + 3:]
         new_text_offset = f.tell()
@@ -523,7 +489,7 @@ def gaia_text_inserter(args):
             text, _, pointer_offsets = value
             for _ in range(0, len(pointer_offsets)):
                 pointers += struct.pack('<I', f.tell())[:2]
-            encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
+            encoded_text = table.encode(text[:-2])
             f.write(encoded_text)
         pointer_offset = f.tell()
         f.write(pointers)
@@ -531,7 +497,7 @@ def gaia_text_inserter(args):
         dialog = dump[1328]
         text, offsets, _ = dialog
         original_text_offset, _ = offsets
-        encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
+        encoded_text = table.encode(text[:-2])
         c5_index = encoded_text.find(b'\xc5')
         encoded_text = encoded_text[:c5_index + 1] + struct.pack('<I', pointer_offset)[:2] + encoded_text[c5_index + 3:]
         new_text_offset = f.tell()
@@ -547,7 +513,7 @@ def gaia_text_inserter(args):
         dialog = dump[1329]
         text, offsets, _ = dialog
         original_text_offset, _ = offsets
-        encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
+        encoded_text = table.encode(text[:-2])
         c5_index = encoded_text.find(b'\xc5')
         encoded_text = encoded_text[:c5_index + 1] + struct.pack('<I', pointer_offset)[:2] + encoded_text[c5_index + 3:]
         new_text_offset = f.tell()
@@ -563,7 +529,7 @@ def gaia_text_inserter(args):
         dialog = dump[1330]
         text, offsets, _ = dialog
         original_text_offset, _ = offsets
-        encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
+        encoded_text = table.encode(text[:-2])
         c5_index = encoded_text.find(b'\xc5')
         encoded_text = encoded_text[:c5_index + 1] + struct.pack('<I', pointer_offset)[:2] + encoded_text[c5_index + 3:]
         new_text_offset = f.tell()
@@ -584,7 +550,7 @@ def gaia_text_inserter(args):
         for block_id, value in dump.items():
             text, _, pointer_offsets = value
             pointer_value = struct.pack('<H', f1.tell() & 0x00ffff)
-            encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
+            encoded_text = table.encode(text[:-2])
             f1.write(encoded_text)
             for pointer_offset in pointer_offsets:
                 f2.seek(pointer_offset)
@@ -595,7 +561,7 @@ def gaia_text_inserter(args):
         for block_id, value in dump.items():
             text, _, pointer_offsets = value
             pointer_value = struct.pack('<H', f1.tell() & 0x00ffff)
-            encoded_text = table3.encode(text[:-2], mte_resolver=False, dict_resolver=False)
+            encoded_text = table3.encode(text[:-2])
             f1.write(encoded_text + b'\xca')
             for pointer_offset in pointer_offsets:
                 f2.seek(pointer_offset)
@@ -607,7 +573,7 @@ def gaia_text_inserter(args):
         for block_id, value in dump.items():
             text, offsets, _ = value
             original_text_offset, _ = offsets
-            encoded_text = table.encode(text[:-2], mte_resolver=True, dict_resolver=True)
+            encoded_text = table.encode(text[:-2])
             if len(encoded_text) < 5:
                 continue
             offsets_list.append((block_id, original_text_offset, f1.tell(), encoded_text[-1]))
@@ -642,7 +608,7 @@ def gaia_misc_inserter(args):
                 f2.seek(pointer_address)
                 f2.write(new_pointer_value)
             # text
-            encoded_text = table1.encode(text_value, mte_resolver=False, dict_resolver=False)
+            encoded_text = table1.encode(text_value)
             f1.write(encoded_text + b'\xc0')
             if f1.tell() > 0x9f_fff:
                 sys.exit('Text size exceeds!')
@@ -659,7 +625,7 @@ def gaia_misc_inserter(args):
             f2.seek(new_pointers_offsets[i])
             f2.write(new_pointer_value)
             # text
-            encoded_text = table1.encode(text_value, mte_resolver=False, dict_resolver=False)
+            encoded_text = table1.encode(text_value)
             f1.write(encoded_text + b'\xca')
             if f1.tell() > 0x6ffff:
                 sys.exit('Text size exceeds!')
@@ -674,7 +640,7 @@ def gaia_misc_inserter(args):
             f2.seek(new_pointers_offsets[i])
             f2.write(new_pointer_value)
             # text
-            encoded_text = table1.encode(text_value, mte_resolver=False, dict_resolver=False)
+            encoded_text = table1.encode(text_value)
             f1.write(encoded_text + b'\xca')
             if f1.tell() > 0x6ffff:
                 sys.exit('Text size exceeds!')
@@ -691,7 +657,7 @@ def gaia_misc_inserter(args):
             f2.seek(text_offset)
             f2.write(b'\xcd' + new_pointer_value + b'\xca')
             # text
-            encoded_text = table1.encode(text_value, mte_resolver=True, dict_resolver=False)
+            encoded_text = table1.encode(text_value)
             f1.write(encoded_text + b'\xca')
             if f1.tell() > 0x2f_fff:
                 sys.exit('Text size exceeds!')
@@ -700,7 +666,7 @@ def gaia_misc_inserter(args):
         for config in MISCS_CONFIGS[4:13]:
             _, filename, _, _ = config['name'], config['filename'], config.get('pointers_offsets'), config.get('texts_offsets')
             end_byte, _ = config['end_byte'], config['append_end_byte']
-            tablename, mte_resolver, dict_resolver = config['tablename'], config['mte_resolver'], config['dict_resolver']
+            tablename = config['tablename']
             table = table1 if tablename == 'main' else table2 if tablename == 'menu' else table3
             filepath = translation_path / filename
             translated_texts = get_csv_translated_texts(filepath)
@@ -711,7 +677,7 @@ def gaia_misc_inserter(args):
                     f2.seek(pointer_address)
                     f2.write(new_pointer_value)
                 # text
-                encoded_text = table.encode(text_value, mte_resolver=mte_resolver, dict_resolver=dict_resolver)
+                encoded_text = table.encode(text_value)
                 f1.write(encoded_text + end_byte)
                 if f1.tell() > 0x1fd24:
                     sys.exit('Text size exceeds!')
@@ -726,7 +692,7 @@ def gaia_misc_inserter(args):
                 f2.seek(pointer_address)
                 f2.write(new_pointer_value)
             # text
-            encoded_text = table3.encode(text_value, mte_resolver=False, dict_resolver=False)
+            encoded_text = table3.encode(text_value)
             f1.write(encoded_text + b'\xca')
             if f1.tell() > 0x3f_fff:
                 sys.exit('Text size exceeds!')

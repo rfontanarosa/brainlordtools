@@ -14,6 +14,7 @@ TABLE2="$RESOURCE_PATH/tables/Illusion of Gaia (I) [!].tbl"
 TABLE3="$RESOURCE_PATH/tables/illusion_of_gaia-menu.tbl"
 TABLE4="$RESOURCE_PATH/tables/illusion_of_gaia-intro.tbl"
 TABLE5="$RESOURCE_PATH/tables/illusion_of_gaia-intro_it.tbl"
+TABLE6="$RESOURCE_PATH/tables/illusion_of_gaia-ita_without_dict.tbl"
 
 DUMP_TEXT_PATH="$RESOURCE_PATH/dump_text"
 DUMP_MISC_PATH="$RESOURCE_PATH/dump_misc"
@@ -32,7 +33,7 @@ python "$TOOLS_PATH/gaia.py" dump_misc -s "$SOURCE" -t1 "$TABLE1" -t2 "$TABLE3" 
 python "$TOOLS_PATH/gaia.py" dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
 
 python "$TOOLS_PATH/gaia.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE2" -t3 "$TABLE5" -tp "$TRANSLATED_TEXT_PATH" -db "$DB" -u "$USER"
-python "$TOOLS_PATH/gaia.py" insert_misc -d "$DESTINATION" -t1 "$TABLE2" -t2 "$TABLE3" -t3 "$TABLE5" -tp "$TRANSLATED_MISC_PATH"
+python "$TOOLS_PATH/gaia.py" insert_misc -d "$DESTINATION" -t1 "$TABLE6" -t2 "$TABLE3" -t3 "$TABLE5" -tp "$TRANSLATED_MISC_PATH"
 python "$TOOLS_PATH/gaia.py" insert_gfx -d "$DESTINATION" -tp "$TRANSLATED_GFX_PATH"
 
 require_asar
