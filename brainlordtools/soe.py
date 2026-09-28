@@ -9,9 +9,9 @@ import pathlib
 import shutil
 import struct
 
-from rhtools3.Table import Table
 from rhutils.dump import extract_binary, insert_binary
 from rhutils.io import read_text, write_text
+from rhutils.table import Table
 
 # TEXT_POINTERS = (0x11D000, 0x11F32B)
 
@@ -147,7 +147,7 @@ def repoint_custom(filename, f, table, next_text_address=0x360000):
                             f.seek(p_address)
                             f.write(new_pointer)
                     trans = row.get('trans') or row.get('text')
-                    trans = table.encode(trans, mte_resolver=False, dict_resolver=False)
+                    trans = table.encode(trans)
                     next_text_address = write_text(f, next_text_address, trans, end_byte=b'\x00')
 
 def repoint(f, pointers, new_pointers, offset=0x40000):
@@ -214,7 +214,7 @@ def soe_misc_inserter(args):
         for _, (block_name, translated_texts) in enumerate(translated_blocks.items()):
             for _, (t_address, t_value) in enumerate(translated_texts.items()):
                 new_pointers[t_address] = t_new_address
-                t_value = table.encode(t_value, mte_resolver=False, dict_resolver=False)
+                t_value = table.encode(t_value)
                 if block_name not in ('npc_enemy_names1', 'npc_enemy_names2'):
                     t_new_address = write_text(f1, t_new_address, t_value, end_byte=b'\x00', limit=0x47712)
                 else:
@@ -241,7 +241,7 @@ def soe_misc_inserter(args):
             if block_name in ('npc_enemy_names1', 'npc_enemy_names2'):
                 for _, (t_address, t_value) in enumerate(translated_texts.items()):
                     new_pointers[t_address] = t_new_address
-                    t_value = table.encode(t_value, mte_resolver=False, dict_resolver=False)
+                    t_value = table.encode(t_value)
                     t_new_address = write_text(f1, t_new_address, t_value, end_byte=b'\x00')
         # repointing npc/enemies
         repoint_npc_enemy_names(f1, p_npc_enemy_names, new_pointers)
