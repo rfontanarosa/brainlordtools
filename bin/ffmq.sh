@@ -9,7 +9,7 @@ DB="$RESOURCE_PATH/db/$GAME_ID.sqlite3"
 SOURCE="$RESOURCE_PATH/roms/Final Fantasy - Mystic Quest (U) (V1.1).sfc"
 DESTINATION="$BRAINLORD_PATH/Final-Fantasy-Mystic-Quest-ITA/ffmq_new.sfc"
 
-TABLE1="$RESOURCE_PATH/tables/ffmq.tbl"
+TABLE1="$RESOURCE_PATH/tables/ffmq_without_dte.tbl"
 
 DUMP_MISC_PATH="$RESOURCE_PATH/dump_misc"
 

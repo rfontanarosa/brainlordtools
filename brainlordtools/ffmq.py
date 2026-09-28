@@ -10,10 +10,10 @@ import shutil
 import struct
 import sys
 
-from rhtools3.Table import Table
 from rhutils.dump import get_csv_translated_texts
 from rhutils.io import read_text, write_text
 from rhutils.snes import snes2pc_lorom, pc2snes_lorom
+from rhutils.table import Table
 
 def ffmq_misc_dumper(args):
     source_file = args.source_file
@@ -31,7 +31,7 @@ def ffmq_misc_dumper(args):
             while f.tell() < 0x64120:
                 text_address = f.tell()
                 text = read_text(f, text_address, length=16)
-                text_encoded = table.decode(text, mte_resolver=False, dict_resolver=False)
+                text_encoded = table.decode(text)
                 fields = [hex(text_address), text_encoded]
                 csv_writer.writerow(fields)
         # Items
@@ -42,7 +42,7 @@ def ffmq_misc_dumper(args):
             while f.tell() < 0x64420:
                 text_address = f.tell()
                 text = read_text(f, text_address, length=12)
-                text_encoded = table.decode(text, mte_resolver=False, dict_resolver=False)
+                text_encoded = table.decode(text)
                 fields = [hex(text_address), text_encoded]
                 csv_writer.writerow(fields)
         # Enemy Attacks
@@ -53,7 +53,7 @@ def ffmq_misc_dumper(args):
             while f.tell() < 0x64BA0:
                 text_address = f.tell()
                 text = read_text(f, text_address, length=12)
-                text_encoded = table.decode(text, mte_resolver=False, dict_resolver=False)
+                text_encoded = table.decode(text)
                 fields = [hex(text_address), text_encoded]
                 csv_writer.writerow(fields)
         # Enemy Names
@@ -64,7 +64,7 @@ def ffmq_misc_dumper(args):
             while f.tell() < 0x650C0:
                 text_address = f.tell()
                 text = read_text(f, text_address, length=16)
-                text_encoded = table.decode(text, mte_resolver=False, dict_resolver=False)
+                text_encoded = table.decode(text)
                 fields = [hex(text_address), text_encoded]
                 csv_writer.writerow(fields)
         # Statuses
@@ -76,7 +76,7 @@ def ffmq_misc_dumper(args):
                 text_address = snes2pc_lorom(struct.unpack('I', f1.read(3) + b'\x00')[0]) + 0x8000
                 f.seek(text_address)
                 text = read_text(f, text_address, end_byte=b'\x00')
-                text_encoded = table.decode(text, mte_resolver=False, dict_resolver=False)
+                text_encoded = table.decode(text)
                 fields = [hex(text_address), text_encoded]
                 csv_writer.writerow(fields)
 
@@ -89,28 +89,28 @@ def ffmq_misc_inserter(args):
         # Locations
         translated_texts = get_csv_translated_texts(translation_path / 'locations.csv')
         for _, (t_address, _, t_value) in enumerate(translated_texts):
-            text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
+            text = table.encode(t_value)
             if len(text) != 16:
                 sys.exit(f'"{t_value}" must encode to 16 bytes, got {len(text)}')
             write_text(f, t_address, text, length=16)
         # Items
         translated_texts = get_csv_translated_texts(translation_path / 'items.csv')
         for _, (t_address, _, t_value) in enumerate(translated_texts):
-            text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
+            text = table.encode(t_value)
             if len(text) != 12:
                 sys.exit(f'"{t_value}" must encode to 12 bytes, got {len(text)}')
             write_text(f, t_address, text, length=12)
         # Enemy Attacks
         translated_texts = get_csv_translated_texts(translation_path / 'enemy_attacks.csv')
         for _, (t_address, _, t_value) in enumerate(translated_texts):
-            text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
+            text = table.encode(t_value)
             if len(text) != 12:
                 sys.exit(f'"{t_value}" must encode to 12 bytes, got {len(text)}')
             write_text(f, t_address, text, length=12)
         # Enemy Names
         translated_texts = get_csv_translated_texts(translation_path / 'enemy_names.csv')
         for _, (t_address, _, t_value) in enumerate(translated_texts):
-            text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
+            text = table.encode(t_value)
             if len(text) != 16:
                 sys.exit(f'"{t_value}" must encode to 16 bytes, got {len(text)}')
             write_text(f, t_address, text, length=16)
@@ -119,7 +119,7 @@ def ffmq_misc_inserter(args):
         f.seek(0x7ff00)
         translated_texts = get_csv_translated_texts(translation_path / 'statuses.csv')
         for _, (_, _, t_value) in enumerate(translated_texts):
-            text = table.encode(t_value, mte_resolver=False, dict_resolver=False)
+            text = table.encode(t_value)
             f1.write(struct.pack('i', pc2snes_lorom(f.tell()))[:-1])
             f.write(text + b'\x00')
 
