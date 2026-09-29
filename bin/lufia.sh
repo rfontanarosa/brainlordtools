@@ -19,7 +19,7 @@ DUMP_GFX_PATH="$RESOURCE_PATH/dump_gfx"
 
 TRANSLATION_TEXT_PATH="$RESOURCE_PATH/translation_text"
 TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
-TANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
+TRANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
 
 python "$MANAGER_PATH/manager.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
 python "$MANAGER_PATH/manager.py" copy_file -s "$SOURCE" -d "$DESTINATION" || exit 1
@@ -31,7 +31,7 @@ python "$TOOLS_PATH/lufia.py" dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
 
 python "$TOOLS_PATH/lufia.py" insert_text -s "$SOURCE" -d "$DESTINATION" -t2 "$TABLE2" -tp "$TRANSLATION_TEXT_PATH" -db "$DB" -u "$USER"
 python "$TOOLS_PATH/lufia.py" insert_misc -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE3" -tp "$TRANSLATION_MISC_PATH"
-python "$TOOLS_PATH/lufia.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
+python "$TOOLS_PATH/lufia.py" insert_gfx -d "$DESTINATION" -tp "$TRANSLATION_GFX_PATH"
 
 require_asar
 asar "$RESOURCE_PATH/asm/hack.asm" "$DESTINATION"

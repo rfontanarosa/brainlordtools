@@ -12,7 +12,7 @@ TABLE1="$RESOURCE_PATH/tables/soe.tbl"
 DUMP_TEXT_PATH="$RESOURCE_PATH/dump_text"
 
 TRANSLATION_TEXT_PATH="$RESOURCE_PATH/translation_text"
-TANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
+TRANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
 TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
 TRANSLATION_CUSTOM_PATH="$RESOURCE_PATH/translation_custom"
 
@@ -24,7 +24,7 @@ source ./venv/bin/activate
 deactivate
 cd $CURRENT_PATH
 
-python "$TOOLS_PATH/soe.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
+python "$TOOLS_PATH/soe.py" insert_gfx -d "$DESTINATION" -tp "$TRANSLATION_GFX_PATH"
 python "$TOOLS_PATH/soe.py" insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -tp "$TRANSLATION_MISC_PATH"
 python "$TOOLS_PATH/soe.py" insert_custom -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -tp "$TRANSLATION_CUSTOM_PATH"
 

@@ -18,7 +18,7 @@ DUMP_MISC_PATH="$RESOURCE_PATH/dump_misc"
 DUMP_GFX_PATH="$RESOURCE_PATH/dump_gfx"
 DUMP_CREDITS_PATH="$RESOURCE_PATH/dump_credits"
 
-TANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
+TRANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
 TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
 
 python "$MANAGER_PATH/manager.py" crc_check -s "$SOURCE" -g "$GAME_ID" || exit 1
@@ -30,5 +30,5 @@ python "$TOOLS_PATH/neugier.py" dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_
 python "$TOOLS_PATH/neugier.py" dump_credits -s "$SOURCE" -t3 "$TABLE3" -dp "$DUMP_CREDITS_PATH"
 
 python "$TOOLS_PATH/neugier.py" insert_text -d "$DESTINATION" -t2 "$TABLE2" -db "$DB" -u "$USER"
-python "$TOOLS_PATH/neugier.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
+python "$TOOLS_PATH/neugier.py" insert_gfx -d "$DESTINATION" -tp "$TRANSLATION_GFX_PATH"
 python "$TOOLS_PATH/neugier.py" insert_misc -d "$DESTINATION" -t1 "$TABLE1" -t2 "$TABLE1" -tp "$TRANSLATION_MISC_PATH"

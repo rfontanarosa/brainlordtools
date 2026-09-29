@@ -14,7 +14,7 @@ DUMP_GFX_PATH="$RESOURCE_PATH/dump_gfx"
 DUMP_MISC_PATH="$RESOURCE_PATH/dump_misc"
 
 TRANSLATION_TEXT_PATH="$RESOURCE_PATH/translation_text"
-TANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
+TRANSLATION_GFX_PATH="$RESOURCE_PATH/translation_gfx"
 TRANSLATION_MISC_PATH="$RESOURCE_PATH/translation_misc"
 TRANSLATION_CUSTOM_PATH="$RESOURCE_PATH/translation_custom"
 
@@ -31,7 +31,7 @@ cd $CURRENT_PATH
 python "$TOOLS_PATH/soe.py" dump_gfx -s "$SOURCE" -dp "$DUMP_GFX_PATH"
 python "$TOOLS_PATH/soe.py" dump_misc -s "$SOURCE" -t1 "$TABLE1" -dp "$DUMP_MISC_PATH"
 
-python "$TOOLS_PATH/soe.py" insert_gfx -d "$DESTINATION" -tp "$TANSLATION_GFX_PATH"
+python "$TOOLS_PATH/soe.py" insert_gfx -d "$DESTINATION" -tp "$TRANSLATION_GFX_PATH"
 python "$TOOLS_PATH/soe.py" insert_misc -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -tp "$TRANSLATION_MISC_PATH"
 python "$TOOLS_PATH/soe.py" insert_custom -s "$SOURCE" -d "$DESTINATION" -t1 "$TABLE1" -tp "$TRANSLATION_CUSTOM_PATH"
 
