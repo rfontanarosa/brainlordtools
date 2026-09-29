@@ -105,7 +105,6 @@ def import_dump(db, source_dump_path, game_id) -> None:
     parse_dump_func = GAME_PARSERS.get(game_id, GAME_PARSERS['default'])
     sources = _resolve_dump_sources(source_dump_path)
     with sqlite3.connect(db) as conn:
-        conn.text_factory = str
         cur = conn.cursor()
         incremental_id = 0
         for source_path, filename in sources:
@@ -150,7 +149,6 @@ def import_translation(db, source_dump_path, user_name, original_dump_path, game
     parse_dump_func = GAME_PARSERS.get(game_id, GAME_PARSERS['default'])
     sources = _resolve_dump_sources(source_dump_path)
     with sqlite3.connect(db) as conn:
-        conn.text_factory = str
         cur = conn.cursor()
         by_location, by_id = set(), {}
         for id_, filename, file_index in select_text_file_locations(cur).fetchall():
@@ -212,7 +210,6 @@ def _safe_destination_path(destination_dump_path, filename):
 
 def export_translation(db, destination_dump_path, user_name, blocks, game_id=None) -> None:
   with sqlite3.connect(db) as conn:
-    conn.text_factory = str
     cur = conn.cursor()
     if user_name:
       rows = select_translation_by_author(cur, user_name, blocks).fetchall()

@@ -27,7 +27,6 @@ def brandish2_dumper(args):
 	db = args.database_file
 	table1 = Table(table1_file)
 	conn = sqlite3.connect(db)
-	conn.text_factory = str
 	cur = conn.cursor()
 	with open(source_file, "rb") as f:
 		# POINTERS
@@ -90,7 +89,6 @@ def brandish2_inserter(args):
 	table1 = Table(table1_file)
 	table2 = Table(table2_file)
 	conn = sqlite3.connect(db)
-	conn.text_factory = str
 	cur = conn.cursor()
 	with open(dest_file, 'r+b') as f:
 		f.seek(TEXT_BLOCK_START)

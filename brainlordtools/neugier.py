@@ -36,7 +36,6 @@ def neugier_text_dumper(args):
     db = args.database_file
     table = Table(table1_file)
     conn = sqlite3.connect(db)
-    conn.text_factory = str
     cur = conn.cursor()
     shutil.rmtree(dump_path, ignore_errors=True)
     dump_path.mkdir()
@@ -74,7 +73,6 @@ def neugier_text_inserter(args):
     user_name = args.user
     table = Table(table2_file)
     conn = sqlite3.connect(db)
-    conn.text_factory = str
     cur = conn.cursor()
     with open(dest_file, 'r+b') as f:
         # TEXT

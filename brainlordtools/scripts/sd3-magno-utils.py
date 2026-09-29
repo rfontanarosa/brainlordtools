@@ -22,7 +22,6 @@ user_name = 'clomax'
 if True:
 	""" IMPORT DUMP """
 	conn = sqlite3.connect(db)
-	conn.text_factory = str
 	cur = conn.cursor()
 	id = 1
 	for block, fileName in enumerate(fileNames):
@@ -53,7 +52,6 @@ if True:
 if True:
 	""" IMPORT TRANSLATION """
 	conn = sqlite3.connect(db)
-	conn.text_factory = str
 	cur = conn.cursor()
 	id = 1
 	for block, fileName in enumerate(fileNames):
@@ -84,7 +82,6 @@ if True:
 if True:
 	""" EXPORT """
 	conn = sqlite3.connect(db)
-	conn.text_factory = str
 	cur = conn.cursor()
 	for block, fileName in enumerate(fileNames):
 		filePath = os.path.join(translation_path, fileName)

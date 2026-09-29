@@ -75,7 +75,6 @@ def som_text_dumper(args):
     table = Table(table_file)
     table2 = Table(table2_file)
     conn = sqlite3.connect(db)
-    conn.text_factory = str
     cur = conn.cursor()
     shutil.rmtree(dump_path, ignore_errors=True)
     dump_path.mkdir()
@@ -169,7 +168,6 @@ def som_text_inserter(args):
     table = Table(table_file)
     table2 = Table(table2_file)
     conn = sqlite3.connect(db)
-    conn.text_factory = str
     cur = conn.cursor()
     with open(dest_file, 'r+b') as f:
         for block, block_pointers in enumerate(POINTERS_OFFSETS, start=1):

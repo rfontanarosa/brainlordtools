@@ -43,7 +43,6 @@ def bof_gemini_inserter(args):
 	user_name = args.user
 	table2 = Table(table2_file)
 	conn = sqlite3.connect(db)
-	conn.text_factory = str
 	cur = conn.cursor()
 	with open(dest_file, 'r+b') as f:
 		# BLOCK 1
@@ -140,7 +139,6 @@ def bof_mte_optimizer(args):
 	text_morpher_output_filename = os.path.join(temp_path, 'mteOptBoFText-morpher-output.txt')
 	with open(text_input_filename, 'w') as out:
 		conn = sqlite3.connect(db)
-		conn.text_factory = str
 		cur = conn.cursor()
 		cur.execute("SELECT text_encoded, new_text2, address, pointer_address, size FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s' AND trans.status = 2) AS t2 ON t1.id=t2.id_text" % user_name)
 		for row in cur:

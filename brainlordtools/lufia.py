@@ -37,7 +37,6 @@ def lufia_text_dumper(args):
     db = args.database_file
     table = Table(table1_file)
     conn = sqlite3.connect(db)
-    conn.text_factory = str
     cur = conn.cursor()
     shutil.rmtree(dump_path, ignore_errors=False)
     dump_path.mkdir()
@@ -185,7 +184,6 @@ def lufia_text_inserter(args):
     buffer = {}
     #
     conn = sqlite3.connect(db)
-    conn.text_factory = str
     cur = conn.cursor()
     rows = select_most_recent_translation(cur, ['1'])
     for row in rows:

@@ -314,7 +314,6 @@ def brainlord_text_dumper(args):
     shutil.rmtree(dump_path, ignore_errors=True)
     os.mkdir(dump_path)
     with sqlite3.connect(db) as conn:
-        conn.text_factory = str
         cur = conn.cursor()
         with open(source_file, 'rb') as f:
             current_id = 1
@@ -335,7 +334,6 @@ def brainlord_text_inserter(args):
     user_name = args.user
     table = Table(table2_file)
     with sqlite3.connect(db) as conn:
-        conn.text_factory = str
         cur = conn.cursor()
         # collect pointers
         NEW_TEXT_BLOCK1_START = NEW_TEXT_BLOCK1_END = 0x190000

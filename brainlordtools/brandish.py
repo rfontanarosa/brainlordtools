@@ -40,7 +40,6 @@ def brandish_text_dumper(args):
 	db = args.database_file
 	table1 = Table(table1_file)
 	conn = sqlite3.connect(db)
-	conn.text_factory = str
 	cur = conn.cursor()
 	shutil.rmtree(dump_path, ignore_errors=True)
 	os.mkdir(dump_path)
@@ -75,7 +74,6 @@ def brandish_text_inserter(args):
 	table1 = Table(table1_file)
 	table2 = Table(table2_file)
 	conn = sqlite3.connect(db)
-	conn.text_factory = str
 	cur = conn.cursor()
 	with open(dest_file, 'r+b') as f:
 		""" REPOINTER """

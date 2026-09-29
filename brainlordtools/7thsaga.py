@@ -436,7 +436,6 @@ def seventhsaga_text_dumper(args):
     db = args.database_file
     table = Table(table1_file)
     conn = sqlite3.connect(db)
-    conn.text_factory = str
     cur = conn.cursor()
     shutil.rmtree(dump_path, ignore_errors=True)
     dump_path.mkdir()
@@ -464,7 +463,6 @@ def seventhsaga_text_inserter(args):
     user_name = args.user
     table = Table(table2_file)
     conn = sqlite3.connect(db)
-    conn.text_factory = str
     cur = conn.cursor()
     # insert text into the new location and collect old and new text offsets
     NEW_TEXT_SEGMENT_1_START = NEW_TEXT_SEGMENT_1_END = 0x300000

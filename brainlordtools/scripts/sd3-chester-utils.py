@@ -82,7 +82,6 @@ def convertToMagno(text):
 	return text
 
 conn = sqlite3.connect(db)
-conn.text_factory = str
 cur = conn.cursor()
 with open(fullpath, 'rb') as f:
 	id = 1
@@ -119,7 +118,6 @@ if os.path.isfile(fullpathMagno):
 	os.remove(fullpathMagno)
 
 conn = sqlite3.connect(db)
-conn.text_factory = str
 cur = conn.cursor()
 with open(fullpathIta, 'ab') as f1, open(fullpathMagno, 'ab') as f2:
 	cur.execute("SELECT text, new_text, text_encoded, id, new_text2, id2 FROM texts AS t1 LEFT OUTER JOIN (SELECT * FROM trans WHERE trans.author='%s' AND trans.status = 2) AS t2 ON t1.id=t2.id_text ORDER BY t1.id" % user_name)
