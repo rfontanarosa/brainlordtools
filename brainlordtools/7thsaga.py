@@ -14,7 +14,7 @@ from pprint import pprint
 
 from rhutils.db import insert_text, select_most_recent_translation
 from rhutils.dump import extract_binary, get_csv_translated_texts, insert_binary
-from rhutils.io import read_text, write_byte, write_text
+from rhutils.io import read_text, write_bytes, write_text
 from rhutils.snes import decode_snes_addr, encode_snes_addr
 from rhutils.table import Table
 
@@ -521,10 +521,10 @@ def seventhsaga_text_inserter(args):
             elif byte == b'\xff':
                 repoint_3byte_pointer(f, f.tell(), text_offset_map, 'Text Block B')
         # repoint other pointers
-        write_byte(f, 0x1a2dc, b'\xf0')
-        write_byte(f, 0x1a31b, b'\xf0')
-        write_byte(f, 0x21898, b'\xf0')
-        write_byte(f, 0x21723, b'\xf0')
+        write_bytes(f, 0x1a2dc, b'\xf0')
+        write_bytes(f, 0x1a31b, b'\xf0')
+        write_bytes(f, 0x21898, b'\xf0')
+        write_bytes(f, 0x21723, b'\xf0')
         # hardcoded internal pointers (not at the beginning of text)
         repoint_2byte_pointer(f, 0x2b9a5, mid_text_offset_map_2byte, b'\xc6', 'Mid-Text (2-byte)') # 0x6e3bf
         repoint_2byte_pointer(f, 0x2bb64, mid_text_offset_map_2byte, b'\xc6', 'Mid-Text (2-byte)') # 0x6e447

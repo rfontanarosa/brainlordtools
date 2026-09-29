@@ -16,7 +16,7 @@ from _quintet.quintet_comp import compress as quintet_compress
 from _quintet.quintet_decomp import decompress as quintet_decompress
 from rhutils.db import insert_text
 from rhutils.dump import get_csv_translated_texts, read_dump
-from rhutils.io import fill, write_byte
+from rhutils.io import fill, write_bytes
 from rhutils.snes import pc2snes_hirom, snes2pc_hirom
 from rhutils.table import Table
 
@@ -700,7 +700,7 @@ def gaia_gfx_inserter(args):
     dest_file = args.dest_file
     translation_path = pathlib.Path(args.translation_path)
     with open (dest_file, 'r+b') as out, open(translation_path / '000b40_5HP_ita.bin', 'rb') as f:
-        write_byte(out, 0x000b40, f.read())
+        write_bytes(out, 0x000b40, f.read())
     with open (dest_file, 'r+b') as out:
         offset = 0x268_000
         # Font, Prologue font, Intro gfx, Intro data, Worldmap - Tileset

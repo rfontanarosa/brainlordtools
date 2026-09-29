@@ -13,7 +13,7 @@ import sys
 
 from rhutils.db import insert_text, select_translation_by_author
 from rhutils.dump import extract_binary, insert_binary, get_csv_translated_texts
-from rhutils.io import read_text, write_text
+from rhutils.io import read_text, write_bytes, write_text
 from rhutils.snes import snes2pc_lorom, pc2snes_lorom
 from rhutils.table import Table
 
@@ -130,8 +130,7 @@ def neugier_gfx_inserter(args):
         insert_binary(f, GFX_FONT_OFFSETS[0], translation_path / 'gfx_font.bin', max_length=GFX_FONT_OFFSETS[1] - GFX_FONT_OFFSETS[0])
         insert_binary(f, GFX_INTRO_OFFSETS[0], translation_path / 'gfx_intro.bin', max_length=GFX_INTRO_OFFSETS[1] - GFX_INTRO_OFFSETS[0])
         # VWF - widths of à è é ì ò ù È (codes 0x50-0x56)
-        f.seek(VWF_WIDTHS_START + 0x50)
-        f.write(bytes([7, 7, 7, 4, 7, 8, 8]))
+        write_bytes(f, VWF_WIDTHS_START + 0x50, bytes([7, 7, 7, 4, 7, 8, 8]))
 
 def neugier_misc_dumper(args):
     source_file = args.source_file

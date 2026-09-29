@@ -51,15 +51,15 @@ def write_text(
         raise BufferError(f"Write operation exceeded limit! Current: {hex(current_pos)}, Limit: {hex(limit)}")
     return current_pos
 
-def write_byte(f: BinaryIO, offset: int, byte: Union[int, bytes])-> None:
+def write_bytes(f: BinaryIO, offset: int, data: Union[int, bytes])-> None:
     """
-    Writes a single byte to the specified offset.
-    Converts integer values (0-255) to raw bytes automatically.
+    Writes bytes to the specified offset.
+    Converts integer values (0-255) to a single raw byte automatically.
     """
     f.seek(offset)
-    if isinstance(byte, int):
-        byte = bytes([byte])
-    f.write(byte)
+    if isinstance(data, int):
+        data = bytes([data])
+    f.write(data)
 
 def fill(f: BinaryIO, offset: int, length: int, byte: bytes = b'\x00') -> None:
     """
