@@ -87,7 +87,7 @@ def neugier_text_inserter(args):
             text_encoded = table.encode(text)
             new_text_address = f.tell()
             if new_text_address + len(text_encoded) > (TEXT_BLOCK1_LIMIT + 1):
-                sys.exit('CRITICAL ERROR! ID {} - BLOCK {} - TEXT_BLOCK_LIMIT! {} > {} ({})'.format(id, 1, next_text_address + len(text_decoded), TEXT_BLOCK1_LIMIT, (TEXT_BLOCK1_LIMIT - next_text_address - len(text_decoded))))
+                sys.exit('CRITICAL ERROR! ID {} - BLOCK {} - TEXT_BLOCK_LIMIT! {} > {} ({})'.format(id, 1, new_text_address + len(text_encoded), TEXT_BLOCK1_LIMIT, (TEXT_BLOCK1_LIMIT - new_text_address - len(text_encoded))))
             if new_text_address < TEXT_BLOCK1_START + 0x8000 and new_text_address + len(text_encoded) >= TEXT_BLOCK1_START + 0x8000:
                 new_text_address = TEXT_BLOCK1_START + 0x8000
             f.seek(new_text_address)
