@@ -51,7 +51,7 @@ def neugier_text_dumper(args):
         # TEXT 1
         current_id = 1
         for _, (text_address, pointer_addresses) in enumerate(pointers.items()):
-            pointer_addresses_str = ';'.join(str(hex(x)) for x in pointer_addresses)
+            pointer_addresses_str = ';'.join(hex(x) for x in pointer_addresses)
             text = read_text(f, text_address, end_byte=b'\x00')
             text_decoded = table.decode(text)
             ref = f'[ID={current_id} START={hex(text_address)} END={hex(f.tell() -1)} POINTERS={pointer_addresses_str}]'

@@ -125,7 +125,7 @@ def som_text_dumper(args):
                 pointers[0x19feea] = [0x7B9B]
             # TEXT
             for _, (text_address, pointer_addresses) in enumerate(pointers.items()):
-                pointer_addresses_str = ';'.join(str(hex(x)) for x in pointer_addresses)
+                pointer_addresses_str = ';'.join(hex(x) for x in pointer_addresses)
                 text = som_read_text(f, text_address, end_byte=b'\x00', cmd_list=cmd_list, append_end_byte=True)
                 # CREDITS
                 if current_id == 1278:
