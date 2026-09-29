@@ -49,19 +49,19 @@ def neugier_text_dumper(args):
             text_address = snes2pc_lorom(struct.unpack('i', p_value[1:] + bytes([p_value[0]]) + b'\x00')[0])
             pointers.setdefault(text_address, []).append(p_address)
         # TEXT 1
-        current_id = 1
-        for _, (text_address, pointer_addresses) in enumerate(pointers.items()):
-            pointer_addresses_str = ';'.join(hex(x) for x in pointer_addresses)
-            text = read_text(f, text_address, end_byte=b'\x00')
-            text_decoded = table.decode(text)
-            ref = f'[ID={current_id} START={hex(text_address)} END={hex(f.tell() -1)} POINTERS={pointer_addresses_str}]'
-            filename = 'dump_eng.txt'
-            # dump - db
-            insert_text(cur, current_id, text_decoded, text_address, pointer_addresses_str, len(text), 1, ref, 'default', filename, current_id)
-            # dump - txt
-            with open(dump_path / filename, 'a+', encoding='utf-8') as out:
+        filename = 'dump_eng.txt'
+        with open(dump_path / filename, 'w', encoding='utf-8') as out:
+            current_id = 1
+            for _, (text_address, pointer_addresses) in enumerate(pointers.items()):
+                pointer_addresses_str = ';'.join(hex(x) for x in pointer_addresses)
+                text = read_text(f, text_address, end_byte=b'\x00')
+                text_decoded = table.decode(text)
+                ref = f'[ID={current_id} START={hex(text_address)} END={hex(f.tell() -1)} POINTERS={pointer_addresses_str}]'
+                # dump - db
+                insert_text(cur, current_id, text_decoded, text_address, pointer_addresses_str, len(text), 1, ref, 'default', filename, current_id)
+                # dump - txt
                 out.write(f'{ref}\n{text_decoded}\n\n')
-            current_id += 1
+                current_id += 1
     cur.close()
     conn.commit()
     conn.close()
