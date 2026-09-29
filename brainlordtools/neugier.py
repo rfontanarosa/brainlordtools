@@ -174,7 +174,7 @@ def neugier_misc_inserter(args):
         for t_address, _, t_value in translated_texts:
             text = t_value.encode()
             if len(text) != 10:
-                sys.exit(f'{t_value} exceeds 10')
+                sys.exit(f'"{t_value}" must encode to 10 bytes, got {len(text)}')
             write_text(f, t_address, text, length=10)
         # Credits
         insert_binary(f, 0xd0919, translation_path / 'credits.bin', max_length=0xd0f37 - 0xd0919)
