@@ -13,7 +13,7 @@ import sys
 
 from rhutils.db import insert_text, select_translation_by_author
 from rhutils.dump import extract_binary, insert_binary, get_csv_translated_texts
-from rhutils.io import read_text, write_text, write_byte
+from rhutils.io import read_text, write_text
 from rhutils.snes import snes2pc_lorom, pc2snes_lorom
 from rhutils.table import Table
 
@@ -28,6 +28,8 @@ GFX_TITLE = (0x1da00, 0x20000)
 GFX_STATUS_OFFSETS = (0x26200, 0x26800)
 GFX_FONT_OFFSETS = (0x28000, 0x28980)
 GFX_INTRO_OFFSETS = (0x29200, 0x2a800)
+
+VWF_WIDTHS_START = 0x110000
 
 def neugier_text_dumper(args):
     source_file = args.source_file
@@ -127,14 +129,9 @@ def neugier_gfx_inserter(args):
         insert_binary(f, GFX_STATUS_OFFSETS[0], translation_path / 'gfx_status.bin', max_length=GFX_STATUS_OFFSETS[1] - GFX_STATUS_OFFSETS[0])
         insert_binary(f, GFX_FONT_OFFSETS[0], translation_path / 'gfx_font.bin', max_length=GFX_FONT_OFFSETS[1] - GFX_FONT_OFFSETS[0])
         insert_binary(f, GFX_INTRO_OFFSETS[0], translation_path / 'gfx_intro.bin', max_length=GFX_INTRO_OFFSETS[1] - GFX_INTRO_OFFSETS[0])
-        # VWF
-        write_byte(f, 0x110050, b'\x07')
-        write_byte(f, 0x110051, b'\x07')
-        write_byte(f, 0x110052, b'\x07')
-        write_byte(f, 0x110053, b'\x04')
-        write_byte(f, 0x110054, b'\x07')
-        write_byte(f, 0x110055, b'\x08')
-        write_byte(f, 0x110056, b'\x08')
+        # VWF - widths of à è é ì ò ù È (codes 0x50-0x56)
+        f.seek(VWF_WIDTHS_START + 0x50)
+        f.write(bytes([7, 7, 7, 4, 7, 8, 8]))
 
 def neugier_misc_dumper(args):
     source_file = args.source_file
