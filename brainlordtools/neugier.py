@@ -11,11 +11,11 @@ import sqlite3
 import struct
 import sys
 
-from rhtools3.Table import Table
 from rhutils.db import insert_text, select_translation_by_author
 from rhutils.dump import extract_binary, insert_binary, get_csv_translated_texts
 from rhutils.io import read_text, write_text, write_byte
 from rhutils.snes import snes2pc_lorom, pc2snes_lorom
+from rhutils.table import Table
 
 POINTER_BLOCK1_START = 0x11010
 POINTER_BLOCK1_END = POINTER_BLOCK1_LIMIT = 0x112ac
